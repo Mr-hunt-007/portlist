@@ -462,6 +462,33 @@ class Tui:
                                "" if not g["mcp_count"] else
                                ", %d stdio MCP" % g["mcp_count"]),
                             C_VIOLET if g["ai"] else C_DIM))
+                # What this starter is on record for, which is a different
+                # question from what it still has listening: a session that
+                # exited an hour ago still has a history, and the services it
+                # started may have gone with it.
+                past = ledger.by_starter(g.get("kind"))
+                if past:
+                    ports_now = {svc["port"] for svc in g["services"]}
+                    shown = 0
+                    for rec in past:
+                        if shown >= 3:
+                            break
+                        port = rec.get("port")
+                        if port in ports_now:
+                            continue          # it is in the list underneath
+                        ago = _ago(time.time() - (rec.get("ts") or 0))
+                        out.append(("head", "    started :%-6s %-18s %s%s ago, since gone"
+                                    % (port, (rec.get("service") or "?")[:18],
+                                       (rec.get("project") or ""), " " + ago), C_DIM))
+                        shown += 1
+                    first = past[-1].get("ts")
+                    last = past[0].get("ts")
+                    if first:
+                        out.append(("head", "    %d launch%s on record, first %s ago, most recent %s ago"
+                                    % (len(past), "" if len(past) == 1 else "es",
+                                       _ago(time.time() - first),
+                                       _ago(time.time() - last)), C_DIM))
+
                 by_id = {r["id"]: r for r in live}
                 for svc in sorted(g["services"], key=lambda x: x["port"]):
                     r = by_id.get(svc["id"])

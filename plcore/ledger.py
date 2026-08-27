@@ -502,6 +502,26 @@ def events(limit=200, sig=None):
     return list(reversed(out))[:limit]
 
 
+def by_starter(kind, limit=200):
+    """-> launches this starter kind is on record for, newest first.
+
+    The ledger already knows who started every service it ever saw, so an
+    agent's history is a filter over it rather than anything new to collect.
+    Only `launch` and `respawn` count: a stop is the end of a service, not
+    something the agent did.
+    """
+    out = []
+    for rec in events(limit=limit):
+        if rec.get("event") not in ("launch", "respawn"):
+            continue
+        who = rec.get("starter") or {}
+        if kind and who.get("kind") != kind:
+            continue
+        out.append(rec)
+    out.sort(key=lambda r: r.get("ts") or 0, reverse=True)
+    return out
+
+
 def forget():
     """Used by the tests, and by anyone who wants to start the record again."""
     global _mem, _by_sig, _dirty, _pending

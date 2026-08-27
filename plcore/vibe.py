@@ -105,7 +105,11 @@ def load():
             # Off unless somebody asks for it. A tool that quietly starts drawing
             # pictures behind your data has changed what it is without asking.
             "bg": str(d.get("bg") or ""),
-            "bg_opacity": max(0, min(BG_MAX, op))}
+            "bg_opacity": max(0, min(BG_MAX, op)),
+            # auto flips a picture that is mostly light, so what gets drawn is
+            # the ink somebody drew rather than the paper it sits on.
+            "bg_invert": (d.get("bg_invert") if d.get("bg_invert") in ("auto", "on", "off")
+                          else "auto")}
 
 
 def save(settings):
@@ -141,6 +145,7 @@ class Vibe:
         self.auto = s["auto"]
         self.bg = s["bg"]
         self.bg_opacity = s["bg_opacity"]
+        self.bg_invert = s["bg_invert"]
         self.bg_cache = None          # (path, mtime, cols, rows) -> grid
         self.bg_grid = None
         self.bg_note = ""
@@ -184,7 +189,8 @@ class Vibe:
         else:
             return False
         save({"theme": self.theme, "speed": self.speed, "auto": self.auto,
-              "bg": self.bg, "bg_opacity": self.bg_opacity})
+              "bg": self.bg, "bg_opacity": self.bg_opacity,
+              "bg_invert": self.bg_invert})
         return True
 
     # ------------------------------------------------------------- painting
@@ -280,14 +286,15 @@ class Vibe:
         cols, rows = max(1, w - 2), max(1, h - 4)
         key = None
         try:
-            key = (self.bg, os.path.getmtime(self.bg), cols, rows)
+            key = (self.bg, os.path.getmtime(self.bg), cols, rows, self.bg_invert)
         except OSError as e:
             self.bg_note = "background unreadable: %s" % (e.strerror or "no such file")
             self.bg = ""
             return
         if key != self.bg_cache:
             try:
-                self.bg_grid = imgmap.cells(self.bg, cols, rows)
+                flip = {"auto": "auto", "on": True, "off": False}[self.bg_invert]
+                self.bg_grid = imgmap.cells(self.bg, cols, rows, invert=flip)
                 self.bg_note = ""
             except imgmap.Unsupported as e:
                 self.bg_note = "background: %s" % e

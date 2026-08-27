@@ -132,14 +132,28 @@ def load(path):
     return width, height, lum
 
 
-def cells(path, cols, rows, cell_aspect=2.1):
+def cells(path, cols, rows, cell_aspect=2.1, invert="auto"):
     """-> [[0.0..1.0]] with one value per terminal cell.
 
     A character cell is about twice as tall as it is wide, so the source is
     sampled with that ratio built in. Without it every picture comes out
     squashed and nobody can tell what it is.
+
+    `invert` decides which end of the image becomes ink on screen. A terminal
+    draws light characters on a dark ground, so a photograph maps naturally:
+    bright areas become dense. A drawing on white paper maps backwards, and the
+    first time a paper-white plate was used as a background the terminal filled
+    with a solid wall of characters where the paper was and left the drawing
+    blank. On "auto" an image whose average is bright is flipped, so what gets
+    drawn is the ink somebody actually drew.
     """
     w, h, lum = load(path)
+    if invert == "auto":
+        flip = (sum(lum) / float(len(lum) or 1)) > 140
+    else:
+        flip = bool(invert)
+    if flip:
+        lum = bytearray(255 - v for v in lum)
     if not w or not h or cols < 1 or rows < 1:
         return []
     # fit the picture inside the grid, keeping its shape

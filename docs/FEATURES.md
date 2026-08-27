@@ -52,6 +52,12 @@ guessing.
 
 ## Who started it
 
+- **What an agent has already started.** The agents view lists each session's
+  history from the ledger: services it launched that are since gone, how many
+  launches it is on record for, and how long ago the first and most recent were.
+  A session that exited an hour ago still has a history, and that is usually the
+  question being asked of it.
+
 - **Process ancestry first, environment second.** Claude Code, Codex, Cursor,
   Copilot, Aider, Goose, Windsurf, VS Code, a terminal, `launchd`, `systemd`, a
   container runtime.

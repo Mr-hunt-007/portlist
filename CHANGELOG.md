@@ -18,6 +18,14 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   text look dirty. Each scene sets how much it carries, so the network scene
   takes 40 per cent of whatever you choose and the cockpit takes all of it.
   Sixty is the ceiling because past that the picture wins.
+- **The agents view shows what each session has already started**, from the
+  ledger: launches that are since gone, the count on record, and how long ago
+  the first and most recent were. A session that has exited still has a history,
+  and that is usually the question being asked of it.
+- **A light picture is flipped before it is drawn as a background.** A
+  paper-white plate filled the terminal with characters where the paper was and
+  left the drawing blank; `imgmap.cells` now inverts an image whose average is
+  bright, so what shows is the ink. `bg_invert` overrides it.
 - **A sixth vibe scene, `grid`**: every listening service as a tile, so a machine
   with four services and one with forty look different from across a room.
 

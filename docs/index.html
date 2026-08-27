@@ -178,6 +178,21 @@ h1 em{font-style:normal; color:var(--shu)}
   color:var(--grey); padding:4px 10px; cursor:pointer}
 .crtbtn[aria-pressed="true"]{border-color:var(--shu); color:var(--shu)}
 
+/* a dark band across the hero: paper, then ink, then the terminal. The page is
+   warm paper everywhere else, so one full-bleed black plate is the only place
+   the value flips, and it lands where the reader is about to meet a terminal. */
+.bleed{position:relative; width:100vw; margin-left:calc(50% - 50vw);
+  height:clamp(190px,25vw,340px); background:#040404 center/cover no-repeat;
+  background-image:url("plate-terminal.png"); margin-top:52px;
+  border-top:1px solid var(--ink); border-bottom:1px solid var(--ink)}
+.bleed::after{content:""; position:absolute; inset:auto 0 0 0; height:96px;
+  background:linear-gradient(180deg, rgba(4,4,4,0), rgba(4,4,4,.85)); pointer-events:none}
+.bleed .tag{z-index:1; position:absolute; left:max(24px,calc(50vw - 570px)); bottom:18px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.22em; text-transform:uppercase;
+  color:#8C8378}
+.bleed .tag b{color:#E7E2D8; font-weight:400}
+@media (max-width:700px){ .bleed .tag{left:22px} }
+
 /* the observatory plate, full bleed, cropped like a magazine spread */
 .spread{margin:104px 0 0; position:relative}
 .spread img{width:100%; height:auto; display:block; filter:contrast(1.03)}
@@ -322,11 +337,18 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
       <path d="M0 46 C 180 46, 240 12, 420 12 S 700 50, 900 30 S 1120 8, 1200 16"></path>
     </svg>
   </div>
+
+  <div class="bleed" role="img"
+       aria-label="A dithered image of somebody sitting at a CRT monitor in a dark room, drawn
+                   in red, green and blue subpixel dots on black.">
+    <span class="tag"><b>Plate 01</b> &nbsp;&mdash;&nbsp; the machine, at the hour you forget
+      what you left running</span>
+  </div>
 </header>
 
 <div class="wrap plate">
   <div class="caption">
-    <b>Plate 01 &nbsp;&mdash;&nbsp; the program itself</b>
+    <b>Plate 02 &nbsp;&mdash;&nbsp; the program itself</b>
     <span class="meta">press 0-9, V, or use the keys below</span>
   </div>
   <button class="crtbtn" id="crt" type="button" aria-pressed="false">CRT</button>
@@ -691,7 +713,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
             margins, and four vertical kanji marks reading observation, listening,
             origin and danger.">
   <div class="band">
-    <b>Plate 02 &nbsp;&mdash;&nbsp; 観測図</b>
+    <b>Plate 03 &nbsp;&mdash;&nbsp; 観測図</b>
     <span class="meta">observation chart</span>
   </div>
   <figcaption>The same four marks this page is organised around: 観測 observation,
@@ -823,7 +845,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
 <span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
  j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
       </div></div></div>
-      <div class="band"><b>Plate 03 &nbsp;&mdash;&nbsp; エージェント</b><span class="meta">agent sessions</span></div>
+      <div class="band"><b>Plate 04 &nbsp;&mdash;&nbsp; エージェント</b><span class="meta">agent sessions</span></div>
       <figcaption>Six tools, each read from the store it already writes. The generated title, the first prompt you typed, the project, the turn count, and the context each session is carrying, which is the number that decides what to clear. It also shows which plan each tool is signed in under. Prompts never leave the machine.</figcaption>
     </figure>
 
@@ -861,7 +883,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
 <span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
  j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
       </div></div></div>
-      <div class="band"><b>Plate 04 &nbsp;&mdash;&nbsp; 系統</b><span class="meta">grouped by who started it</span></div>
+      <div class="band"><b>Plate 05 &nbsp;&mdash;&nbsp; 系統</b><span class="meta">grouped by who started it</span></div>
       <figcaption>The same services, grouped by the thing that started them. Eleven under one agent session is a fact about your machine that a flat list hides, and the group says whether that session is still running or has since exited.</figcaption>
     </figure>
   </div>

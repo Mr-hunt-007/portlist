@@ -177,19 +177,30 @@ def write_png(path, w, h, rgb):
     return len(body)
 
 
+PLATES = [("plate-observatory", 1280), ("plate-terminal", 1400)]
+
+
 def main():
-    width = int(sys.argv[1]) if len(sys.argv) > 1 else 1280
+    """Usage: gen_plate.py [name] [width]. With no arguments, does them all."""
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    src = os.path.join(root, "docs", "plate-observatory-source.png")
-    dst = os.path.join(root, "docs", "plate-observatory.png")
+    jobs = PLATES
+    if len(sys.argv) > 1:
+        jobs = [(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 1280)]
+    for name, width in jobs:
+        one(root, name, width)
+
+
+def one(root, name, width):
+    src = os.path.join(root, "docs", name + "-source.png")
+    dst = os.path.join(root, "docs", name + ".png")
     if not os.path.exists(src):                 # first run: keep the original aside
         os.rename(dst, src)
     w, h, rgb = read_rgb(src)
     ow, oh, small = resize(w, h, rgb, width)
     pal, idx = quantise(ow, oh, small)
     size = write_indexed(dst, ow, oh, pal, idx)
-    print("%dx%d (%d KB)  ->  %dx%d indexed, %d colours (%d KB)"
-          % (w, h, os.path.getsize(src) // 1024, ow, oh, len(pal), size // 1024))
+    print("%-18s %dx%d (%d KB)  ->  %dx%d indexed, %d colours (%d KB)"
+          % (name, w, h, os.path.getsize(src) // 1024, ow, oh, len(pal), size // 1024))
 
 
 if __name__ == "__main__":

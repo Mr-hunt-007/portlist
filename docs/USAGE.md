@@ -54,7 +54,7 @@ rescans and never moves your selection to a different service.
 | `2` | exposed | reachable from beyond this machine |
 | `3` | attention | critical, high and medium risk |
 | `4` | leftovers | looks abandoned, with the measurements behind the guess |
-| `5` | agents | grouped by the agent, editor or terminal that started it |
+| `5` | agents | grouped by the agent, editor or terminal that started it, with what each one has started before |
 | `6` | containers | by compose project, and the host ports they hold |
 | `7` | sessions | coding-agent sessions, what they were about, context used |
 | `8` | system | this machine: load, memory, disks, network, exposure |
@@ -200,6 +200,12 @@ theme has. Two things follow, both deliberate:
 - **Each scene decides how much it can carry.** The cockpit and machine scenes
   are mostly air and take it at full strength; the network scene is already
   lines and nodes on empty space, so it gets 40 per cent of whatever you set.
+
+A picture that is mostly light is **flipped** before it is drawn, so what shows
+is the ink somebody drew rather than the paper it sits on. The first time a
+paper-white plate was used as a background the terminal filled with a solid wall
+of characters where the paper was and left the drawing blank. Set `bg_invert` in
+`vibe.json` to `on` or `off` to decide for yourself.
 
 It costs about half a percent of one core, measured, and nothing when it is off.
 

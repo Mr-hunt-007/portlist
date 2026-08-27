@@ -25,7 +25,8 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 - **A light picture is flipped before it is drawn as a background.** A
   paper-white plate filled the terminal with characters where the paper was and
   left the drawing blank; `imgmap.cells` now inverts an image whose average is
-  bright, so what shows is the ink. `bg_invert` overrides it.
+  bright, so what shows is the ink, and `B` cycles that guess between `auto`,
+  `on` and `off` against the picture in front of you.
 - **A sixth vibe scene, `grid`**: every listening service as a tile, so a machine
   with four services and one with forty look different from across a room.
 

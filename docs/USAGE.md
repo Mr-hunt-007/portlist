@@ -168,6 +168,7 @@ Inside vibe mode, four keys do not exit:
 | `n` | next scene now |
 | `A` | whether it may arrive on its own after thirty idle seconds |
 | `b` | how strongly the background picture shows, if you set one |
+| `B` | which end of that picture becomes ink: `auto`, `on`, `off` |
 
 Choices are remembered in `~/.portlist/vibe.json`.
 
@@ -204,8 +205,10 @@ theme has. Two things follow, both deliberate:
 A picture that is mostly light is **flipped** before it is drawn, so what shows
 is the ink somebody drew rather than the paper it sits on. The first time a
 paper-white plate was used as a background the terminal filled with a solid wall
-of characters where the paper was and left the drawing blank. Set `bg_invert` in
-`vibe.json` to `on` or `off` to decide for yourself.
+of characters where the paper was and left the drawing blank. The guess reads
+the picture's average brightness and is occasionally wrong about it, so `B`
+cycles between `auto`, `on` and `off` while the picture is in front of you, the
+same way `b` tunes the density. Both land in `vibe.json`.
 
 It costs about half a percent of one core, measured, and nothing when it is off.
 

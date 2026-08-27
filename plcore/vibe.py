@@ -186,6 +186,13 @@ class Vibe:
             here = min(range(len(steps)), key=lambda i: abs(steps[i] - self.bg_opacity))
             self.bg_opacity = steps[(here + 1) % len(steps)]
             self.bg_grid = self.bg_cache = None
+        elif ch == ord("B"):
+            # The auto guess reads the picture's average brightness, which is
+            # right for most of them and wrong for the rest. This is the way to
+            # say so without editing json.
+            order = ("auto", "on", "off")
+            self.bg_invert = order[(order.index(self.bg_invert) + 1) % len(order)]
+            self.bg_grid = self.bg_cache = None
         else:
             return False
         save({"theme": self.theme, "speed": self.speed, "auto": self.auto,
@@ -377,6 +384,8 @@ class Vibe:
         self.t.put(h - 2, max(3, w - len(right) - 2), right, self.c("dim"))
         hint = "any key returns   t theme   s speed   n scene   b background %s" % (
             ("%d%%" % self.bg_opacity) if (self.bg and self.bg_opacity) else "off")
+        if self.bg and self.bg_opacity:
+            hint += "   B ink %s" % self.bg_invert
         if self.bg_note:
             hint = self.bg_note
         if w > len(hint) + 6:

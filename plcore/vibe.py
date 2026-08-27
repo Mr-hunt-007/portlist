@@ -506,15 +506,32 @@ class Vibe:
                         taken[x] = 1
                 except curses.error:
                     taken[x] = 1
+            # Keep out of the whole span a row occupies, not just off its
+            # individual characters. A margin around each glyph leaves the gaps
+            # *between columns* open, and a table has wide ones: at a low
+            # density almost nothing landed in them, and at full density every
+            # one filled with stipple, so ":9050 Tor" came out as
+            # ":9050 Tor ----:+*****". The space between two columns is part of
+            # the table, not background, and raising the dial to 100 is what
+            # made that visible.
             near = bytearray(width)
-            for x in range(width):
-                if taken[x]:
-                    for k in range(max(0, x - margin), min(width, x + margin + 1)):
-                        near[k] = 1
+            used = [x for x in range(width) if taken[x]]
+            if used:
+                lo = max(0, used[0] - margin)
+                hi = min(width, used[-1] + margin + 1)
+                for k in range(lo, hi):
+                    near[k] = 1
             for x, v in enumerate(line):
                 if near[x]:
                     continue
-                step = int(round(v * strength * top * 1.6))
+                # No gain. The 1.6 here was tuned when the dial stopped at
+                # 60, which it reached the top of the ramp at; carrying it past
+                # that only clipped, and at 100 a third of the picture came out
+                # as solid blocks with no detail left in it. Straight through,
+                # the dial's top means the full tonal range and nothing crushed,
+                # and every step below is a genuinely different density rather
+                # than a different amount of clipping.
+                step = int(round(v * strength * top))
                 if step > 0:
                     self.t.put(yy, x + 1, ramp[min(step, top)], self.c("dim"))
 

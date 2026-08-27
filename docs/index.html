@@ -92,6 +92,14 @@ header::before{content:""; position:absolute; inset:-6% -12% auto -12%; height:1
   opacity:.14; mix-blend-mode:multiply; pointer-events:none; z-index:0}
 header > .wrap{position:relative; z-index:1}
 .wrap{max-width:1220px; margin:0 auto; padding:0 40px; position:relative; z-index:1}
+/* The question people actually arrive with, set as a question. It is the only
+   place on the page where the reader is addressed directly, so it gets the
+   display face at size and then gets out of the way. */
+.problem{padding:96px 0 20px}
+.problem .ask{font-family:var(--disp); font-size:clamp(26px,3.6vw,44px); line-height:1.22;
+  letter-spacing:-.01em; max-width:20ch; margin:0 0 28px; text-wrap:balance}
+.problem .answer{max-width:66ch; margin:0 0 18px; color:var(--grey)}
+.problem .answer strong{color:var(--ink)}
 @media(max-width:700px){ .wrap{padding:0 22px} }
 a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--rule)}
 a:hover{border-bottom-color:var(--shu); color:var(--shu)}
@@ -363,7 +371,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
         <dl>
           <dt>Listening</dt><dd>12<small>services on this host</small></dd>
           <dt>Off-box</dt><dd>02<small>reachable from the network</small></dd>
-          <dt>Agents</dt><dd>06<small>tools read, never written to</small></dd>
+          <dt>AI agents</dt><dd>06<small>coding tools read, never written to</small></dd>
           <dt>Telemetry</dt><dd>00<small>nothing leaves the machine</small></dd>
         </dl>
       </div>
@@ -748,6 +756,20 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
 
 <main>
 
+<section class="problem" id="problem">
+  <div class="wrap">
+    <p class="ask rise">Does anyone else end up with a pile of things running on localhost and
+      forget what half of them are?</p>
+    <p class="answer rise">A dev server, two APIs, a database, a container, a tunnel. You started
+      some. <strong>Claude, Cursor and Codex started the rest</strong>, days ago, in a window you
+      have since closed. Nothing on the machine can tell you which is which, so none of it gets
+      turned off and it all comes back tomorrow.</p>
+    <p class="answer rise"><code>lsof</code> can tell you a PID owns port 8000. It cannot tell you
+      that an agent opened it on Tuesday while working on the billing retries, in a project you
+      have not touched since, and that nothing has connected to it in six days. That second answer
+      is the one that lets you close it.</p>
+  </div>
+</section>
 
 <section class="chapter" id="ch1">
   <div class="wrap">
@@ -785,10 +807,13 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
     <div class="ch-head rise">
       <div class="ch-num">02</div>
       <div class="ch-body">
-        <h2>Who started it?</h2>
-        <p>Process ancestry first, environment second, and a launch record last. Your tools create
-          the processes; this explains what they left behind. Six of them are read from the store
-          each already writes, and nothing is installed into any of them.</p>
+        <h2>Who started it? Usually an AI.</h2>
+        <p>Process ancestry first, environment second, and a launch record last. On a machine where
+          Claude Code, Cursor, Codex or Copilot is doing the typing, most of what is listening was
+          started by something other than you, and the useful question stops being <em>which
+          process</em> and becomes <em>which session, in which project, and does it still
+          matter</em>. Six AI coding tools are read from the store each already writes, and nothing
+          is installed into any of them.</p>
       </div>
       <div class="glyph jp" aria-hidden="true">起</div>
     </div>
@@ -835,7 +860,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
         <circle class="ring" cx="381" cy="214" r="30"></circle>
         <circle class="hub" cx="381" cy="214" r="30"></circle>
         <text class="hubname" x="381" y="219" text-anchor="middle">pl</text>
-        <text class="lbl" x="381" y="404" text-anchor="middle">portlist &nbsp;/&nbsp; reads, never writes</text>
+        <text class="lbl" x="381" y="404" text-anchor="middle">six AI coding tools &nbsp;/&nbsp; read, never written to</text>
       </svg>
     </div>
 
@@ -885,10 +910,11 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
       <div class="ch-num">03</div>
       <div class="ch-body">
         <h2>Which of those windows can you close?</h2>
-        <p>Twelve agent windows open, none of them closed, and no way to tell them apart from
-          the outside. Every one of them is a transcript on disk that its own tool already
-          wrote. Reading those is the difference between a list of processes and a list of
-          decisions.</p>
+        <p>Twelve AI coding sessions open, none of them closed, and no way to tell them apart
+          from the outside. You have wondered which of them is still doing something, which left a
+          server behind, and which you can safely close. Every one is a transcript on disk that
+          Claude, Codex, Copilot, Cursor or Gemini already wrote. Reading those is the difference
+          between a list of processes and a list of decisions.</p>
       </div>
       <div class="glyph jp" aria-hidden="true">窓</div>
     </div>

@@ -82,6 +82,13 @@ body{margin:0; background:var(--paper); color:var(--ink);
 body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
   background:url("bg-paper.png") repeat; background-size:400px 400px;
   opacity:.55; mix-blend-mode:multiply}
+/* The plate is decoration, so it is used as decoration: a ground behind the
+   opening, faint enough to read as texture. It carries no caption and claims
+   nothing, which is the honest way to use a picture that is not data. */
+header::before{content:""; position:absolute; inset:-6% -12% auto -12%; height:145%;
+  background:url("plate-observatory.png") center top/contain no-repeat;
+  opacity:.14; mix-blend-mode:multiply; pointer-events:none; z-index:0}
+header > .wrap{position:relative; z-index:1}
 .wrap{max-width:1220px; margin:0 auto; padding:0 40px; position:relative; z-index:1}
 @media(max-width:700px){ .wrap{padding:0 22px} }
 a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--rule)}
@@ -272,7 +279,20 @@ ul.plain li::before{content:attr(data-n); font-family:var(--mono); font-size:11p
   color:var(--shu); padding-top:4px}
 ul.plain strong{color:var(--ink); font-weight:700; font-family:var(--disp)}
 
-footer{margin-top:120px; border-top:1px solid var(--ink); padding:40px 0 76px}
+
+/* the last breath of the page: rain, in the page's own ink and vermilion */
+.rain{position:relative; width:100vw; margin-left:calc(50% - 50vw);
+  height:clamp(120px,15vw,190px); border-top:1px solid var(--ink);
+  border-bottom:1px solid var(--rule); overflow:hidden; background:var(--paper)}
+.rain canvas{display:block; width:100%; height:100%}
+.rain::after{content:""; position:absolute; inset:auto 0 0 0; height:52px;
+  background:linear-gradient(180deg, rgba(242,239,231,0), rgba(242,239,231,.92));
+  pointer-events:none}
+.rain .tag{z-index:1; position:absolute; left:max(24px,calc(50vw - 570px)); bottom:14px;
+  font-family:var(--mono); font-size:10px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--faint)}
+@media (max-width:700px){ .rain .tag{left:22px} }
+footer{margin-top:0; border-top:1px solid var(--ink); padding:40px 0 76px}
 footer .row{display:flex; gap:26px; flex-wrap:wrap; align-items:baseline;
   font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase}
 footer a{border:0; color:var(--grey)} footer a:hover{color:var(--shu)}
@@ -705,21 +725,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
 </div>
 
 <main>
-<figure class="spread wrap rise">
-  <img src="plate-observatory.png" width="1280" height="853" loading="lazy"
-       alt="A technical plate in the Japanese editorial manner: a dense circular
-            diagram of concentric rings and radial ticks at the centre, wave forms
-            running off to the right, small satellite charts and legends around the
-            margins, and four vertical kanji marks reading observation, listening,
-            origin and danger.">
-  <div class="band">
-    <b>Plate 03 &nbsp;&mdash;&nbsp; 観測図</b>
-    <span class="meta">observation chart</span>
-  </div>
-  <figcaption>The same four marks this page is organised around: 観測 observation,
-    聴 listening, 起 origin, 危 danger. A machine has more going on than a list of
-    ports admits, which is the whole argument.</figcaption>
-</figure>
+
 
 <section class="chapter" id="ch1">
   <div class="wrap">
@@ -845,7 +851,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
 <span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
  j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
       </div></div></div>
-      <div class="band"><b>Plate 04 &nbsp;&mdash;&nbsp; エージェント</b><span class="meta">agent sessions</span></div>
+      <div class="band"><b>Plate 03 &nbsp;&mdash;&nbsp; エージェント</b><span class="meta">agent sessions</span></div>
       <figcaption>Six tools, each read from the store it already writes. The generated title, the first prompt you typed, the project, the turn count, and the context each session is carrying, which is the number that decides what to clear. It also shows which plan each tool is signed in under. Prompts never leave the machine.</figcaption>
     </figure>
 
@@ -883,7 +889,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
 <span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
  j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
       </div></div></div>
-      <div class="band"><b>Plate 05 &nbsp;&mdash;&nbsp; 系統</b><span class="meta">grouped by who started it</span></div>
+      <div class="band"><b>Plate 04 &nbsp;&mdash;&nbsp; 系統</b><span class="meta">grouped by who started it</span></div>
       <figcaption>The same services, grouped by the thing that started them. Eleven under one agent session is a fact about your machine that a flat list hides, and the group says whether that session is still running or has since exited.</figcaption>
     </figure>
   </div>
@@ -1064,6 +1070,11 @@ brew install portlist">copy</button><span class="p">$</span> brew tap Mr-hunt-00
   </div>
 </section>
 
+<div class="rain" aria-hidden="true">
+  <canvas id="rain"></canvas>
+  <span class="tag">still listening</span>
+</div>
+
 <footer><div class="wrap">
   <div class="row">
     <a class="iwrap" href="https://github.com/Mr-hunt-007/portlist"><svg class="ilogo" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>Source</a>
@@ -1124,6 +1135,65 @@ brew install portlist">copy</button><span class="p">$</span> brew tap Mr-hunt-00
       i = (i + 1) % order.length;
       show(btns[order[i]].dataset.view, order[i]);
     }, 3400);
+  }
+
+
+  /* Rain, in the page's palette rather than a green screen. Three things the
+     original embed did not do and this page needs: it is sized to the element
+     and the device pixel ratio rather than a fixed 1920x1080, it stops the
+     moment it scrolls out of view, and it draws one still frame and no more
+     when the reader has asked for reduced motion. */
+  var rain = document.getElementById("rain");
+  if (rain) {
+    var rc = rain.getContext("2d"), rw = 0, rh = 0, cw = 0, cols = 0, tick = 0,
+        raining = false, rafid = 0;
+    var GLYPHS = "アカサタナハマヤラワ0123456789ABCDEF:/.<>";
+    function hash(n){ var v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); }
+    function sizeRain(){
+      var r = rain.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
+      rw = Math.max(1, Math.floor(r.width)); rh = Math.max(1, Math.floor(r.height));
+      rain.width = rw * d; rain.height = rh * d;
+      rc.setTransform(d, 0, 0, d, 0, 0);
+      cw = 13; cols = Math.ceil(rw / cw);
+      rc.font = "600 13px IBM Plex Mono, monospace";
+      rc.textBaseline = "top";
+    }
+    function frame(){
+      rafid = 0;
+      rc.fillStyle = "#F2EFE7";
+      rc.fillRect(0, 0, rw, rh);
+      for (var col = 0; col < cols; col++){
+        var speed = 1.4 + hash(col) * 3.2;
+        var trail = 4 + Math.floor(hash(col * 2.3) * 12);
+        var offset = hash(col * 3.7) * rh * 3;
+        var total = rh + trail * 13;
+        var head = (tick * speed * 6 + offset) % total;
+        for (var i = 0; i < trail; i++){
+          var y = head - i * 13;
+          if (y < -13 || y > rh) continue;
+          var fade = 1 - i / trail, a = fade * fade * 0.55;
+          if (a < 0.03) continue;
+          var ci = Math.floor(hash(col * 10 + i * 0.37 + Math.floor(tick * 3) * 0.07) * GLYPHS.length);
+          rc.fillStyle = i < 2 ? "rgba(200,69,47," + Math.min(1, a * 1.8) + ")"
+                               : "rgba(20,17,14," + a + ")";
+          rc.fillText(GLYPHS[ci % GLYPHS.length], col * cw, y);
+        }
+      }
+      tick += 0.05;
+      if (raining) rafid = requestAnimationFrame(function(){ setTimeout(frame, 46); });
+    }
+    sizeRain();
+    addEventListener("resize", function(){ sizeRain(); if (!raining) frame(); }, { passive: true });
+    if (still) {
+      frame();                                   /* one still frame, then nothing */
+    } else if (window.IntersectionObserver) {
+      new IntersectionObserver(function(es){
+        raining = es[0].isIntersecting;
+        if (raining && !rafid) frame(); 
+      }, { threshold: 0 }).observe(rain);
+    } else {
+      raining = true; frame();
+    }
   }
 
   var eco = document.getElementById("eco");

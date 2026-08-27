@@ -10,7 +10,8 @@
   <a href="docs/USAGE.md">Usage</a> &middot;
   <a href="CHANGELOG.md">Changelog</a> &middot;
   <a href="https://github.com/Mr-hunt-007/portlist/issues">Issues</a> &middot;
-  <a href="LICENSE">MIT</a>
+  <a href="LICENSE">MIT</a> &middot;
+  <a href="https://buymeacoffee.com/mr.hunt.007">Buy me a coffee</a>
 </p>
 
 ```
@@ -362,3 +363,9 @@ third-party packages on any platform otherwise, ever.
 - [Contributing](CONTRIBUTING.md)
 
 MIT.
+
+---
+
+If portlist saved you an afternoon of `lsof | grep`, you can
+[buy me a coffee](https://buymeacoffee.com/mr.hunt.007). Entirely optional: the
+tool is free, has no telemetry, and will stay that way.

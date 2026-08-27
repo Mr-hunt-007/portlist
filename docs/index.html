@@ -8,8 +8,7 @@
 <link rel="canonical" href="https://mr-hunt-007.github.io/portlist/">
 <meta name="author" content="portlist contributors">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<meta name="theme-color" content="#0B1017" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#F5F7F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#080D13">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="portlist">
@@ -25,10 +24,10 @@
 <meta name="twitter:description" content="A terminal program for the twelve things listening on your laptop. Who started each one, whether the network can reach it, and whether anyone still uses it.">
 <meta name="twitter:image" content="https://mr-hunt-007.github.io/portlist/og.png">
 
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230B1017'/><rect x='6' y='9' width='9' height='3' fill='%23E8A33D'/><rect x='6' y='15' width='20' height='3' fill='%236B7C90'/><rect x='6' y='21' width='14' height='3' fill='%233FA7A0'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23080D13'/><rect x='6' y='9' width='9' height='3' fill='%23E8A33D'/><rect x='6' y='15' width='20' height='3' fill='%236B7C90'/><rect x='6' y='21' width='14' height='3' fill='%233FA7A0'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 
 <script type="application/ld+json">
 {
@@ -76,218 +75,302 @@
 
 <style>
 :root{
-  --ink:#101A24; --muted:#55677A; --faint:#7C8B9C;
-  --bg:#F5F7F9; --surface:#FFFFFF; --line:#DCE3EA;
-  --accent:#B06E10; --accent-soft:#F2E4CC;
-  --teal:#1F7A74; --red:#B8403A; --green:#3C7A44;
-  --term-bg:#0B1017; --term-line:#182231; --term-text:#C9D4E0;
-  --shadow:0 1px 2px rgba(16,26,36,.06), 0 12px 32px -12px rgba(16,26,36,.18);
-  --radius:10px;
+  --ink:#070B11; --ink-2:#0C121A; --line:#1B2432; --line-2:#26313F;
+  --text:#DCE5EE; --muted:#8FA1B4; --faint:#64768A;
+  --amber:#E8A33D; --teal:#3FA7A0; --violet:#B98BD9;
+  --red:#D9544D; --green:#66B06E;
   --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans:"IBM Plex Sans", system-ui, -apple-system, Segoe UI, sans-serif;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --ink:#E4EAF1; --muted:#9AAABB; --faint:#75879A;
-    --bg:#0B1017; --surface:#121A24; --line:#22303F;
-    --accent:#E8A33D; --accent-soft:#2A2113;
-    --teal:#3FA7A0; --red:#D9544D; --green:#66B06E;
-    --term-bg:#080D13; --term-line:#1B2635; --term-text:#C9D4E0;
-    --shadow:0 1px 2px rgba(0,0,0,.4), 0 18px 40px -16px rgba(0,0,0,.7);
-  }
-}
-:root[data-theme="dark"]{
-  --ink:#E4EAF1; --muted:#9AAABB; --faint:#75879A;
-  --bg:#0B1017; --surface:#121A24; --line:#22303F;
-  --accent:#E8A33D; --accent-soft:#2A2113;
-  --teal:#3FA7A0; --red:#D9544D; --green:#66B06E;
-  --term-bg:#080D13; --term-line:#1B2635; --term-text:#C9D4E0;
-  --shadow:0 1px 2px rgba(0,0,0,.4), 0 18px 40px -16px rgba(0,0,0,.7);
+  --wrap:1120px;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{animation:none!important; transition:none!important} }
+html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
 body{
-  margin:0; background:var(--bg); color:var(--ink);
-  font-family:var(--sans); font-size:17px; line-height:1.62;
-  -webkit-font-smoothing:antialiased;
+  margin:0; background:var(--ink); color:var(--text);
+  font-family:var(--sans); font-size:16.5px; line-height:1.65;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
 }
-.wrap{max-width:1040px; margin:0 auto; padding:0 24px}
-a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line)}
-a:hover{border-bottom-color:var(--accent); color:var(--accent)}
-a:focus-visible, button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
-h1,h2,h3{font-family:var(--mono); font-weight:600; letter-spacing:-.02em; text-wrap:balance; margin:0}
+/* the ground: a generated cell grid, and a field of ports drifting behind it */
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:url("bg-grid.png") repeat; background-size:320px 320px; opacity:.5;
+}
+body::after{
+  content:""; position:fixed; inset:-10% -10% -10% -10%; z-index:0; pointer-events:none;
+  background:url("bg-ports.png") no-repeat center/cover; opacity:.30;
+  will-change:transform;
+}
+.glow{position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(60rem 40rem at 12% -10%, rgba(232,163,61,.10), transparent 60%),
+    radial-gradient(50rem 36rem at 92% 8%, rgba(63,167,160,.09), transparent 60%),
+    radial-gradient(70rem 50rem at 50% 120%, rgba(185,139,217,.07), transparent 60%);
+}
+main, nav, footer{position:relative; z-index:1}
+.wrap{max-width:var(--wrap); margin:0 auto; padding:0 26px}
+a{color:var(--text); text-decoration:none; border-bottom:1px solid var(--line-2)}
+a:hover{color:var(--amber); border-bottom-color:var(--amber)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--amber); outline-offset:3px; border-radius:4px}
+h1,h2,h3{font-family:var(--mono); font-weight:600; letter-spacing:-.02em; margin:0; text-wrap:balance}
 code,kbd,pre{font-family:var(--mono)}
 
 /* nav */
-nav{position:sticky; top:0; z-index:20; background:color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter:blur(10px); border-bottom:1px solid var(--line)}
-nav .wrap{display:flex; align-items:center; gap:22px; height:58px}
-.brand{font-family:var(--mono); font-weight:600; letter-spacing:.04em; border:0; font-size:16px}
-.brand .dot{color:var(--accent)}
-nav .links{display:flex; gap:20px; margin-left:auto; align-items:center; font-size:14.5px}
+nav{position:sticky; top:0; z-index:30; backdrop-filter:blur(12px);
+    background:color-mix(in srgb, var(--ink) 78%, transparent);
+    border-bottom:1px solid var(--line)}
+nav .wrap{display:flex; align-items:center; gap:22px; height:60px}
+.brand{font-family:var(--mono); font-weight:600; letter-spacing:.06em; border:0; font-size:15.5px}
+.brand b{color:var(--amber); font-weight:600}
+nav .links{margin-left:auto; display:flex; gap:20px; align-items:center; font-size:14px}
 nav .links a{border:0; color:var(--muted)}
-nav .links a:hover{color:var(--accent)}
-.themer{background:none; border:1px solid var(--line); color:var(--muted); cursor:pointer;
-        border-radius:6px; padding:5px 9px; font-family:var(--mono); font-size:12.5px}
-@media (max-width:720px){ nav .links a.hide-sm{display:none} }
+nav .links a:hover{color:var(--amber)}
+.coffee{border:1px solid var(--line-2)!important; border-radius:999px; padding:6px 13px;
+        color:var(--amber)!important; font-family:var(--mono); font-size:12.5px;
+        white-space:nowrap}
+.coffee:hover{background:rgba(232,163,61,.10)}
+@media(max-width:860px){ nav .links a.hide-sm{display:none} }
+@media(max-width:520px){
+  nav .links{gap:14px}
+  .coffee{font-size:11.5px; padding:5px 10px}
+  .coffee .long{display:none}
+}
+/* anchor jumps should not land under the sticky bar */
+section, header.hero{scroll-margin-top:76px}
 
 /* hero */
-header.hero{padding:76px 0 8px}
-.eyebrow{font-family:var(--mono); font-size:12.5px; letter-spacing:.16em; text-transform:uppercase;
-         color:var(--accent); margin-bottom:18px}
-h1{font-size:clamp(38px,6.2vw,64px); line-height:1.04; margin-bottom:20px}
-h1 em{font-style:normal; color:var(--accent)}
-.lede{font-size:clamp(18px,2.2vw,21px); color:var(--muted); max-width:60ch; margin:0 0 30px}
-.cta{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:14px}
-.copy{display:inline-flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--line);
-      border-radius:var(--radius); padding:11px 14px; font-family:var(--mono); font-size:14.5px; box-shadow:var(--shadow)}
-.copy .prompt{color:var(--accent)}
-.copy button{background:none; border:0; color:var(--faint); cursor:pointer; font-family:var(--mono);
-             font-size:12px; padding:2px 6px; border-radius:5px}
-.copy button:hover{color:var(--accent); background:var(--accent-soft)}
-.ghost{border:1px solid var(--line); border-radius:var(--radius); padding:11px 16px; font-size:14.5px;
-       font-family:var(--mono); color:var(--muted); background:var(--surface)}
-.ghost:hover{border-color:var(--accent)}
-.badges{display:flex; gap:18px; flex-wrap:wrap; font-family:var(--mono); font-size:13px; color:var(--faint); margin-top:6px}
+header.hero{position:relative; padding:96px 0 40px; overflow:hidden}
+#field{position:absolute; inset:0; width:100%; height:100%; z-index:0; opacity:.55}
+header.hero .wrap{position:relative; z-index:1}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase;
+         color:var(--amber); margin:0 0 20px}
+h1{font-size:clamp(36px,6.4vw,68px); line-height:1.02; margin-bottom:22px}
+h1 .b{display:block}
+h1 em{font-style:normal; color:var(--amber)}
+.lede{font-size:clamp(17px,2vw,20px); color:var(--muted); max-width:58ch; margin:0 0 32px}
+.lede code{color:var(--text); background:rgba(255,255,255,.05); padding:1px 6px; border-radius:5px}
+.cta{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:18px}
+.copy{display:inline-flex; align-items:center; gap:12px; background:var(--ink-2);
+      border:1px solid var(--line-2); border-radius:10px; padding:12px 15px;
+      font-family:var(--mono); font-size:13.5px; max-width:100%; overflow-x:auto;
+      white-space:nowrap}
+.copy::-webkit-scrollbar{height:6px}
+.copy::-webkit-scrollbar-thumb{background:#1E2837; border-radius:6px}
+.copy .p{color:var(--amber)}
+.copy button{background:none; border:0; color:var(--faint); cursor:pointer;
+             font-family:var(--mono); font-size:11.5px; padding:3px 7px; border-radius:5px}
+.copy button:hover{color:var(--amber); background:rgba(232,163,61,.10)}
+.ghost{border:1px solid var(--line-2); border-radius:10px; padding:12px 17px; font-size:13.5px;
+       font-family:var(--mono); color:var(--muted); background:var(--ink-2)}
+.ghost:hover{border-color:var(--amber)}
+.badges{display:flex; gap:20px; flex-wrap:wrap; font-family:var(--mono); font-size:12.5px;
+        color:var(--faint); margin:6px 0 0}
 
 /* terminal */
-.term{background:var(--term-bg); border:1px solid var(--term-line); border-radius:12px; overflow:hidden;
-      box-shadow:var(--shadow); margin:34px 0 0}
-.term .bar{display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--term-line)}
-.term .bar i{width:11px; height:11px; border-radius:50%; display:block; background:#2B3648}
-.term .bar span{font-family:var(--mono); font-size:12px; color:#5C6E84; margin-left:8px}
-.term pre{margin:0; padding:18px 16px; overflow-x:auto; color:var(--term-text);
-          font-size:13px; line-height:1.55; tab-size:2}
+.term{background:#05090E; border:1px solid var(--line-2); border-radius:12px; overflow:hidden;
+      box-shadow:0 26px 70px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.02) inset;
+      margin:36px 0 0}
+.term .bar{display:flex; align-items:center; gap:8px; padding:11px 15px; border-bottom:1px solid var(--line)}
+.term .bar i{width:10px; height:10px; border-radius:50%; display:block; background:#25303F}
+.term .bar span{font-family:var(--mono); font-size:11.5px; color:var(--faint); margin-left:10px}
+.term pre{margin:0; padding:18px 16px; overflow-x:auto; color:#C9D4E0;
+          font-size:12.5px; line-height:1.55}
 .term pre::-webkit-scrollbar{height:9px}
-.term pre::-webkit-scrollbar-thumb{background:#243040; border-radius:9px}
-.t-head{color:#0B1017; background:#C9D4E0; font-weight:600}
-.t-key{color:#E8A33D} .t-dim{color:#5F7288} .t-ok{color:#66B06E}
-.t-warn{color:#E8A33D} .t-bad{color:#D9544D} .t-teal{color:#3FA7A0} .t-vio{color:#B98BD9}
+.term pre::-webkit-scrollbar-thumb{background:#1E2837; border-radius:9px}
+.t-head{color:#05090E; background:#C9D4E0; font-weight:600}
+.t-key{color:var(--amber)} .t-dim{color:#5A6D82} .t-ok{color:var(--green)}
+.t-warn{color:var(--amber)} .t-bad{color:var(--red)} .t-teal{color:var(--teal)} .t-vio{color:var(--violet)}
 
 /* sections */
-section{padding:78px 0; border-top:1px solid var(--line)}
-section:first-of-type{border-top:0}
-.kicker{font-family:var(--mono); font-size:12.5px; letter-spacing:.16em; text-transform:uppercase;
-        color:var(--faint); margin-bottom:14px}
-h2{font-size:clamp(26px,3.4vw,34px); margin-bottom:16px}
-h3{font-size:17px; margin-bottom:7px}
-.sub{color:var(--muted); max-width:62ch; margin:0 0 34px}
+section{padding:96px 0; border-top:1px solid var(--line)}
+.kicker{font-family:var(--mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase;
+        color:var(--faint); margin:0 0 14px}
+h2{font-size:clamp(25px,3.4vw,36px); margin-bottom:16px}
+h3{font-size:16.5px; margin-bottom:8px}
+.sub{color:var(--muted); max-width:64ch; margin:0 0 36px}
 .grid{display:grid; gap:18px}
-.g3{grid-template-columns:repeat(auto-fit,minmax(255px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(258px,1fr))}
 .g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:22px}
-.card p{margin:0; color:var(--muted); font-size:15px}
-.card .n{font-family:var(--mono); color:var(--accent); font-size:12.5px; letter-spacing:.1em; margin-bottom:10px}
-kbd{display:inline-block; min-width:24px; text-align:center; background:var(--accent-soft); color:var(--accent);
-    border:1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius:6px;
-    padding:1px 7px; font-size:13px; font-weight:600}
+.card{background:linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.008));
+      border:1px solid var(--line-2); border-radius:12px; padding:24px}
+.card p{margin:0; color:var(--muted); font-size:14.5px}
+.card .n{font-family:var(--mono); color:var(--amber); font-size:12px; letter-spacing:.12em; margin-bottom:10px}
+kbd{display:inline-block; min-width:23px; text-align:center; background:rgba(232,163,61,.12);
+    color:var(--amber); border:1px solid rgba(232,163,61,.3); border-radius:6px;
+    padding:1px 7px; font-size:12.5px; font-family:var(--mono)}
+
+/* the lsof comparison */
+.vs{width:100%; border-collapse:collapse; font-size:14.5px}
+.vs th{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
+       color:var(--faint); text-align:left; padding:0 12px 12px; font-weight:500}
+.vs td{padding:13px 12px; border-top:1px solid var(--line); vertical-align:top; color:var(--muted)}
+.vs td:first-child{color:var(--text); font-family:var(--mono); font-size:13.5px; width:26%}
+.vs td:nth-child(2){color:var(--faint); width:26%}
+.vs td:last-child{color:var(--text)}
+@media(max-width:760px){ .vs, .vs tbody, .vs tr, .vs td, .vs th{display:block; width:auto}
+  .vs th{display:none} .vs tr{border-top:1px solid var(--line); padding:12px 0}
+  .vs td{border:0; padding:3px 0} .vs td:first-child{width:auto} }
 
 /* install tabs */
 .tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px}
-.tabs button{font-family:var(--mono); font-size:13.5px; padding:8px 14px; border-radius:8px; cursor:pointer;
-             background:var(--surface); border:1px solid var(--line); color:var(--muted)}
-.tabs button[aria-selected="true"]{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
+.tabs button{font-family:var(--mono); font-size:13px; padding:9px 15px; border-radius:9px; cursor:pointer;
+             background:var(--ink-2); border:1px solid var(--line-2); color:var(--muted)}
+.tabs button[aria-selected="true"]{border-color:var(--amber); color:var(--amber); background:rgba(232,163,61,.1)}
 .panel{display:none} .panel.on{display:block}
-.panel .note{color:var(--muted); font-size:14.5px; margin:14px 0 0; max-width:62ch}
-pre.sh{background:var(--term-bg); color:var(--term-text); border:1px solid var(--term-line);
-       border-radius:var(--radius); padding:16px 18px; overflow-x:auto; font-size:14px; margin:0; position:relative}
-pre.sh .c{color:#5F7288}
-pre.sh .p{color:#E8A33D}
-.copybtn{position:absolute; top:10px; right:10px; background:#1B2635; border:1px solid #26344A; color:#8296AC;
-         font-family:var(--mono); font-size:11.5px; padding:4px 9px; border-radius:6px; cursor:pointer}
-.copybtn:hover{color:#E8A33D; border-color:#E8A33D}
+.panel .note{color:var(--muted); font-size:14px; margin:14px 0 0; max-width:64ch}
+pre.sh{background:#05090E; color:#C9D4E0; border:1px solid var(--line-2);
+       border-radius:11px; padding:17px 18px; overflow-x:auto; font-size:13.5px; margin:0; position:relative}
+pre.sh .c{color:#5A6D82} pre.sh .p{color:var(--amber)}
+.copybtn{position:absolute; top:10px; right:10px; background:#111A24; border:1px solid var(--line-2);
+         color:var(--faint); font-family:var(--mono); font-size:11px; padding:4px 9px;
+         border-radius:6px; cursor:pointer}
+.copybtn:hover{color:var(--amber); border-color:var(--amber)}
 
-/* views table */
-.views{width:100%; border-collapse:collapse; font-size:15px}
+/* views */
+.views{width:100%; border-collapse:collapse; font-size:14.5px}
 .views td{padding:11px 10px; border-bottom:1px solid var(--line); vertical-align:top}
 .views tr:last-child td{border-bottom:0}
 .views td:first-child{width:44px}
-.views td:nth-child(2){font-family:var(--mono); color:var(--ink); width:130px}
+.views td:nth-child(2){font-family:var(--mono); color:var(--text); width:132px}
 .views td:last-child{color:var(--muted)}
 
 figure{margin:0}
-figcaption{font-size:14px; color:var(--faint); margin-top:12px; font-family:var(--mono)}
-.arch{width:100%; height:auto; max-width:100%}
+figcaption{font-size:13.5px; color:var(--faint); margin-top:12px; font-family:var(--mono)}
+.arch{width:100%; height:auto}
 
 ul.plain{list-style:none; padding:0; margin:0}
-ul.plain li{padding:12px 0 12px 26px; border-bottom:1px solid var(--line); color:var(--muted); position:relative}
+ul.plain li{padding:13px 0 13px 26px; border-bottom:1px solid var(--line); color:var(--muted); position:relative}
 ul.plain li:last-child{border-bottom:0}
-ul.plain li::before{content:"\2022"; position:absolute; left:6px; color:var(--accent)}
-ul.plain strong{color:var(--ink); font-weight:600}
+ul.plain li::before{content:"\25b8"; position:absolute; left:4px; color:var(--amber)}
+ul.plain strong{color:var(--text); font-weight:600}
 
-footer{border-top:1px solid var(--line); padding:44px 0 60px; color:var(--faint); font-size:14.5px}
-footer .row{display:flex; gap:26px; flex-wrap:wrap; align-items:center}
-footer a{border:0; color:var(--muted)} footer a:hover{color:var(--accent)}
-.small{font-size:13.5px; color:var(--faint)}
+footer{border-top:1px solid var(--line); padding:52px 0 68px; color:var(--faint); font-size:14px}
+footer .row{display:flex; gap:24px; flex-wrap:wrap; align-items:center}
+footer a{border:0; color:var(--muted)} footer a:hover{color:var(--amber)}
+.small{font-size:13px; color:var(--faint)}
+
+/* motion, and the switch that turns all of it off */
+.rise{opacity:0; transform:translateY(18px)}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .rise{opacity:1!important; transform:none!important}
+  #field{display:none}
+  body::after{transform:none!important}
+  *{animation:none!important; transition:none!important}
+}
 </style>
 </head>
 <body>
+<div class="glow"></div>
 
 <nav>
   <div class="wrap">
-    <a class="brand" href="#top">portlist<span class="dot">.</span></a>
+    <a class="brand" href="#top">portlist<b>.</b></a>
     <div class="links">
-      <a href="#dashboard">Dashboard</a>
+      <a href="#problem" class="hide-sm">Why</a>
       <a href="#install">Install</a>
-      <a href="#views" class="hide-sm">Views</a>
+      <a href="#dashboard" class="hide-sm">Dashboard</a>
       <a href="#vibe" class="hide-sm">Vibe</a>
-      <a href="#architecture" class="hide-sm">Architecture</a>
       <a href="https://github.com/Mr-hunt-007/portlist">GitHub</a>
-      <button class="themer" id="themer" type="button" aria-label="Switch colour theme">theme</button>
+      <a class="coffee" href="https://buymeacoffee.com/mr.hunt.007">buy me a<span class="long"> coffee</span></a>
     </div>
   </div>
 </nav>
 
 <a id="top"></a>
+<main>
 <header class="hero">
+  <canvas id="field" aria-hidden="true"></canvas>
   <div class="wrap">
-    <p class="eyebrow">Terminal program &middot; MIT &middot; no dependencies</p>
-    <h1>Every port on this machine, and <em>where it came from</em>.</h1>
-    <p class="lede">Twelve things are listening. You started three of them today and you
+    <p class="eyebrow rise">Terminal program &middot; MIT &middot; no dependencies</p>
+    <h1 class="rise"><span class="b">Every port on this machine,</span>
+      <span class="b">and <em>where it came from</em>.</span></h1>
+    <p class="lede rise">Twelve things are listening. You started three of them today and you
       cannot name the rest. <code>lsof</code> gives you a PID. portlist gives you the agent
       session, the project directory, and whether anyone has used it since Tuesday.</p>
 
-    <div class="cta">
-      <span class="copy"><span class="prompt">$</span> curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh
+    <div class="cta rise">
+      <span class="copy"><span class="p">$</span> curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh
         <button type="button" data-copy="curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh">copy</button></span>
       <a class="ghost" href="#install">Other ways to install</a>
     </div>
-    <p class="badges">
+    <p class="badges rise">
       <span>macOS &middot; Linux &middot; Windows &middot; BSD</span>
       <span>Python 3.9+</span>
       <span>No server, no daemon, no telemetry</span>
     </p>
 
-    <div class="term">
+    <div class="term rise">
       <div class="bar"><i></i><i></i><i></i><span>portlist</span></div>
-<pre aria-label="portlist services view"><span class="t-head"> PORTLIST  devbox   12 listening  2 off-box  2 need attention              21:20:37 </span>
-<span class="t-key">  1 Services(12)</span><span class="t-dim">  2 Exposed(2)  3 Attention(2)  4 Leftovers(5)  5 Agents(3)  6 Containers(0)  7 Sessions(8)  8 System</span>
-
-<span class="t-dim"> PORT    SERVICE             PROJECT           REACHABLE       RISK      STARTED BY</span>
- :3000   Next.js             storefront        <span class="t-dim">Localhost only</span>   <span class="t-dim">12 Info</span>  <span class="t-teal">Claude Code 2h</span>
- :5173   Vite                admin-ui          <span class="t-dim">Localhost only</span>   <span class="t-dim">12 Info</span>  <span class="t-teal">terminal 5h</span>
- :8787   Python http.server  data-export       <span class="t-bad">All interfaces</span>   <span class="t-bad">71 High</span>  <span class="t-teal">Claude Code 5d</span>
- :8080   node                <span class="t-dim">unattributed</span>      <span class="t-warn">All interfaces</span>   <span class="t-warn">44 Med</span>   <span class="t-dim">unknown origin</span>
- :9050   Tor                 /opt/homebrew     <span class="t-dim">Localhost only</span>   <span class="t-dim">12 Info</span>  <span class="t-dim">launchd 24d</span>
-
-<span class="t-head"> j/k move   enter detail   O open   1-8 view   / search   f free port   r rescan   q quit </span></pre>
+<pre aria-label="portlist services view"><span class="t-vio"> PORTLIST  devbox               13 listening  2 off-box  2 need attention                                                                 O 02:16:30</span>
+  0 Dashboard  <span class="t-vio">▌</span>1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions   8 System   9 Graph
+<span class="t-dim">─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+<span class="t-dim"> PORT    SERVICE                 PROJECT           REACHABLE      RISK     STARTED BY</span>
+ :7337   portboard               portboard         Localhost only 6 Info   terminal 9h
+ :8000   Python http.server      analytics         Localhost only 12 Info  Claude Code 21d
+ :8078   sink.py                 payments          Localhost only 6 Info   Claude Code 29d
+ :8422   store-helper.mjs        data-export       Localhost only 6 Info   Claude Code 2d
+<span class="t-warn"> :8787   Python http.server      data-export       All interfaces 71 High  Claude Code 6d</span>
+ :8787   FastAPI / Uvicorn       scanner           Localhost only 12 Info  Claude Code 23d
+<span class="t-warn"> :8807   Python http.server      data-export       All interfaces 71 High  Claude Code 2d</span>
+ :9050   Tor                     /opt/homebrew     Localhost only 12 Info  launchd 24d
+ :42065  Bun                     portlist          Localhost only 0 Info   Claude Code 3h
+ :48744  Bun                     portboard         Localhost only 0 Info   Claude Code 25h</pre>
     </div>
   </div>
 </header>
 
+<section id="problem">
+  <div class="wrap">
+    <p class="kicker rise">What problem does it solve</p>
+    <h2 class="rise">A port list is not the answer. It is the question.</h2>
+    <p class="sub rise"><code>lsof -i</code> answers what is bound to a port. That was the whole
+      question when a machine ran two servers you started by hand. Most of what listens on a
+      developer laptop today was started by something else: an agent session, an editor, a
+      container, or you, on Tuesday, in a directory you have since forgotten.</p>
+
+    <table class="vs rise">
+      <thead><tr><th>you ask</th><th>lsof says</th><th>portlist says</th></tr></thead>
+      <tbody>
+        <tr><td>what is on :8787?</td><td><code>Python, pid 96798</code></td>
+            <td>a static file server, started by a Claude Code session, in <code>~/code/data-export</code></td></tr>
+        <tr><td>who started it?</td><td>nothing</td>
+            <td>that session, and whether it has since exited</td></tr>
+        <tr><td>can anyone reach it?</td><td>a bind string like <code>0.0.0.0</code></td>
+            <td>what answered when it connected to this machine's real address</td></tr>
+        <tr><td>is it still needed?</td><td>how long it has been <em>up</em></td>
+            <td>how long it has been <em>unused</em>, measured over time</td></tr>
+        <tr><td>is it safe to kill?</td><td>nothing</td>
+            <td>what depends on it, what it depends on, and the command to stop it</td></tr>
+      </tbody>
+    </table>
+
+    <div class="grid g3" style="margin-top:38px">
+      <div class="card rise"><p class="n">01</p><h3>Address already in use</h3>
+        <p>Something holds :3000 and you did not start it. This morning's agent session, a
+          container, or a dev server from last Tuesday that never died? <kbd>f</kbd> hands you a
+          port that is free now and not spoken for later.</p></div>
+      <div class="card rise"><p class="n">02</p><h3>An agent left the lights on</h3>
+        <p>Sessions exit. Their servers do not, and nothing on the machine remembers whose they
+          were. portlist writes a launch record the first time it sees a service and never
+          rewrites it, so the answer survives both.</p></div>
+      <div class="card rise"><p class="n">03</p><h3>Bound to the world by accident</h3>
+        <p><code>0.0.0.0</code> in a config file is a claim. The only honest answer comes from
+          connecting to this machine's real address and seeing what answers.</p></div>
+    </div>
+  </div>
+</section>
+
 <section id="dashboard">
   <div class="wrap">
-    <p class="kicker">The dashboard</p>
-    <h2>Everything, on one screen.</h2>
-    <p class="sub">Press <kbd>0</kbd>, or just start it: this is where portlist opens.
-      <kbd>Tab</kbd> moves to the next view in the same order as the number keys,
-      <kbd>h</kbd>/<kbd>l</kbd> move between the panes, and <kbd>j</kbd>/<kbd>k</kbd>
-      move inside whichever has focus. The dials ease round as the readings change,
-      and one travelling wave runs under every card, its amplitude and speed taken
-      from the metric it sits under.</p>
+    <p class="kicker rise">The dashboard</p>
+    <h2 class="rise">Everything, on one screen.</h2>
+    <p class="sub rise">Press <kbd>0</kbd>, or just start it: this is where portlist opens.
+      <kbd>Tab</kbd> moves between views in the same order as the number keys,
+      <kbd>h</kbd>/<kbd>l</kbd> between panes. The dials ease round as the readings change, and
+      one travelling wave runs under every card, its amplitude and speed taken from the metric
+      it sits under.</p>
 
-    <div class="term">
+    <div class="term rise">
       <div class="bar"><i></i><i></i><i></i><span>portlist &middot; dashboard</span></div>
 <pre aria-label="portlist dashboard: cards, the listening table, the selected service and the activity feed"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                 O 23:50:58</span>
  <span class="t-vio">▌</span>0 Dashboard   1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions   8 System
@@ -337,118 +420,35 @@ footer a{border:0; color:var(--muted)} footer a:hover{color:var(--accent)}
  j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                    updated 1s ago</pre>
     </div>
 
-    <div class="grid g3" style="margin-top:28px">
-      <div class="card">
-        <p class="n">01</p>
-        <h3>The score is itemised</h3>
-        <p><code>71 High</code> is never a bare number. Every point that made it is
-          listed underneath, so the score can be argued with rather than believed.</p>
-      </div>
-      <div class="card">
-        <p class="n">02</p>
-        <h3>Unknown origin is counted</h3>
-        <p>Services already listening before portlist first looked get their own
-          number. None of them quietly inherits a repository label from whatever
-          owns the port now.</p>
-      </div>
-      <div class="card">
-        <p class="n">03</p>
-        <h3>The wave carries a reading</h3>
-        <p>One pattern everywhere, with amplitude and speed from the metric under it:
-          quiet ripples slowly and shallowly, busy moves faster and taller. Nothing to
-          measure draws a flat line, because a wave at zero still reads as zero. It is
-          a sine, never a history; the sparklines plot real samples.</p>
-      </div>
-      <div class="card">
-        <p class="n">04</p>
-        <h3>"No answer" is not "zero"</h3>
-        <p>When the container engine does not respond, the card says the count is
-          unknown. A silent zero would be the same sentence as "there are none".</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="problem">
-  <div class="wrap">
-    <p class="kicker">The problem</p>
-    <h2>A port list is not the answer. It is the question.</h2>
-    <p class="sub"><code>lsof -i</code> answers what is bound to a port. That was the
-      whole question when a machine ran two servers you started by hand. Most of what
-      listens on a developer laptop today was started by something else: an agent
-      session, an editor, a container, or you, on Tuesday, in a directory you have
-      since forgotten. Three situations none of which a port number settles on its own.</p>
-    <div class="grid g3">
-      <div class="card">
-        <p class="n">01</p>
-        <h3>Address already in use</h3>
-        <p>Something holds :3000 and you did not start it. Was it this morning's agent
-          session, a container, or a dev server from last Tuesday that never died?</p>
-      </div>
-      <div class="card">
-        <p class="n">02</p>
-        <h3>An agent left the lights on</h3>
-        <p>Coding agents start servers and move on. The session exits, the server does
-          not, and nothing on the machine remembers which session it belonged to.</p>
-      </div>
-      <div class="card">
-        <p class="n">03</p>
-        <h3>Bound to the world by accident</h3>
-        <p><code>0.0.0.0</code> in a config file is a claim, not a fact. The only honest
-          answer comes from connecting to this machine's real address and seeing what answers.</p>
-      </div>
+    <div class="grid g3" style="margin-top:30px">
+      <div class="card rise"><p class="n">01</p><h3>The score is itemised</h3>
+        <p><code>71 High</code> is never a bare number. Every point that made it is listed
+          underneath, so the score can be argued with rather than believed.</p></div>
+      <div class="card rise"><p class="n">02</p><h3>Unknown origin is counted</h3>
+        <p>Services already listening before portlist first looked get their own number. None of
+          them quietly inherits a repository label from whatever owns the port now.</p></div>
+      <div class="card rise"><p class="n">03</p><h3>"No answer" is not "zero"</h3>
+        <p>When the container engine does not respond, the card says the count is unknown. A
+          silent zero would be the same sentence as "there are none".</p></div>
     </div>
   </div>
 </section>
 
 <section id="install">
   <div class="wrap">
-    <p class="kicker">Install</p>
-    <h2>No strings attached.</h2>
-    <p class="sub">One program, no dependencies, nothing system-wide unless your package
+    <p class="kicker rise">Install</p>
+    <h2 class="rise">No strings attached.</h2>
+    <p class="sub rise">One program, no dependencies, nothing system-wide unless your package
       manager puts it there. Uninstalling leaves one directory you can delete.</p>
 
-    <div class="tabs" role="tablist" aria-label="Install methods">
-      <button role="tab" aria-selected="true" aria-controls="p-brew" id="t-brew">Homebrew</button>
-      <button role="tab" aria-selected="false" aria-controls="p-winget" id="t-winget">winget</button>
+    <div class="tabs rise" role="tablist" aria-label="Install methods">
+      <button role="tab" aria-selected="true" aria-controls="p-curl" id="t-curl">curl</button>
+      <button role="tab" aria-selected="false" aria-controls="p-brew" id="t-brew">Homebrew</button>
       <button role="tab" aria-selected="false" aria-controls="p-pipx" id="t-pipx">pipx</button>
-      <button role="tab" aria-selected="false" aria-controls="p-curl" id="t-curl">curl</button>
       <button role="tab" aria-selected="false" aria-controls="p-src" id="t-src">Source</button>
     </div>
 
-    <div class="panel on" id="p-brew" role="tabpanel" aria-labelledby="t-brew">
-<pre class="sh"><button class="copybtn" type="button" data-copy="brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
-brew trust mr-hunt-007/portlist
-brew install portlist">copy</button><span class="c"># macOS and Linux</span>
-<span class="p">$</span> brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
-<span class="p">$</span> brew trust mr-hunt-007/portlist   <span class="c"># asked of every third-party tap</span>
-<span class="p">$</span> brew install portlist
-<span class="p">$</span> portlist</pre>
-      <p class="note">Installs with its own Python. <code>brew upgrade portlist</code> updates it.</p>
-    </div>
-
-    <div class="panel" id="p-winget" role="tabpanel" aria-labelledby="t-winget">
-<pre class="sh"><span class="c"># Windows - not submitted to winget yet</span>
-<span class="c"># the manifests are written and validated, but nothing has been sent to</span>
-<span class="c"># microsoft/winget-pkgs, so use pipx below instead</span>
-<span class="p">&gt;</span> pipx install git+https://github.com/Mr-hunt-007/portlist</pre>
-      <p class="note">Windows needs one thing the others do not: CPython ships there without
-        <code>curses</code>, which portlist is built on. Add <code>pip install windows-curses</code>,
-        or use pipx below, which brings it along on its own.</p>
-    </div>
-
-    <div class="panel" id="p-pipx" role="tabpanel" aria-labelledby="t-pipx">
-<pre class="sh"><button class="copybtn" type="button" data-copy="pipx install git+https://github.com/Mr-hunt-007/portlist">copy</button><span class="c"># anywhere, and the simplest route on Windows</span>
-<span class="p">$</span> pipx install git+https://github.com/Mr-hunt-007/portlist
-<span class="p">$</span> pip  install git+https://github.com/Mr-hunt-007/portlist</pre>
-      <p class="note">An isolated environment per tool, and <code>windows-curses</code> is declared
-        as a dependency there, so Windows needs no extra step. Straight from the
-        repository, because nothing is on PyPI yet: the name <code>portlist</code> there
-        belongs to an unrelated package, so the distribution will be
-        <code>portlist-tui</code> while the command stays <code>portlist</code>.</p>
-    </div>
-
-    <div class="panel" id="p-curl" role="tabpanel" aria-labelledby="t-curl">
+    <div class="panel on rise" id="p-curl" role="tabpanel" aria-labelledby="t-curl">
 <pre class="sh"><button class="copybtn" type="button" data-copy="curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh">copy</button><span class="c"># into ~/.local, no root, nothing system-wide</span>
 <span class="p">$</span> curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh</pre>
       <p class="note">Piping a script into a shell deserves suspicion, so
@@ -457,7 +457,29 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
         <code>rm -rf ~/.local/lib/portlist ~/.local/bin/portlist</code>.</p>
     </div>
 
-    <div class="panel" id="p-src" role="tabpanel" aria-labelledby="t-src">
+    <div class="panel rise" id="p-brew" role="tabpanel" aria-labelledby="t-brew">
+<pre class="sh"><button class="copybtn" type="button" data-copy="brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
+brew trust mr-hunt-007/portlist
+brew install portlist">copy</button><span class="c"># macOS and Linux</span>
+<span class="p">$</span> brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
+<span class="p">$</span> brew trust mr-hunt-007/portlist   <span class="c"># asked of every third-party tap</span>
+<span class="p">$</span> brew install portlist</pre>
+      <p class="note">The trust step is not optional: Homebrew refuses to load a formula from a
+        tap it has not been told to trust, and says so rather than installing anything.</p>
+    </div>
+
+    <div class="panel rise" id="p-pipx" role="tabpanel" aria-labelledby="t-pipx">
+<pre class="sh"><button class="copybtn" type="button" data-copy="pipx install git+https://github.com/Mr-hunt-007/portlist">copy</button><span class="c"># anywhere, and the simplest route on Windows</span>
+<span class="p">$</span> pipx install git+https://github.com/Mr-hunt-007/portlist
+<span class="p">$</span> pip  install git+https://github.com/Mr-hunt-007/portlist</pre>
+      <p class="note">An isolated environment per tool, and <code>windows-curses</code> is declared
+        as a dependency there, so Windows needs no extra step. Straight from the repository,
+        because nothing is on PyPI yet: the name <code>portlist</code> there belongs to an
+        unrelated package, so the distribution will be <code>portlist-tui</code> while the command
+        stays <code>portlist</code>.</p>
+    </div>
+
+    <div class="panel rise" id="p-src" role="tabpanel" aria-labelledby="t-src">
 <pre class="sh"><button class="copybtn" type="button" data-copy="git clone https://github.com/Mr-hunt-007/portlist &amp;&amp; cd portlist &amp;&amp; python3 portlist.py">copy</button><span class="c"># no build step, nothing to compile</span>
 <span class="p">$</span> git clone https://github.com/Mr-hunt-007/portlist
 <span class="p">$</span> cd portlist
@@ -470,12 +492,13 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
 
 <section id="views">
   <div class="wrap">
-    <p class="kicker">Eight views</p>
-    <h2>One scan. Eight questions.</h2>
-    <p class="sub">Switching views never rescans and never moves your selection to a
+    <p class="kicker rise">Ten views</p>
+    <h2 class="rise">One scan. Ten questions.</h2>
+    <p class="sub rise">Switching views never rescans and never moves your selection to a
       different service. Every view is a question asked of the same model.</p>
-    <table class="views">
+    <table class="views rise">
       <tbody>
+        <tr><td><kbd>0</kbd></td><td>dashboard</td><td>everything at once, and where it opens</td></tr>
         <tr><td><kbd>1</kbd></td><td>services</td><td>everything listening, with who started it</td></tr>
         <tr><td><kbd>2</kbd></td><td>exposed</td><td>reachable from beyond this machine, checked by connecting</td></tr>
         <tr><td><kbd>3</kbd></td><td>attention</td><td>critical, high and medium risk, with the reasons attached</td></tr>
@@ -484,10 +507,11 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
         <tr><td><kbd>6</kbd></td><td>containers</td><td>by compose project, and the host ports they hold</td></tr>
         <tr><td><kbd>7</kbd></td><td>sessions</td><td>coding-agent sessions, what they were about, context used</td></tr>
         <tr><td><kbd>8</kbd></td><td>system</td><td>this machine: load, memory, disks, network, exposure</td></tr>
+        <tr><td><kbd>9</kbd></td><td>graph</td><td>who started what, where it runs, and what it exposes</td></tr>
       </tbody>
     </table>
 
-    <div class="term" style="margin-top:34px">
+    <div class="term rise" style="margin-top:34px">
       <div class="bar"><i></i><i></i><i></i><span>portlist &middot; view 8</span></div>
 <pre aria-label="portlist system view"> <span class="t-dim">┌─</span><span class="t-vio"> machine </span><span class="t-dim">──────────────────────────────────┐</span> <span class="t-dim">┌─</span><span class="t-vio"> pulse </span><span class="t-dim">─────────────────────────────────────┐</span>
  <span class="t-dim">│</span> devbox                                     <span class="t-dim">│</span> <span class="t-dim">│</span><span class="t-dim"> cpu                 </span><span class="t-ok">▃▃▃▃▃▃▃▃▃▃▃▃▃</span>       40% <span class="t-dim">│</span>
@@ -512,14 +536,14 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
 
 <section id="vibe">
   <div class="wrap">
-    <p class="kicker">Vibe mode</p>
-    <h2>Leave it open on the second monitor.</h2>
-    <p class="sub">Press <kbd>V</kbd>, or leave it alone for thirty seconds and it
-      arrives on its own. Five scenes rotate: the cockpit below, the machine and its
-      meters, the network between local services, each agent and what it started, and
-      what has actually happened lately. Any key brings the list straight back.</p>
+    <p class="kicker rise">Vibe mode</p>
+    <h2 class="rise">Leave it open on the second monitor.</h2>
+    <p class="sub rise">Press <kbd>V</kbd>, or leave it alone for thirty seconds and it arrives on
+      its own. Five scenes rotate: the cockpit below, the machine and its meters, the network
+      between local services, each agent and what it started, and what has actually happened
+      lately. Any key brings the list straight back.</p>
 
-    <div class="term">
+    <div class="term rise">
       <div class="bar"><i></i><i></i><i></i><span>portlist &middot; vibe &middot; cockpit</span></div>
 <pre aria-label="portlist vibe mode, the cockpit scene"><span class="t-key">                                          P O R T L I S T</span>
 
@@ -548,36 +572,29 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
     </div>
 
     <div class="grid g2" style="margin-top:28px">
-      <div class="card">
-        <h3>Nothing moves unless it was measured</h3>
-        <p>A dot pulses because that service was measured busy inside the last minute.
-          A particle crosses an edge because a loopback connection between those two
-          ports was observed. A service is marked NEW because it really started
-          listening while you were watching, and the first frame marks nothing at all,
-          because everything is new to the screen and none of it is new to the machine.
-          Inventing motion would make the prettiest part of the program the one lying
-          to you.</p>
-      </div>
-      <div class="card">
-        <h3>Five themes, four speeds</h3>
+      <div class="card rise"><h3>Nothing moves unless it was measured</h3>
+        <p>A dot pulses because that service was measured busy inside the last minute. A particle
+          crosses an edge because a loopback connection between those two ports was observed. A
+          service is marked NEW because it really started listening while you were watching, and
+          the first frame marks nothing at all, because everything is new to the screen and none
+          of it is new to the machine.</p></div>
+      <div class="card rise"><h3>Five themes, four speeds</h3>
         <p>observatory, neon, terminal, aurora, minimal. Static through cinematic.
-          <kbd>t</kbd> and <kbd>s</kbd> cycle them, <kbd>n</kbd> jumps a scene, and the
-          choice is remembered. Turning animation off also stops vibe mode arriving by
-          itself, because asking for a still screen and being given a moving one is not
-          a feature.</p>
-      </div>
+          <kbd>t</kbd> and <kbd>s</kbd> cycle them, <kbd>n</kbd> jumps a scene, and the choice is
+          remembered. Turning animation off also stops vibe mode arriving by itself, because
+          asking for a still screen and being given a moving one is not a feature.</p></div>
     </div>
   </div>
 </section>
 
 <section id="sessions">
   <div class="wrap">
-    <p class="kicker">View 7</p>
-    <h2>The ten agent windows you never closed.</h2>
-    <p class="sub">Six tools, each read from the store it already writes. The generated
-      title, the first prompt you typed, the project, and the context each one is
-      carrying, which is the number that decides what to clear.</p>
-    <div class="term">
+    <p class="kicker rise">View 7</p>
+    <h2 class="rise">The ten agent windows you never closed.</h2>
+    <p class="sub rise">Six tools, each read from the store it already writes. The generated
+      title, the first prompt you typed, the project, and the context each one is carrying, which
+      is the number that decides what to clear.</p>
+    <div class="term rise">
       <div class="bar"><i></i><i></i><i></i><span>portlist &middot; view 7</span></div>
 <pre aria-label="portlist sessions view"><span class="t-dim">  sessions                     5 running, 60 on disk, 42 stale</span>
 
@@ -591,28 +608,28 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
    copilot Update the HTML export with JSON summary  storefront          <span class="t-dim">8d ago</span>
    claude  Trace the flaky integration test          api           <span class="t-dim">193k</span>  <span class="t-dim">3h ago</span></pre>
     </div>
-    <p class="note small" style="margin-top:16px">Prompts never leave the machine. portlist
-      has no server and no network code, so there is nowhere for them to go.</p>
+    <p class="small rise" style="margin-top:16px">Prompts never leave the machine. portlist has no
+      server and no network code, so there is nowhere for them to go.</p>
   </div>
 </section>
 
 <section id="architecture">
   <div class="wrap">
-    <p class="kicker">Architecture</p>
-    <h2>One scan, one model, eight views.</h2>
-    <p class="sub">A view is a question asked of the model, never a second trip to the
-      machine. That is why switching views is instant, why the tab counts always agree
-      with the rows underneath, and why a new view costs a filter rather than a collector.</p>
+    <p class="kicker rise">Architecture</p>
+    <h2 class="rise">One scan, one model, ten views.</h2>
+    <p class="sub rise">A view is a question asked of the model, never a second trip to the
+      machine. That is why switching views is instant, why the tab counts always agree with the
+      rows underneath, and why a new view costs a filter rather than a collector.</p>
 
-    <figure>
+    <figure class="rise">
       <svg class="arch" viewBox="0 0 980 300" role="img"
-           aria-label="Diagram: the machine is read once into one model, which is stored in the launch ledger and rendered as eight views">
+           aria-label="Diagram: the machine is read once into one model, which is stored in the launch ledger and rendered as ten views">
         <defs>
           <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
             <path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path>
           </marker>
         </defs>
-        <g fill="none" stroke="currentColor" stroke-width="1.2" opacity=".85">
+        <g fill="none" stroke="currentColor" stroke-width="1.2" opacity=".8">
           <rect x="8" y="52" width="212" height="150" rx="8"></rect>
           <rect x="384" y="52" width="200" height="150" rx="8"></rect>
           <rect x="754" y="30" width="218" height="194" rx="8"></rect>
@@ -621,7 +638,7 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
         <g font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor">
           <text x="14" y="42" opacity=".6">the machine</text>
           <text x="390" y="42" opacity=".6">one model</text>
-          <text x="760" y="20" opacity=".6">eight views</text>
+          <text x="760" y="20" opacity=".6">ten views</text>
           <text x="28" y="82">sockets</text>
           <text x="28" y="106">processes</text>
           <text x="28" y="130">containers</text>
@@ -632,12 +649,12 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
           <text x="404" y="164" opacity=".6">signature, not pid</text>
           <text x="404" y="268">~/.portlist</text>
           <text x="404" y="286" opacity=".6">launch ledger, use history</text>
-          <text x="774" y="58">1 services</text><text x="884" y="58">5 agents</text>
-          <text x="774" y="82">2 exposed</text><text x="884" y="82">6 containers</text>
-          <text x="774" y="106">3 attention</text><text x="884" y="106">7 sessions</text>
-          <text x="774" y="130">4 leftovers</text><text x="884" y="130">8 system</text>
-          <text x="774" y="172" opacity=".6">a filter or a grouping,</text>
-          <text x="774" y="190" opacity=".6">never a second scan</text>
+          <text x="774" y="58">0 dashboard</text><text x="884" y="58">5 agents</text>
+          <text x="774" y="82">1 services</text><text x="884" y="82">6 containers</text>
+          <text x="774" y="106">2 exposed</text><text x="884" y="106">7 sessions</text>
+          <text x="774" y="130">3 attention</text><text x="884" y="130">8 system</text>
+          <text x="774" y="154">4 leftovers</text><text x="884" y="154">9 graph</text>
+          <text x="774" y="190" opacity=".6">a filter or a grouping, never a second scan</text>
         </g>
         <g stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)" fill="none">
           <line x1="222" y1="127" x2="376" y2="127"></line>
@@ -648,88 +665,166 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
           <text x="252" y="118">read once</text>
           <text x="618" y="118">filter, group</text>
           <text x="492" y="224">written once,</text>
-        </g>
-        <g font-family="IBM Plex Mono, monospace" font-size="11" opacity=".7" fill="currentColor">
           <text x="492" y="238">never rewritten</text>
         </g>
       </svg>
-      <figcaption>The ledger is the only thing that persists, and it is matched by
-        signature rather than by pid, which is what lets provenance survive a restart.</figcaption>
+      <figcaption>The ledger is the only thing that persists, and it is matched by signature
+        rather than by pid, which is what lets provenance survive a restart.</figcaption>
     </figure>
   </div>
 </section>
 
 <section id="honest">
   <div class="wrap">
-    <p class="kicker">What it will not do</p>
-    <h2>The restraint is the feature.</h2>
+    <p class="kicker rise">What it will not do</p>
+    <h2 class="rise">The restraint is the feature.</h2>
     <ul class="plain">
-      <li><strong>It never stops anything.</strong> The detail pane prints the command and
-        you run it. A tool that both guesses which process is abandoned and can end it will
+      <li class="rise"><strong>It never stops anything.</strong> The detail pane prints the command
+        and you run it. A tool that both guesses which process is abandoned and can end it will
         eventually end the wrong one.</li>
-      <li><strong>It opens no listening socket.</strong> It connects outward to see what
-        answers, and binds a candidate port for a moment to check it is free. Neither calls
+      <li class="rise"><strong>It opens no listening socket.</strong> It connects outward to see
+        what answers, and binds a candidate port for a moment to check it is free. Neither calls
         <code>listen()</code>, so a tool for watching what is listening never adds to the list.</li>
-      <li><strong>It sends nothing anywhere.</strong> No server, no telemetry, no update
-        check. Agent transcripts are read locally and stay there.</li>
-      <li><strong>It says "unknown" out loud.</strong> A process that was already running
-        before portlist ever ran has unknown origin, and shows it, rather than inheriting a
-        repository label from whatever owns the port now.</li>
-      <li><strong>It measures instead of assuming.</strong> Reachability by connecting, use
-        over time rather than uptime, and a gap in the sparkline where nothing was measured
-        rather than a zero.</li>
+      <li class="rise"><strong>It sends nothing anywhere.</strong> No server, no telemetry, no
+        update check. Agent transcripts are read locally and stay there.</li>
+      <li class="rise"><strong>It says "unknown" out loud.</strong> A process that was already
+        running before portlist ever ran has unknown origin, and shows it, rather than inheriting
+        a repository label from whatever owns the port now.</li>
+      <li class="rise"><strong>It measures instead of assuming.</strong> Reachability by
+        connecting, use over time rather than uptime, and a gap in the sparkline where nothing was
+        measured rather than a zero.</li>
     </ul>
   </div>
 </section>
 
 <section id="docs">
   <div class="wrap">
-    <p class="kicker">Documentation</p>
-    <h2>Everything, written down.</h2>
-    <div class="grid g2">
-      <div class="card"><h3><a href="SETUP.md">Setup</a></h3>
+    <p class="kicker rise">Documentation</p>
+    <h2 class="rise">Everything, written down.</h2>
+    <div class="grid g3">
+      <div class="card rise"><h3><a href="SETUP.md">Setup</a></h3>
         <p>Every install route, what each one puts where, and how to remove it.</p></div>
-      <div class="card"><h3><a href="USAGE.md">Usage</a></h3>
+      <div class="card rise"><h3><a href="USAGE.md">Usage</a></h3>
         <p>The views, the keys, and what every column actually means.</p></div>
-      <div class="card"><h3><a href="FEATURES.md">Features</a></h3>
+      <div class="card rise"><h3><a href="FEATURES.md">Features</a></h3>
         <p>The full list, grouped by the question each one answers.</p></div>
-      <div class="card"><h3><a href="ARCHITECTURE.md">Architecture</a></h3>
+      <div class="card rise"><h3><a href="ARCHITECTURE.md">Architecture</a></h3>
         <p>The layers, the launch ledger, and the three states of attribution.</p></div>
-      <div class="card"><h3><a href="https://github.com/Mr-hunt-007/portlist/blob/main/CHANGELOG.md">Changelog</a></h3>
+      <div class="card rise"><h3><a href="MOTION.md">Motion</a></h3>
+        <p>The animation language: five primitives, and why each thing moves.</p></div>
+      <div class="card rise"><h3><a href="https://github.com/Mr-hunt-007/portlist/blob/main/CHANGELOG.md">Changelog</a></h3>
         <p>What changed in each version, including the bugs and what caused them.</p></div>
-      <div class="card"><h3><a href="https://github.com/Mr-hunt-007/portlist/blob/main/SECURITY.md">Security</a></h3>
-        <p>What it reads, what it never sends, and how to report a problem.</p></div>
     </div>
   </div>
 </section>
+</main>
 
 <footer>
   <div class="wrap">
     <div class="row">
       <a href="https://github.com/Mr-hunt-007/portlist">Source</a>
       <a href="https://github.com/Mr-hunt-007/portlist/issues">Issues</a>
-      <a href="https://github.com/Mr-hunt-007/portlist/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/Mr-hunt-007/portlist/releases">Releases</a>
       <a href="https://github.com/Mr-hunt-007/portlist/blob/main/LICENSE">MIT licence</a>
+      <a class="coffee" href="https://buymeacoffee.com/mr.hunt.007">buy me a<span class="long"> coffee</span></a>
     </div>
     <p class="small" style="margin-top:22px">portlist 1.1. Standard library only.
       Free, and free of strings.</p>
   </div>
 </footer>
 
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
 <script>
 (function(){
-  // theme: system by default, and the choice is remembered per browser
-  var root = document.documentElement, btn = document.getElementById("themer");
-  try { var saved = localStorage.getItem("pl-theme"); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
-  btn.addEventListener("click", function(){
-    var now = root.getAttribute("data-theme");
-    if (!now) now = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    var next = now === "dark" ? "light" : "dark";
-    root.setAttribute("data-theme", next);
-    try { localStorage.setItem("pl-theme", next); } catch (e) {}
-  });
+  var still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // install tabs
+  /* ---- the field behind the hero -------------------------------------- */
+  /* The same idea the program itself draws: a travelling wave, sparse, made of
+     characters. It carries no reading here - this is a website, not the tool -
+     so it is kept faint and slow enough to read over.                        */
+  var cv = document.getElementById("field");
+  if (cv && !still) {
+    var cx = cv.getContext("2d", { alpha: true });
+    var RAMP = " .:-=+*#", CW = 15, CH = 20, cols = 0, rows = 0, t = 0, raf = 0, on = true;
+    function size(){
+      var r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
+      cv.width = Math.floor(r.width * d); cv.height = Math.floor(r.height * d);
+      cx.setTransform(d, 0, 0, d, 0, 0);
+      cols = Math.ceil(r.width / CW); rows = Math.ceil(r.height / CH);
+      cx.font = "13px IBM Plex Mono, monospace"; cx.textBaseline = "top";
+    }
+    function frame(){
+      raf = 0;
+      var r = cv.getBoundingClientRect();
+      cx.clearRect(0, 0, r.width, r.height);
+      for (var y = 0; y < rows; y++){
+        for (var x = 0; x < cols; x++){
+          var v = Math.sin(x * 0.22 - t) * 0.5 + 0.5;
+          v *= Math.sin(y * 0.35 + t * 0.6) * 0.5 + 0.5;
+          v *= 1 - (y / rows) * 0.55;                  /* fades down the page */
+          var i = Math.floor(v * (RAMP.length - 1) * 1.35);
+          if (i < 3) continue;                          /* sparse: most cells stay empty */
+          var ch = RAMP[Math.min(i, RAMP.length - 1)];
+          cx.fillStyle = i > 5 ? "rgba(232,163,61," + (0.05 + v * 0.16) + ")"
+                               : "rgba(63,167,160," + (0.04 + v * 0.11) + ")";
+          cx.fillText(ch, x * CW, y * CH);
+        }
+      }
+      t += 0.045;
+      if (on) raf = requestAnimationFrame(function(){ setTimeout(frame, 55); });
+    }
+    size(); frame();
+    addEventListener("resize", function(){ size(); }, { passive: true });
+    /* stop drawing the moment it scrolls out of view */
+    if (window.IntersectionObserver) {
+      new IntersectionObserver(function(es){
+        on = es[0].isIntersecting;
+        if (on && !raf) frame();
+      }, { threshold: 0 }).observe(cv);
+    }
+  }
+
+  /* ---- scroll motion --------------------------------------------------- */
+  if (window.gsap && !still) {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.to(".hero .rise", { opacity: 1, y: 0, duration: .7, stagger: .07, ease: "power2.out" });
+
+    document.querySelectorAll("section").forEach(function(sec){
+      var items = sec.querySelectorAll(".rise");
+      if (!items.length) return;
+      gsap.to(items, {
+        opacity: 1, y: 0, duration: .6, stagger: .06, ease: "power2.out",
+        scrollTrigger: { trigger: sec, start: "top 78%" }
+      });
+    });
+
+    /* the port field drifts a little slower than the page */
+    gsap.to("body", {
+      "--parallax": 1,
+      scrollTrigger: { trigger: document.body, start: "top top", end: "bottom bottom", scrub: .6,
+        onUpdate: function(self){
+          document.body.style.setProperty("--py", (self.progress * -90) + "px");
+        } }
+    });
+    var st = document.createElement("style");
+    st.textContent = "body::after{transform:translateY(var(--py,0px))}";
+    document.head.appendChild(st);
+
+    /* terminal blocks arrive line by line, the way the program paints */
+    document.querySelectorAll(".term pre").forEach(function(pre){
+      gsap.fromTo(pre, { clipPath: "inset(0 0 100% 0)" },
+        { clipPath: "inset(0 0 0% 0)", duration: 1.1, ease: "power2.inOut",
+          scrollTrigger: { trigger: pre, start: "top 85%" } });
+    });
+  } else {
+    document.querySelectorAll(".rise").forEach(function(el){
+      el.style.opacity = 1; el.style.transform = "none";
+    });
+  }
+
+  /* ---- install tabs ---------------------------------------------------- */
   var tabs = document.querySelectorAll('[role="tab"]');
   tabs.forEach(function(tab){
     tab.addEventListener("click", function(){
@@ -740,7 +835,7 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
     });
   });
 
-  // copy buttons
+  /* ---- copy buttons ---------------------------------------------------- */
   document.querySelectorAll("[data-copy]").forEach(function(b){
     b.addEventListener("click", function(){
       var text = b.getAttribute("data-copy"), done = function(){

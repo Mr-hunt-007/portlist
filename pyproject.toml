@@ -3,7 +3,11 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "portlist"
+# The command is `portlist`; the distribution is `portlist-tui` because the name
+# `portlist` was already taken on PyPI by an unrelated package, and shipping
+# under it would mean `pip install portlist` quietly fetching somebody else's
+# code. The two names are independent: this installs a `portlist` command.
+name = "portlist-tui"
 version = "1.1"
 description = "Every port on this machine, and where it came from. A terminal program."
 readme = "README.md"

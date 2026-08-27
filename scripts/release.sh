@@ -36,15 +36,18 @@ CMD
 (cd "$OUT" && zip -qr "portlist-$VERSION-windows.zip" "portlist-$VERSION")
 ZIP_SHA=$(shasum -a 256 "$OUT/portlist-$VERSION-windows.zip" | cut -d' ' -f1)
 
-# 2. the source tarball, byte-for-byte what GitHub serves for the tag, so the
-#    formula's checksum matches what brew downloads.
-if git -C "$ROOT" rev-parse "v$VERSION" >/dev/null 2>&1; then
-  git -C "$ROOT" archive --format=tar.gz --prefix="portlist-$VERSION/" \
-      -o "$OUT/portlist-$VERSION.tar.gz" "v$VERSION"
+# 2. the source tarball, downloaded from GitHub rather than built here.
+#    `git archive` does NOT produce the same bytes as GitHub's tarball - it was
+#    checked, and the two hashes differed - so stamping a locally built archive
+#    gives Homebrew a checksum that will never match, and the install fails with
+#    a message that reads like a compromised download. Take the hash from the
+#    file brew will actually fetch.
+TAR_URL="https://github.com/Mr-hunt-007/portlist/archive/refs/tags/v$VERSION.tar.gz"
+if curl -fsSL -o "$OUT/portlist-$VERSION.tar.gz" "$TAR_URL"; then
   TAR_SHA=$(shasum -a 256 "$OUT/portlist-$VERSION.tar.gz" | cut -d' ' -f1)
 else
-  echo "note: tag v$VERSION does not exist yet, so the formula checksum is left"
-  echo "      unstamped. Tag, push, then run this again."
+  echo "note: $TAR_URL is not there yet, so the formula checksum is left"
+  echo "      unstamped. Tag, push the tag, then run this again."
   TAR_SHA=""
 fi
 

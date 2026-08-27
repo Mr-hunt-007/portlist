@@ -13,6 +13,6 @@ Dependencies:
 Installers:
   - Architecture: neutral
     InstallerUrl: https://github.com/Mr-hunt-007/portlist/releases/download/v1.1/portlist-1.1-windows.zip
-    InstallerSha256: REPLACE_AT_RELEASE
+    InstallerSha256: c24af80430a41439fea1b707615fcc75d749789a1c751aa1220497705443189f
 ManifestType: installer
 ManifestVersion: 1.6.0

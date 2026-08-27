@@ -27,8 +27,47 @@
 ```
 
 Twelve things are listening. You started three of them today and you cannot name
-the rest. `lsof` tells you a PID; portlist tells you the agent session, the
-project directory and whether anyone has used it since Tuesday.
+the rest.
+
+## What problem does it solve
+
+`lsof -i` and `netstat` answer *what is bound to this port*. That was the whole
+question when a machine ran two servers you started by hand. It is not the
+question any more, because most of what is listening on a developer laptop was
+started by something else: an agent session, an editor, a container, a service
+manager, or you, on Tuesday, in a directory you have since forgotten.
+
+The questions that are actually in the way:
+
+| you ask | `lsof` says | portlist says |
+|---|---|---|
+| what is on :8787? | `Python, pid 96798` | a static file server, started by a Claude Code session, in `~/code/data-export` |
+| who started it? | nothing | that session, and whether it has since exited |
+| can anyone reach it? | a bind string like `0.0.0.0` | what answered when it connected to this machine's real address |
+| is it still needed? | how long it has been *up* | how long it has been *unused*, measured over time |
+| is it safe to kill? | nothing | what depends on it, what it depends on, and the command to stop it |
+
+Three situations it was built for:
+
+**"Address already in use."** Something holds :3000 and you did not start it.
+Was it this morning's agent session, a container, or a dev server from last
+Tuesday that never died? portlist names it, and if you just want a port that is
+free now and not spoken for later, `f` gives you one.
+
+**An agent left the lights on.** Coding agents start servers and move on. The
+session exits, the server does not, and nothing on the machine remembers which
+session it belonged to. portlist writes a launch record the first time it sees a
+service and never rewrites it, so the answer survives both the agent exiting and
+the service being restarted by something else.
+
+**Bound to the world by accident.** `0.0.0.0` in a config file is a claim. The
+only honest answer comes from connecting to this machine's real address and
+seeing what answers, which is what the `REACHABLE` column is.
+
+And the rule underneath all of it: **it never dresses a guess as a fact.** A
+service that was already listening before portlist first looked has *unknown*
+origin and says so, rather than inheriting a label from whatever owns the port
+now. "The container engine did not answer" is never rendered as "no containers".
 
 ## Install
 
@@ -36,20 +75,16 @@ project directory and whether anyone has used it since Tuesday.
 
 ```sh
 brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
+brew trust mr-hunt-007/portlist      # Homebrew asks this of every third-party tap
 brew install portlist
 ```
 
-**winget** (Windows)
-
-```powershell
-winget install Mr-hunt-007.portlist
-```
-
-**pipx** (anywhere, and the simplest route on Windows because it brings
-`windows-curses` with it)
+**pip or pipx**, anywhere. pipx is the simplest route on Windows, because it
+brings `windows-curses` along:
 
 ```sh
-pipx install portlist
+pipx install git+https://github.com/Mr-hunt-007/portlist
+pip  install git+https://github.com/Mr-hunt-007/portlist
 ```
 
 **One line**, into `~/.local`, no root and nothing system-wide:
@@ -65,6 +100,12 @@ git clone https://github.com/Mr-hunt-007/portlist && cd portlist && python3 port
 ```
 
 Then run `portlist`.
+
+<sub>Not yet published: `pip install portlist-tui` (the artifacts are built and
+pass `twine check`, but nothing has been uploaded) and `winget install` (the
+manifests are in `packaging/winget/`, not submitted). The name `portlist` on
+PyPI belongs to an unrelated package, which is why the distribution is
+`portlist-tui` while the command stays `portlist`.</sub>
 
 ## The dashboard
 

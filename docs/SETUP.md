@@ -8,8 +8,12 @@ whichever route below matches how you like to install things; they all end with
 
 ```sh
 brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
+brew trust mr-hunt-007/portlist      # Homebrew asks this of every third-party tap
 brew install portlist
 ```
+
+The `brew trust` line is not optional: Homebrew refuses to load a formula from a
+tap it has not been told to trust, and says so rather than installing anything.
 
 Puts the program in Homebrew's prefix with its own Python. `brew upgrade portlist`
 updates it, `brew uninstall portlist` removes it, and nothing is left behind
@@ -17,9 +21,10 @@ except `~/.portlist`, which is yours to delete.
 
 ## winget (Windows)
 
-```powershell
-winget install Mr-hunt-007.portlist
-```
+**Not submitted yet.** The manifests are written and validated in
+`packaging/winget/`, but nothing has been sent to `microsoft/winget-pkgs`, so
+`winget install Mr-hunt-007.portlist` will not find anything today. Use pipx
+below, which is the better route on Windows anyway.
 
 Windows needs one thing macOS and Linux do not: CPython ships there without
 `curses`, and portlist is a curses program. The winget package installs the
@@ -29,13 +34,20 @@ sentence you would rather not think about, use pipx below, which handles it.
 ## pipx (anywhere)
 
 ```sh
-pipx install portlist
+pipx install git+https://github.com/Mr-hunt-007/portlist
+pip  install git+https://github.com/Mr-hunt-007/portlist
 ```
 
 The simplest route on Windows, because `windows-curses` is declared as a
 dependency there and pipx installs it into the same isolated environment.
 
-Update with `pipx upgrade portlist`, remove with `pipx uninstall portlist`.
+Installing straight from the repository rather than from PyPI, because nothing
+has been uploaded there yet. When it is, the distribution will be
+**`portlist-tui`**: the name `portlist` on PyPI belongs to an unrelated package,
+and shipping under it would mean `pip install portlist` quietly fetching
+somebody else's code. The command it installs is `portlist` either way.
+
+Remove with `pipx uninstall portlist-tui`.
 
 ## One line
 

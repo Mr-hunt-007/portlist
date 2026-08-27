@@ -373,7 +373,11 @@ footer a{border:0; color:var(--muted)} footer a:hover{color:var(--accent)}
   <div class="wrap">
     <p class="kicker">The problem</p>
     <h2>A port list is not the answer. It is the question.</h2>
-    <p class="sub">Three real situations, none of which a port number can settle on its own.</p>
+    <p class="sub"><code>lsof -i</code> answers what is bound to a port. That was the
+      whole question when a machine ran two servers you started by hand. Most of what
+      listens on a developer laptop today was started by something else: an agent
+      session, an editor, a container, or you, on Tuesday, in a directory you have
+      since forgotten. Three situations none of which a port number settles on its own.</p>
     <div class="grid g3">
       <div class="card">
         <p class="n">01</p>
@@ -414,26 +418,34 @@ footer a{border:0; color:var(--muted)} footer a:hover{color:var(--accent)}
 
     <div class="panel on" id="p-brew" role="tabpanel" aria-labelledby="t-brew">
 <pre class="sh"><button class="copybtn" type="button" data-copy="brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
+brew trust mr-hunt-007/portlist
 brew install portlist">copy</button><span class="c"># macOS and Linux</span>
 <span class="p">$</span> brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
+<span class="p">$</span> brew trust mr-hunt-007/portlist   <span class="c"># asked of every third-party tap</span>
 <span class="p">$</span> brew install portlist
 <span class="p">$</span> portlist</pre>
       <p class="note">Installs with its own Python. <code>brew upgrade portlist</code> updates it.</p>
     </div>
 
     <div class="panel" id="p-winget" role="tabpanel" aria-labelledby="t-winget">
-<pre class="sh"><button class="copybtn" type="button" data-copy="winget install Mr-hunt-007.portlist">copy</button><span class="c"># Windows</span>
-<span class="p">&gt;</span> winget install Mr-hunt-007.portlist</pre>
+<pre class="sh"><span class="c"># Windows - not submitted to winget yet</span>
+<span class="c"># the manifests are written and validated, but nothing has been sent to</span>
+<span class="c"># microsoft/winget-pkgs, so use pipx below instead</span>
+<span class="p">&gt;</span> pipx install git+https://github.com/Mr-hunt-007/portlist</pre>
       <p class="note">Windows needs one thing the others do not: CPython ships there without
         <code>curses</code>, which portlist is built on. Add <code>pip install windows-curses</code>,
         or use pipx below, which brings it along on its own.</p>
     </div>
 
     <div class="panel" id="p-pipx" role="tabpanel" aria-labelledby="t-pipx">
-<pre class="sh"><button class="copybtn" type="button" data-copy="pipx install portlist">copy</button><span class="c"># anywhere, and the simplest route on Windows</span>
-<span class="p">$</span> pipx install portlist</pre>
+<pre class="sh"><button class="copybtn" type="button" data-copy="pipx install git+https://github.com/Mr-hunt-007/portlist">copy</button><span class="c"># anywhere, and the simplest route on Windows</span>
+<span class="p">$</span> pipx install git+https://github.com/Mr-hunt-007/portlist
+<span class="p">$</span> pip  install git+https://github.com/Mr-hunt-007/portlist</pre>
       <p class="note">An isolated environment per tool, and <code>windows-curses</code> is declared
-        as a dependency there, so Windows needs no extra step.</p>
+        as a dependency there, so Windows needs no extra step. Straight from the
+        repository, because nothing is on PyPI yet: the name <code>portlist</code> there
+        belongs to an unrelated package, so the distribution will be
+        <code>portlist-tui</code> while the command stays <code>portlist</code>.</p>
     </div>
 
     <div class="panel" id="p-curl" role="tabpanel" aria-labelledby="t-curl">

@@ -1,0 +1,7 @@
+# portlist has no third-party dependencies on macOS, Linux or BSD. The standard
+# library is the whole list, which is why this file is almost empty.
+#
+# Windows is the exception: CPython ships there without `curses`, and portlist is
+# a curses program. The marker means this line installs on Windows and nowhere
+# else, so `pip install -r requirements.txt` is safe on every platform.
+windows-curses>=2.3; sys_platform == "win32"

@@ -83,7 +83,7 @@ so a single screenshot tells the whole story.
   LISTENING  14 services                                                                                      Tab  next section
     PORT    SERVICE               PROJECT           STARTED BY          REACH           RISK
   ● :7337   Grafana               metrics           terminal            Localhost only  12 Info
-  ○ :8000   Python http.server    CredRadar         Claude Code         Localhost only  12 Info
+  ○ :8000   Python http.server    analytics         Claude Code         Localhost only  12 Info
   ○ :8787   Python http.server    data-export       Claude Code         All interfaces  71 High
 
   SELECTED SERVICE                                                          │ ACTIVITY
@@ -221,11 +221,11 @@ terminal draws a layered graph well:
   STARTED BY            PROJECT             PROCESS           PORT  AND SERVICE          REACHABLE FROM
   started work in ──▸   runs ──▸            listens ──▸       confirmed on ──▸
 
-  ◆ Claude Code       ├─CredRadar         ──Python pid 6810 ──:8000   Python http.serv ──Localhost only
-  │                   ├─identity-exposure ──node pid 77259  ──:8422   unidentified     ──Localhost only
+  ◆ Claude Code       ├─analytics         ──Python pid 6810 ──:8000   Python http.serv ──Localhost only
+  │                   ├─data-export       ──node pid 77259  ──:8422   unidentified     ──Localhost only
   │                   │                   ──Python pid 96798──:8787   Python http.serv ──All interfaces  confirmed on 192.168.0.2
   │                   ├─metrics           ──bun pid 32016   ──:48744  Bun              ──Localhost only
-  │                   └─urlintel          ──Python pid 67222──:8787   FastAPI / Uvicorn──Localhost only
+  │                   └─scanner           ──Python pid 67222──:8787   FastAPI / Uvicorn──Localhost only
   ◇ launchd           └─no project        ──tor pid 58508   ──:9050   Tor              ──Localhost only
 
   ◆ an agent session   ◇ something else   10 of 12 services were started by an agent

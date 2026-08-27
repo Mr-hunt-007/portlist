@@ -372,9 +372,19 @@ do it. That is not a setting you are missing.
 either, for the reason above. Install one of:
 
 ```sh
-brew install --cask ghostty     # native, fast, no configuration needed
+brew install --cask ghostty     # verified working, and needs no configuration
 brew install --cask kitty       # the reference implementation of the protocol
 brew install --cask wezterm
+```
+
+If Ghostty is the first thing you install, note that its `TERM` is
+`xterm-ghostty`, which is not in the terminfo database most systems ship. Recent
+versions install it for you; if portlist will not start there at all, that is
+why, and this fixes it:
+
+```sh
+mkdir -p ~/.terminfo/78
+cp /Applications/Ghostty.app/Contents/Resources/terminfo/78/xterm-ghostty ~/.terminfo/78/
 ```
 
 **Linux** - several work. kitty and Ghostty are packaged for most distributions;
@@ -408,11 +418,12 @@ being wrong about support costs a blank background rather than escape codes
 across your screen. To force characters everywhere, including on a terminal that
 could show the file, set `PORTLIST_NO_GRAPHICS=1` or press `g` one more step.
 
-One caveat worth stating plainly: portlist offers the image path wherever the
-terminal advertises the protocol, but implementations differ in how completely
-they follow it. If yours honours the protocol without the z-index, the picture
-will sit *over* the text instead of behind it. Press `g` once more for
-characters, and open an issue naming the terminal.
+**Confirmed on Ghostty**, macOS, with the picture behind the readings as
+intended. kitty is the reference implementation of the protocol and Konsole and
+WezTerm implement it too, but I have not put eyes on those three, and terminals
+differ in how completely they follow the spec. If yours honours the protocol
+without the z-index the picture will sit *over* the text rather than behind it:
+press `g` once more for characters, and open an issue naming the terminal.
 
 When a service really appears while you are watching, it is marked **NEW** for a
 few seconds and the strip redraws around it; when one stops listening, that is

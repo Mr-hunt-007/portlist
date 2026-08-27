@@ -21,7 +21,8 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   none. `--vibe-bg` meant knowing a path and restarting, which is a setting
   rather than something anybody uses twice. Pressing `g` with nothing there
   creates the folder and says so.
-- **The picture itself, on a terminal that can take one.** kitty, Ghostty,
+- **The picture itself, on a terminal that can take one**, confirmed working on
+  Ghostty. kitty, Ghostty,
   WezTerm and Konsole are handed the PNG and draw it behind the text at `z=-1`,
   the one arrangement where a background sits behind the readings rather than
   over them. iTerm2's inline images and sixel occupy cells and would cover the

@@ -161,6 +161,22 @@ h1 em{font-style:normal; color:var(--shu)}
 .screens{position:relative; padding:20px 18px 12px; overflow-x:auto}
 .screen{display:none; margin:0; font-size:11px; line-height:1.5; color:#C7D2DE; white-space:pre}
 .screen.on{display:block}
+/* The vibe pane draws the room. The terminal draws it as characters, and the
+   page can show the plate those characters came from underneath them, so the
+   two read as one picture rather than as a diagram of one. Only this pane: the
+   other ten are screenfuls of text and a photograph behind them is noise. */
+.stage.vibe .screens::before{content:""; position:absolute; inset:0; z-index:0;
+  background:url("plate-terminal.png") center/cover no-repeat;
+  opacity:.5; filter:saturate(.72) contrast(1.06);
+  animation:roomdrift 42s ease-in-out infinite alternate}
+.stage.vibe .screens::after{content:""; position:absolute; inset:0; z-index:1;
+  pointer-events:none;
+  background:radial-gradient(130% 100% at 52% 44%,transparent 30%,rgba(10,11,13,.82) 100%)}
+.stage.vibe .screen{position:relative; z-index:2}
+.stage.vibe .screen.on{animation:roomglow 7s ease-in-out infinite}
+@keyframes roomdrift{from{transform:scale(1.04) translate3d(-.6%,-.4%,0)}
+                     to{transform:scale(1.1) translate3d(.6%,.5%,0)}}
+@keyframes roomglow{0%,100%{opacity:.94}45%{opacity:1}70%{opacity:.9}}
 .screens::-webkit-scrollbar{height:7px}
 .screens::-webkit-scrollbar-thumb{background:#2A2F38}
 .keys{display:flex; flex-wrap:wrap; gap:0; border-top:1px solid #23262C}
@@ -307,6 +323,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
   .rise{opacity:1!important; transform:none!important; transition:none}
   .stroke path{stroke-dashoffset:0; transition:none}
   .stage.crt::before{animation:none}
+  .stage.vibe .screens::before, .stage.vibe .screen.on{animation:none}
   .eco g.live .flow{animation:none; opacity:.5; stroke-dasharray:none; stroke-dashoffset:0}
 }
 </style>
@@ -1149,6 +1166,9 @@ brew install portlist">copy</button><span class="p">$</span> brew tap Mr-hunt-00
     panes[current].classList.remove("on"); panes[current].setAttribute("aria-hidden","true");
     panes[view].classList.add("on"); panes[view].setAttribute("aria-hidden","false");
     Object.keys(btns).forEach(function(k){ btns[k].setAttribute("aria-current", String(k===key)); });
+    // Only the vibe pane carries the photograph behind its characters.
+    var stage = scr.closest(".stage");
+    if (stage) stage.classList.toggle("vibe", view === "vibe");
     current = view;
   }
   keys.addEventListener("click", function(e){

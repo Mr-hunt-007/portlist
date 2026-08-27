@@ -426,15 +426,23 @@ class Vibe:
         right = time.strftime("%H:%M:%S   %a %d %b")
         self.t.put(h - 2, 2, left, self.c("dim"))
         self.t.put(h - 2, max(3, w - len(right) - 2), right, self.c("dim"))
-        if SCENES[self.scene] == "room":
-            hint = "any key returns   t theme   s speed   n scene"
-        else:
-            hint = "any key returns   t theme   s speed   n scene   b background %s" % (
+        hint = "any key returns   t theme   s speed   n scene"
+        if SCENES[self.scene] != "room":
+            hint += "   b background %s" % (
                 ("%d%%" % self.bg_opacity) if (self.bg and self.bg_opacity) else "off")
             if self.bg and self.bg_opacity:
                 hint += "   B ink %s" % self.bg_invert
+        # `A` decides whether this screen arrives on its own after thirty idle
+        # seconds. It has always worked and was never printed, which makes it a
+        # key nobody could find.
+        hint += "   A arrives on its own %s" % ("yes" if self.auto else "no")
         if self.bg_note:
             hint = self.bg_note
+        elif w <= len(hint) + 6:
+            # A narrow terminal used to get no hint at all, which is the one
+            # width where guessing the keys is hardest. Shorten it instead.
+            hint = "any key returns   t s n%s A" % (
+                " b B" if SCENES[self.scene] != "room" else "")
         if w > len(hint) + 6:
             self.mid(h - 1, w, hint, "dim")
 

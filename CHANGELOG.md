@@ -25,6 +25,14 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Fixed
 
+- **`A` is finally printed on the screen it belongs to.** It has always toggled
+  whether vibe mode arrives on its own after thirty idle seconds, and it was in
+  the key table in the docs, but the footer never listed it: a key you can only
+  find by reading the source is not a key anybody has.
+- **A narrow terminal gets the keys too.** The footer hint was drawn only when
+  the whole sentence fit, so below about a hundred columns vibe mode showed no
+  keys at all, which is the width where guessing them is hardest. It now
+  shortens instead of disappearing.
 - **`close it` no longer prints a `kill` it cannot stand behind.** When several
   agents share a directory the session cannot be matched to one of them from
   outside, and the detail pane was still printing `kill <first pid>`. It now

@@ -148,11 +148,12 @@ gives way to an ambient screen worth leaving open on a second monitor. Any key
 brings the list straight back, and that key is swallowed rather than acted on,
 so returning never also opens, filters or moves anything.
 
-Five scenes rotate:
+Six scenes rotate:
 
 | | |
 |---|---|
 | **cockpit** | everything at once: meters, the services worth looking at first, and the host strip |
+| **grid** | every listening service as a tile, so four services and forty look different from across a room |
 | **machine** | load, memory and disk as meters, the CPU and memory waves, and what the machine adds up to |
 | **network** | the host with its services around it, and a particle travelling every edge where a loopback connection was actually observed |
 | **agents** | each agent, editor or terminal, and the services it started |
@@ -166,8 +167,41 @@ Inside vibe mode, four keys do not exit:
 | `s` | speed: static, slow, medium, cinematic |
 | `n` | next scene now |
 | `A` | whether it may arrive on its own after thirty idle seconds |
+| `b` | how strongly the background picture shows, if you set one |
 
 Choices are remembered in `~/.portlist/vibe.json`.
+
+### A picture behind it
+
+Off until you ask for it:
+
+```sh
+portlist --vibe-bg ~/pictures/thing.png
+```
+
+**PNG only, and that is a real limit rather than an oversight.** A PNG is `zlib`
+and a few row filters, which the standard library already has; a JPEG needs a
+DCT and a Huffman decoder, which is several hundred lines of the wrong kind of
+code for a port tool. A JPEG is reported as unsupported rather than half-read.
+
+`b` inside vibe mode moves it through 0, 15, 30, 45 and 60 per cent and back to
+off, so it can be tuned while looking at it rather than by editing JSON. Sixty
+is the ceiling on purpose: past that the picture wins and the numbers stop being
+readable, and a dial should not offer a value that makes the screen worse.
+
+"Opacity" here means **density**, not alpha. A terminal cannot half-draw a
+character, so a fainter picture is a sparser stipple in the dimmest colour the
+theme has. Two things follow, both deliberate:
+
+- **It is painted into the negative space only.** The scene draws first, then
+  the picture fills what is left, staying a few cells clear of anything already
+  on screen. Drawn underneath, it came through the gaps between words and every
+  row of text looked speckled.
+- **Each scene decides how much it can carry.** The cockpit and machine scenes
+  are mostly air and take it at full strength; the network scene is already
+  lines and nodes on empty space, so it gets 40 per cent of whatever you set.
+
+It costs about half a percent of one core, measured, and nothing when it is off.
 
 When a service really appears while you are watching, it is marked **NEW** for
 a few seconds; when one stops listening, that is reported too. The first frame

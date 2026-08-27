@@ -13,14 +13,27 @@ out what is true about a machine.
 Four scenes rotate: the machine, the network between local services, the agents
 and what they started, and what has actually happened lately.
 """
+import curses
 import json
 import math
 import os
 import time
 
-from . import history, ledger, security
+from . import history, imgmap, ledger, security
 
-SCENES = ("cockpit", "machine", "network", "agents", "activity")
+SCENES = ("cockpit", "machine", "network", "agents", "activity", "grid")
+
+# How much of a background each scene will carry. A scene that is mostly empty
+# can hold a picture; one that is already lines and nodes cannot, and turning it
+# down per scene is the difference between atmosphere and a mess.
+SCENE_BG = {"cockpit": 1.0, "machine": 1.0, "grid": 0.55,
+            "activity": 0.75, "agents": 0.65, "network": 0.40}
+
+# The dial, in steps. Capped well below full on purpose: at full strength the
+# picture wins and the data underneath stops being readable, and a setting that
+# can make the screen worse should not offer that value.
+BG_STEPS = (0, 15, 30, 45, 60)
+BG_MAX = 60
 
 # name -> (frame interval in seconds, seconds a scene holds before the next)
 SPEEDS = {
@@ -82,9 +95,17 @@ def load():
             d = json.load(f)
     except Exception:
         d = {}
+    try:
+        op = int(d.get("bg_opacity", 0))
+    except (TypeError, ValueError):
+        op = 0
     return {"theme": d.get("theme") if d.get("theme") in THEMES else "observatory",
             "speed": d.get("speed") if d.get("speed") in SPEEDS else "medium",
-            "auto": bool(d.get("auto", True))}
+            "auto": bool(d.get("auto", True)),
+            # Off unless somebody asks for it. A tool that quietly starts drawing
+            # pictures behind your data has changed what it is without asking.
+            "bg": str(d.get("bg") or ""),
+            "bg_opacity": max(0, min(BG_MAX, op))}
 
 
 def save(settings):
@@ -118,6 +139,11 @@ class Vibe:
         self.theme = s["theme"]
         self.speed = s["speed"]
         self.auto = s["auto"]
+        self.bg = s["bg"]
+        self.bg_opacity = s["bg_opacity"]
+        self.bg_cache = None          # (path, mtime, cols, rows) -> grid
+        self.bg_grid = None
+        self.bg_note = ""
         self.scene = 0
         self.frame = 0
         self.scene_since = time.time()
@@ -149,9 +175,16 @@ class Vibe:
             self.scene_since = time.time()
         elif ch == ord("A"):
             self.auto = not self.auto
+        elif ch == ord("b"):
+            # Tune it live rather than by editing json.
+            steps = list(BG_STEPS)
+            here = min(range(len(steps)), key=lambda i: abs(steps[i] - self.bg_opacity))
+            self.bg_opacity = steps[(here + 1) % len(steps)]
+            self.bg_grid = self.bg_cache = None
         else:
             return False
-        save({"theme": self.theme, "speed": self.speed, "auto": self.auto})
+        save({"theme": self.theme, "speed": self.speed, "auto": self.auto,
+              "bg": self.bg, "bg_opacity": self.bg_opacity})
         return True
 
     # ------------------------------------------------------------- painting
@@ -233,11 +266,87 @@ class Vibe:
         age = time.time() - when
         return None if age > self.NEW_FOR else (age / self.NEW_FOR)
 
+    # ------------------------------------------------------------ backdrop
+    BG_RAMP = " .:-=+*#"
+
+    def backdrop(self, h, w, scene):
+        """Draw the picture behind the scene, if one was asked for.
+
+        Decoding is done once and cached: a 1600x900 PNG takes about half a
+        second to unfilter, which is fine on entry and impossible per frame.
+        """
+        if not self.bg or self.bg_opacity <= 0:
+            return
+        cols, rows = max(1, w - 2), max(1, h - 4)
+        key = None
+        try:
+            key = (self.bg, os.path.getmtime(self.bg), cols, rows)
+        except OSError as e:
+            self.bg_note = "background unreadable: %s" % (e.strerror or "no such file")
+            self.bg = ""
+            return
+        if key != self.bg_cache:
+            try:
+                self.bg_grid = imgmap.cells(self.bg, cols, rows)
+                self.bg_note = ""
+            except imgmap.Unsupported as e:
+                self.bg_note = "background: %s" % e
+                self.bg = ""
+                self.bg_grid = None
+                return
+            except Exception:
+                self.bg_note = "background could not be read"
+                self.bg = ""
+                self.bg_grid = None
+                return
+            self.bg_cache = key
+        if not self.bg_grid:
+            return
+        # Opacity is density here, not alpha: a terminal cannot fade a glyph, so
+        # a fainter picture is a sparser one drawn in the dimmest colour.
+        #
+        # And it is painted into the negative space only. Drawn underneath, the
+        # scene's own gaps let the picture through between words and every row
+        # of text came out speckled. Asking curses what is already in each cell
+        # and skipping the ones that are taken costs one inch() per cell and
+        # keeps the data perfectly legible, which is the whole bargain.
+        strength = (self.bg_opacity / 100.0) * SCENE_BG.get(scene, 0.7)
+        ramp = self.BG_RAMP
+        top = len(ramp) - 1
+        scr = self.t.s
+        margin = 4
+        for y, line in enumerate(self.bg_grid):
+            yy = y + 2
+            width = len(line)
+            # Read the row once, then keep the picture a few cells clear of
+            # anything already on it. Filling every empty cell put stipple in
+            # the gaps *between words*, which does not read as atmosphere, it
+            # reads as a dirty screen.
+            taken = bytearray(width)
+            for x in range(width):
+                try:
+                    if (scr.inch(yy, x + 1) & 0xFF) != 32:
+                        taken[x] = 1
+                except curses.error:
+                    taken[x] = 1
+            near = bytearray(width)
+            for x in range(width):
+                if taken[x]:
+                    for k in range(max(0, x - margin), min(width, x + margin + 1)):
+                        near[k] = 1
+            for x, v in enumerate(line):
+                if near[x]:
+                    continue
+                step = int(round(v * strength * top * 1.6))
+                if step > 0:
+                    self.t.put(yy, x + 1, ramp[min(step, top)], self.c("dim"))
+
     def draw(self, h, w):
         self.notice()
         name = SCENES[self.scene]
         self.mid(1, w, "P O R T L I S T" if w >= 40 else "PORTLIST", "accent", True)
         getattr(self, "_" + name)(h, w)
+        self.backdrop(h, w, name)          # into the gaps the scene left
         self.footer(h, w)
         self.wipe(h, w)
 
@@ -259,8 +368,10 @@ class Vibe:
         right = time.strftime("%H:%M:%S   %a %d %b")
         self.t.put(h - 2, 2, left, self.c("dim"))
         self.t.put(h - 2, max(3, w - len(right) - 2), right, self.c("dim"))
-        hint = "any key returns   t theme   s speed   n scene   A auto %s" % (
-            "on" if self.auto else "off")
+        hint = "any key returns   t theme   s speed   n scene   b background %s" % (
+            ("%d%%" % self.bg_opacity) if (self.bg and self.bg_opacity) else "off")
+        if self.bg_note:
+            hint = self.bg_note
         if w > len(hint) + 6:
             self.mid(h - 1, w, hint, "dim")
 
@@ -365,6 +476,59 @@ class Vibe:
                   st == "active")
             label = str(r.get("port"))
             t.put(y + 3, x - len(label) // 2, label, self.c("text"))
+
+    def _grid(self, h, w):
+        """Every listening service as a tile. The whole surface at a glance.
+
+        The other scenes each answer one question; this one is the inventory,
+        laid out so that a machine with four services and a machine with forty
+        look obviously different from across a room.
+        """
+        t = self.t
+        rows = sorted(t.live_rows(), key=lambda r: (-(r.get("risk") or 0), r.get("port") or 0))
+        self.mid(3, w, "EVERYTHING LISTENING", "dim")
+        if not rows:
+            self.mid(max(6, h // 2), w, "nothing is listening", "dim")
+            return
+
+        tile_w, tile_h = 20, 4
+        cols = max(1, min(len(rows), (w - 4) // tile_w))
+        x0 = max(2, (w - cols * tile_w) // 2)
+        y = 6
+        for i, r in enumerate(rows):
+            if y + tile_h > h - 4:
+                left = len(rows) - i
+                self.mid(h - 4, w, "and %d more" % left, "dim")
+                break
+            cx = x0 + (i % cols) * tile_w
+            if i and i % cols == 0:
+                y += tile_h
+            st = state_of(r)
+            glyph = GLYPH[st]
+            mark = glyph[self.phase(3) % len(glyph)] if len(glyph) > 1 else glyph
+            exp = (r.get("exposure") or {}).get("level")
+            off = exp != "loopback"
+            band = (r.get("risk_band") or "")
+            role = "bad" if band in ("Critical", "High") else "warn" if off else \
+                   "glow" if st == "active" else "text"
+            t.put(y, cx, mark, self.c(role), st == "active")
+            t.put(y, cx + 2, ":%-6s" % r.get("port"), self.c(role), True)
+            # Both marks live on the port line. The risk diamond used to sit on
+            # the row below, where it landed in the middle of the service name
+            # and produced "Python http.se<>ver".
+            if band in ("Critical", "High"):
+                t.put(y, cx + 9, "◆" if self.phase(3) % 2 else "◇", self.c("bad"), True)
+            if off:
+                t.put(y, cx + tile_w - 4, "OFF", self.c("warn"), True)
+            name = (r.get("service") or "unidentified")[:tile_w - 3]
+            t.put(y + 1, cx + 2, name, self.c("dim"))
+            proj = (r.get("project") or {}).get("name") or r.get("dir_short") or ""
+            t.put(y + 2, cx + 2, str(proj)[:tile_w - 3], self.c("dim"))
+
+        s = t.summary or {}
+        self.mid(h - 3, w, "%d listening   %d reachable off this machine   %d need attention"
+                 % (s.get("shown", 0), s.get("exposed", 0),
+                    s.get("critical", 0) + s.get("high", 0)), "dim")
 
     def _machine(self, h, w):
         t = self.t

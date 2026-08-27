@@ -223,6 +223,23 @@ spans what is present: the columns to the left say what a service is and how
 exposed it is, and this says whether it has been up for weeks or arrived while
 you were making coffee. It does not move. Not everything should.
 
+## The backdrop
+
+A picture can sit behind the vibe scenes. It is the one thing on screen that is
+**not** a measurement, which is why it is off until asked for, capped at 60 per
+cent, and confined to vibe mode. The list views are columns you read; the vibe
+scenes are a thing you glance at from across a desk.
+
+Three rules keep it from costing you data:
+
+1. **Density, not alpha.** A terminal cannot half-draw a glyph, so fainter means
+   sparser, in the dimmest colour the theme has.
+2. **Negative space only.** The scene draws first; the picture fills what is
+   left and stays clear of anything already there.
+3. **Per scene.** The cockpit is mostly air and takes it whole. The network
+   scene is lines on emptiness and takes 40 per cent, because a background
+   competes with the thing you are meant to be looking at.
+
 ## Chrome
 
 The chrome follows the same restraint as the motion. No inverse-video bars: the

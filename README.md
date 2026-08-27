@@ -300,7 +300,8 @@ Press **V**, or leave it alone for thirty seconds:
                   1 connection observed between local services
 ```
 
-Five scenes rotate: the cockpit (everything at once), the machine and its
+Six scenes rotate: the cockpit (everything at once), a grid of every listening
+service, the machine and its
 meters, the network between local services, each agent and what it started, and
 what has actually happened lately. Five themes, four speeds, `t` and `s` to
 cycle them, any other key to come back.

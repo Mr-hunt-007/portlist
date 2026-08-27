@@ -125,9 +125,14 @@ guessing.
 ## Vibe mode
 
 - **An ambient screen worth leaving open**, on `V` or after thirty idle seconds.
-- **Five scenes**: the cockpit, with everything at once; the machine and its
+- **Six scenes**: the cockpit, with everything at once; the machine and its
   meters; the host with its services around it; each agent and what it started;
-  what has actually happened lately.
+  what has actually happened lately; and a grid of every listening service.
+- **A picture behind the scenes**, off until you ask for it with
+  `portlist --vibe-bg thing.png`. PNG only, decoded with nothing but `zlib`.
+  Opacity is density rather than alpha, capped at 60 per cent, painted into the
+  negative space so the text stays legible, and turned down per scene where the
+  scene is already busy. `b` tunes it live.
 - **Arrivals and departures are animated because they happened.** A service that
   starts listening while you watch is marked NEW for a few seconds; one that
   stops is reported. The first frame marks nothing, since everything is new to

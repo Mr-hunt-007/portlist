@@ -6,6 +6,21 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **A picture behind vibe mode**, off until asked for:
+  `portlist --vibe-bg thing.png`, then `b` to tune it live through 0, 15, 30, 45
+  and 60 per cent. PNG only: `plcore/imgmap.py` decodes one with `zlib` and
+  `struct` and returns a density map, one value per terminal cell, with the 1:2
+  aspect of a character already accounted for so a circle stays a circle. A JPEG
+  is reported as unsupported rather than half-read.
+  Opacity means density, not alpha, and the picture is painted into the negative
+  space after the scene has drawn, keeping clear of anything already there:
+  filling every empty cell put stipple in the gaps between words and made the
+  text look dirty. Each scene sets how much it carries, so the network scene
+  takes 40 per cent of whatever you choose and the cockpit takes all of it.
+  Sixty is the ceiling because past that the picture wins.
+- **A sixth vibe scene, `grid`**: every listening service as a tile, so a machine
+  with four services and one with forty look different from across a room.
+
 - **The graph, on `9`**, and the tenth view. Who started what, where it runs and
   what it exposes - started by, project, process, port, reachable from - drawn as
   a tree with continuous rules, because sixteen free-floating nodes in a terminal

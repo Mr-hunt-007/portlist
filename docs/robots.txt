@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://mr-hunt-007.github.io/portlist/sitemap.xml

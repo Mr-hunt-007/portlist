@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+PackageIdentifier: Mr-hunt-007.portlist
+PackageVersion: "1.1"
+MinimumOSVersion: 10.0.0.0
+InstallerType: zip
+NestedInstallerType: portable
+NestedInstallerFiles:
+  - RelativeFilePath: portlist-1.1\portlist.cmd
+    PortableCommandAlias: portlist
+Dependencies:
+  PackageDependencies:
+    - PackageIdentifier: Python.Python.3.12
+Installers:
+  - Architecture: neutral
+    InstallerUrl: https://github.com/Mr-hunt-007/portlist/releases/download/v1.1/portlist-1.1-windows.zip
+    InstallerSha256: REPLACE_AT_RELEASE
+ManifestType: installer
+ManifestVersion: 1.6.0

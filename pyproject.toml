@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "portlist"
+version = "1.1"
+description = "Every port on this machine, and where it came from. A terminal program."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+keywords = ["ports", "netstat", "lsof", "tui", "terminal", "devtools",
+            "localhost", "developer-tools", "process-monitor", "curses"]
+authors = [{ name = "Portlist contributors" }]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console :: Curses",
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: MacOS :: MacOS X",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python :: 3",
+  "Topic :: System :: Networking :: Monitoring",
+  "Topic :: System :: Systems Administration",
+]
+
+# Nothing on macOS or Linux: the standard library is the whole dependency list.
+# Windows ships Python without curses, so there it needs one wheel and says so
+# rather than failing at the first keypress.
+dependencies = ["windows-curses>=2.3; sys_platform == 'win32'"]
+
+[project.urls]
+Homepage = "https://mr-hunt-007.github.io/portlist/"
+Source = "https://github.com/Mr-hunt-007/portlist"
+Issues = "https://github.com/Mr-hunt-007/portlist/issues"
+Changelog = "https://github.com/Mr-hunt-007/portlist/blob/main/CHANGELOG.md"
+
+[project.scripts]
+portlist = "plcore.app:main"
+
+[tool.setuptools]
+packages = ["plcore", "plcore.platforms"]

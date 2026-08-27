@@ -542,8 +542,11 @@ class Tui:
         # header
         s = self.summary
         name = (self.host.get("hostname") or "this machine").split(".")[0]
-        self.put(0, 0, " " * w, C_HEAD)
-        self.put(0, 1, "PORTLIST", C_HEAD, True)
+        # No inverse bar. A solid white strip is the loudest thing a terminal
+        # can draw and it was the first thing your eye hit; the name in colour
+        # over the terminal's own background reads better and lets the rest of
+        # the palette mean something.
+        self.put(0, 1, "PORTLIST", C_VIOLET, True)
 
         # Clauses, dropped whole from the right. Truncating this string instead
         # gives "2 need att", which is not a shorter fact, it is a broken one.
@@ -557,14 +560,26 @@ class Tui:
             if len(headline) + 2 + len(clause) > room:
                 break
             headline += "  " + clause
-        self.put(0, 11, headline, C_HEAD)
+        self.put(0, 11, headline, C_DIM)
+        # The counts inside the headline carry the tone, not the whole bar.
+        if s.get("exposed"):
+            at = headline.find("%d off-box" % s.get("exposed", 0))
+            if at >= 0:
+                self.put(0, 11 + at, "%d off-box" % s["exposed"], C_AMBER)
+        bad = s.get("critical", 0) + s.get("high", 0)
+        if bad:
+            at = headline.find("%d need attention" % bad)
+            if at >= 0:
+                self.put(0, 11 + at, "%d need attention" % bad, C_RED)
         clock = time.strftime("%H:%M:%S")
-        self.put(0, max(12, w - len(clock) - 2), clock, C_HEAD)
+        self.put(0, max(12, w - len(clock) - 2), clock, C_DIM)
         # One character that moves: proof the screen is live rather than frozen,
         # which is the question you ask of a pane you left open an hour ago.
         if self.anim:
             beat = " .oOo"[(self.frame // 4) % 5]
-            self.put(0, max(11, w - len(clock) - 4), beat, C_HEAD)
+            self.put(0, max(11, w - len(clock) - 4), beat, C_GREEN, True)
+        # A hairline instead of a block: the same separation, a tenth of the ink.
+        self.put(2, 0, self.g.h * max(0, w - 1), C_DIM)
 
         # view tabs. Eight of them do not fit an 80- or even a 110-column
         # terminal, so the counts go first and the labels shorten after that.
@@ -609,8 +624,16 @@ class Tui:
         else:
             tabs = numbers()
         for i, text in enumerate(tabs):
-            self.put(1, x, text, C_SEL if i == self.view else C_DIM,
-                     i == self.view)
+            on = i == self.view
+            if on:
+                # The active tab is marked and underlined rather than filled in.
+                # A block of solid colour behind text is hard to read and harder
+                # to screenshot; a bar and a rule say the same thing quietly.
+                self.put(1, x, "\u258c", C_VIOLET, True)
+                self.put(1, x + 1, text.strip(), C_NORM, True)
+                self.put(2, x, self.g.h * (len(text.strip()) + 1), C_VIOLET, True)
+            else:
+                self.put(1, x, text, C_DIM)
             x += len(text) + 1
 
         # Columns sized to the terminal, dropped from the right as it narrows.
@@ -897,7 +920,10 @@ class Tui:
                 y += 6
 
     def draw_footer(self, h, w):
-        self.put(h - 1, 0, " " * (w - 1), C_HEAD)
+        # The dashboard puts its own status line on h-2, so the rule would land
+        # on top of it. Views that leave the row free get the separator.
+        if VIEWS[self.view][0] != "Dashboard":
+            self.put(h - 2, 0, self.g.h * max(0, w - 1), C_DIM)
         keys = ("j/k move   h/l pane   tab view   enter detail   O open   "
                 "/ search   f free port   V vibe   q quit")
         if VIEWS[self.view][0] == "System":
@@ -912,8 +938,9 @@ class Tui:
         room = max(0, w - len(right) - 4)
         if len(keys) > room:
             keys = keys[:max(0, room - 1)].rstrip()
-        self.put(h - 1, 1, keys, C_HEAD)
-        self.put(h - 1, max(2, w - len(right) - 2), right, C_HEAD)
+        self.put(h - 1, 1, keys, C_DIM)
+        self.put(h - 1, max(2, w - len(right) - 2), right,
+                 C_GREEN if self.status else C_DIM)
 
     def draw_session(self, y, w, r):
         picked = r.get("id") == self.sess_id
@@ -1122,11 +1149,12 @@ class Tui:
         """-> a (key, mods) pair for a CSI-u or modifyOtherKeys sequence, or None.
 
         Terminals disagree about modified Enter. Most send plain \n for
-        Ctrl+Enter, which is indistinguishable from Enter and so cannot be bound.
-        Newer ones (kitty, WezTerm, foot, recent xterm) send `ESC [ 13 ; 5 u`,
-        and that can. macOS Terminal and iTerm never deliver Cmd+Enter at all -
-        the application above intercepts it - which is why `O` exists and is what
-        the footer advertises.
+        Shift+Enter and Ctrl+Enter alike, which is indistinguishable from Enter
+        and so cannot be bound. Newer ones (kitty, WezTerm, foot, recent xterm)
+        send `ESC [ 13 ; 2 u` for shift and `ESC [ 13 ; 5 u` for ctrl, and those
+        can. macOS Terminal and iTerm never deliver Cmd+Enter at all - the
+        application above intercepts it - which is why `O` exists and is what the
+        footer advertises.
         """
         buf = ""
         for _ in range(12):
@@ -1281,9 +1309,10 @@ class Tui:
                 "j / k        move            0  dashboard: everything at once",
                 "tab          next view       1  services",
                 "h / l        dashboard pane  2  reachable off this machine",
-                "O            open in a browser  (Ctrl+Enter too, where the",
-                "                                terminal sends it - macOS never",
-                "                                delivers Cmd+Enter to a program)",
+                "O            open in a browser  (shift+enter and ctrl+enter",
+                "                                too, where the terminal sends",
+                "                                them - macOS never delivers",
+                "                                cmd+enter to a program)",
                 "enter, o     detail pane",
                 "/            search          3  needs attention",
                 "f            a free port     4  looks abandoned",
@@ -1304,8 +1333,11 @@ class Tui:
             mod = self.read_modified()
             if mod:
                 code, mods = mod
-                # 13 is Enter. Bit 2 of (mods-1) is ctrl, bit 3 is super/cmd.
-                if code == 13 and ((mods - 1) & 0b1100):
+                # 13 is Enter. In (mods - 1), bit 0 is shift, bit 2 is ctrl and
+                # bit 3 is super/cmd. Any of the three opens the port: which one
+                # a terminal can actually deliver varies, so accept them all
+                # rather than making the user find out which theirs sends.
+                if code == 13 and ((mods - 1) & 0b1101):
                     self.open_selected()
                     return True
                 return True

@@ -9,6 +9,17 @@ guessing.
 - **Everything on one screen**, and where portlist opens: machine, exposure,
   agents and containers as cards; the listening table; the selected service with
   its origin and risk; the activity feed and the sparklines; a status line.
+- **Travelling waves whose amplitude and speed are the reading.** One pattern,
+  used under every card and across the table, each riding on its own real ratio:
+  what fraction is reachable off-box, what fraction an agent started, what
+  fraction is being used right now. A quiet reading ripples slowly and shallowly,
+  a busy one moves faster and taller, and something unmeasured draws a flat line
+  rather than a wave at zero. It is ornament in shape and a measurement in
+  amplitude, and it is never used where a history belongs.
+- **A use trail per row** on wide terminals, in the space that is otherwise
+  dead to the right of the risk column: its amplitude is the share of watched
+  time that service had a connection, so one glance says which of sixteen
+  services anybody actually uses.
 - **Live dials.** Three twelve-segment rings for CPU, memory and disk. The ring
   eases round when the reading changes and the leading segment pulses; an
   unmeasured value draws an empty ring instead of resting at zero.

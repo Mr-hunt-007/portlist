@@ -54,6 +54,37 @@ RING = [(-2, 0), (-2, 3), (-1, 5), (0, 6), (1, 5), (2, 3),
 DIAL_W = 16          # 13 for the ring, 3 so two dials never merge
 
 
+WAVE = " \u2581\u2582\u2583\u2584\u2585\u2586\u2587\u2588"
+
+
+def _wave(t, y, x, width, level, frame, tone, speed=1.0, anim=True):
+    """A travelling wave whose amplitude and speed are the reading.
+
+    The *shape* is ornament: it is a sine, not a history, and it must never be
+    mistaken for one. The history lives in the sparklines, which plot samples.
+    What this carries is the current level: a quiet machine ripples slowly and
+    shallowly, a busy one moves faster and taller. Where nothing was measured it
+    draws a flat line of dots rather than a wave, because a wave at zero
+    amplitude still looks like a reading of zero, and "not measured" is not zero.
+    """
+    if width < 4:
+        return
+    if level is None:
+        t.put(y, x, "\u00b7" * width, C_DIM)
+        return
+    # A floor, so a measured-but-quiet reading still shows a ripple. Without it
+    # "nothing busy right now" and "no wave drawn at all" look identical, and
+    # the first of those is a real answer worth seeing.
+    amp = max(0.13, min(1.0, level))
+    phase = (frame * 0.28 * (0.35 + amp * 1.8) * speed) if anim else 0.0
+    top = len(WAVE) - 1
+    out = []
+    for i in range(width):
+        v = math.sin(i * 0.55 - phase) * 0.5 + 0.5
+        out.append(WAVE[int(round(v * amp * top))])
+    t.put(y, x, "".join(out), tone, True)
+
+
 def _dial(t, y, x, label, pct, frame, key, glow=False):
     """An animated ring gauge. -> the width it used.
 
@@ -82,6 +113,56 @@ def _dial(t, y, x, label, pct, frame, key, glow=False):
     return DIAL_W
 
 
+def _use_level(row):
+    """-> 0..1 for how much this service has been used, or None if not known.
+
+    `busy_samples / samples` is the share of the watched time during which
+    something was connected. It is a measurement, which is what lets it drive a
+    trail; a service watched for under an hour returns None and draws flat,
+    because "not watched long enough" is not "idle".
+    """
+    act = row.get("activity") or {}
+    if not act.get("known"):
+        return None
+    samples = act.get("samples") or 0
+    if not samples:
+        return None
+    return min(1.0, (act.get("busy_samples") or 0) / float(samples))
+
+
+def _card_level(t, title):
+    """-> (0..1 or None, colour) for a card's wave. Each one is a real ratio."""
+    s = t.summary or {}
+    shown = max(1, s.get("shown", 0))
+    if title == "EXPOSURE":
+        # how much of what is listening can be reached from off this machine
+        return (s.get("exposed", 0) / float(shown), C_AMBER if s.get("exposed") else C_DIM)
+    if title == "AGENTS":
+        # how much of what is listening an agent, editor or terminal started
+        started = sum(g.get("count", 0) for g in (t.groups or []))
+        return (min(1.0, started / float(shown)), C_VIOLET if started else C_DIM)
+    if title == "CONTAINERS":
+        doc = t.containers or {}
+        if not doc.get("reachable"):
+            return (None, C_DIM)          # flat: the engine did not answer
+        boxes = doc.get("containers") or []
+        return (min(1.0, len(boxes) / float(shown)), C_BLUE if boxes else C_DIM)
+    return (None, C_DIM)
+
+
+def _busy_level(t):
+    """-> the share of services measured busy in the last minute, or None.
+
+    None when nothing has been watched long enough to say, which draws flat.
+    """
+    rows = [r for r in t.rows if not r.get("quiet")]
+    known = [r for r in rows if (r.get("activity") or {}).get("known")]
+    if not known:
+        return None
+    busy = [r for r in known if _state(r) == "active"]
+    return len(busy) / float(len(known))
+
+
 def _state(row):
     from .vibe import state_of
     return state_of(row)
@@ -95,8 +176,9 @@ def draw(t, h, w):
     y = 3
 
     y = _cards(t, y, h, w)
-    if y >= h - 4:
+    if y >= h - 5:
         return
+    y += 1                    # the band rides in the gap above the table
 
     # How much room the table gets depends on whether the split pane fits.
     # 13 rows is enough for a compact pane now that the risk breakdown is
@@ -136,7 +218,9 @@ def _cards(t, y, h, w):
                 ("EXPOSED", s.get("exposed", 0), "warn" if s.get("exposed") else "text"),
                 ("NEEDS WORK", (s.get("critical", 0) + s.get("high", 0)),
                  "bad" if (s.get("critical", 0) + s.get("high", 0)) else "text"),
-                ("UNKNOWN ORIGIN", unknown, "dim")]
+                # "unattributed" is the word the rest of the program uses for a
+                # service whose starter was never observed, and it fits.
+                ("UNATTRIBUTED", unknown, "dim")]
 
     agents = []
     for g in groups[:4]:
@@ -167,28 +251,44 @@ def _cards(t, y, h, w):
              ("AGENTS", agents), ("CONTAINERS", containers)]
 
     # Wide enough for dials: three gauges in place of the machine card, and the
-    # other three cards beside them.
+    # other three cards beside them. Framed the way the system view frames its
+    # panels, because that outline is the one piece of structure this screen can
+    # carry without turning busy: the table underneath stays open.
     if w >= 118:
-        t.put(y, 2, "MACHINE", C_TITLE, True)
-        x = 2
-        for label, pct in readings:
-            x += _dial(t, y + 1, x, label, pct, t.frame, label.lower(),
-                       glow=(label == "RAM"))
+        mw = 3 * DIAL_W + 4
+        title = "machine"
         if load:
-            # The ring spans y+1 through y+5, so LOAD goes below all of it.
-            # It used to be drawn at y+5, straight through the bottom segments.
-            t.put(y + 6, 2, "LOAD  " + " ".join("%.2f" % v for v in load[:3]), C_DIM)
+            # The load average rides in the top rule rather than costing a row.
+            title += "   load " + " ".join("%.2f" % v for v in load[:3])
+        iy, ix, iw = t.box(y, 1, 8, mw, title, C_DIM, C_TITLE)
+        x = ix
+        for label, pct in readings:
+            _dial(t, iy, x, label, pct, t.frame, label.lower(),
+                  glow=(label == "RAM"))
+            tone = (C_DIM if pct is None else
+                    C_RED if pct >= 90 else C_AMBER if pct >= 75 else
+                    (C_VIOLET if label == "RAM" else C_GREEN))
+            _wave(t, iy + 5, x, DIAL_W - 3, None if pct is None else pct / 100.0,
+                  t.frame, tone, anim=t.anim)
+            x += DIAL_W
 
-        rest = [c for c in cards[1:]]
-        cw = (w - x - 4) // len(rest)
-        for i, (title, items) in enumerate(rest):
-            bx = x + 2 + i * cw
-            t.put(y, bx, title, C_TITLE, True)
+        rest = cards[1:]
+        room = w - (1 + mw) - 2
+        cw = room // len(rest)
+        for i, (name, items) in enumerate(rest):
+            bx = 1 + mw + 1 + i * cw
+            # A column of air between the frames: touching boxes read as one
+            # box with a line through it.
+            bw = (cw - 1) if i < len(rest) - 1 else w - bx - 1
+            jy, jx, jw = t.box(y, bx, 8, bw, name.lower(), C_DIM, C_TITLE)
             for j, (label, value, kind) in enumerate(items[:4]):
                 tone = {"warn": C_AMBER, "bad": C_RED, "dim": C_DIM}.get(kind, C_NORM)
-                t.put(y + 1 + j, bx, str(label)[:14], C_DIM)
-                t.put(y + 1 + j, bx + 15, str(value)[:max(0, cw - 17)], tone,
+                t.put(jy + j, jx, str(label)[:12], C_DIM)
+                t.put(jy + j, jx + 13, str(value)[:max(0, jw - 13)], tone,
                       kind in ("warn", "bad"))
+            level, tone = _card_level(t, name)
+            _wave(t, jy + 5, jx, min(jw, 22), level, t.frame,
+                  tone, speed=0.8, anim=t.anim)
         return y + 8
 
     # Four cards need about 31 columns each before their values collide with
@@ -197,36 +297,50 @@ def _cards(t, y, h, w):
     cw = (w - 2) // per
     rows_of = [cards[i:i + per] for i in range(0, len(cards), per)]
     for band in rows_of:
-        if y + 5 > h - 4:
+        if y + 7 > h - 4:
             break
         for i, (title, items) in enumerate(band):
-            x = 2 + i * cw
-            t.put(y, x, title, C_TITLE, True)
+            bx = 1 + i * cw
+            bw = (cw - 1) if i < len(band) - 1 else w - bx - 1
+            iy, ix, iw = t.box(y, bx, 7, bw, title.lower(), C_DIM, C_TITLE)
+            x = ix
             for j, item in enumerate(items[:4]):
                 label, value, kind = item
-                yy = y + 1 + j
-                t.put(yy, x, label[:14], C_DIM)
+                yy = iy + j
+                t.put(yy, x, label[:12], C_DIM)
                 if kind == "meter":
                     if value is None:
-                        t.put(yy, x + 15, "not measured", C_DIM)
+                        t.put(yy, x + 13, "not measured", C_DIM)
                     else:
                         g = t.g
                         fill = int(round(bar * max(0.0, min(100.0, value)) / 100.0))
                         tone = C_RED if value >= 90 else C_AMBER if value >= 75 else C_GREEN
-                        t.put(yy, x + 15, g.full * fill, tone, True)
-                        t.put(yy, x + 15 + fill, g.empty * (bar - fill), C_DIM)
-                        t.put(yy, x + 16 + bar, "%3.0f%%" % value, C_NORM)
+                        t.put(yy, x + 13, g.full * fill, tone, True)
+                        t.put(yy, x + 13 + fill, g.empty * (bar - fill), C_DIM)
+                        t.put(yy, x + 14 + bar, "%3.0f%%" % value, C_NORM)
                 else:
                     tone = {"warn": C_AMBER, "bad": C_RED, "dim": C_DIM}.get(kind, C_NORM)
-                    t.put(yy, x + 15, str(value)[:max(0, cw - 17)], tone,
+                    t.put(yy, x + 13, str(value)[:max(0, iw - 13)], tone,
                           kind in ("warn", "bad"))
-        y += 6
+            if title == "MACHINE":
+                level, tone = (None if items[0][1] is None else items[0][1] / 100.0), C_GREEN
+            else:
+                level, tone = _card_level(t, title)
+            _wave(t, iy + 4, ix, min(iw, 24), level, t.frame, tone,
+                  speed=0.8, anim=t.anim)
+        y += 7
     return y
 
 
 # --------------------------------------------------------------- listening
 def _listening(t, y, height, w, rows):
     focus = t.section == 0
+    # The band across the top of the table: how much of what is listening is
+    # actually being used right now. Flat when nothing has been watched long
+    # enough to know, which is a different statement from "nothing is busy".
+    busy = _busy_level(t)
+    _wave(t, y - 1, 2, w - 4, busy, t.frame,
+          C_GREEN if busy else C_DIM, speed=1.3, anim=t.anim)
     t.put(y, 2, "LISTENING", C_TITLE if not focus else C_SEL, True)
     t.put(y, 13, "%d service%s" % (len(rows), "" if len(rows) == 1 else "s"), C_DIM)
     # One character that moves, so a screen left open reads as live rather than
@@ -245,6 +359,9 @@ def _listening(t, y, height, w, rows):
         cols += [(52, "REACH"), (66, "RISK")]
     for x, label in cols:
         t.put(y, x, label, C_DIM, True)
+    hx = (72 if wide else 52) + 33
+    if min(46, w - hx - 2) >= 12:
+        t.put(y, hx, "USE   share of watched time with a connection", C_DIM)
     y += 1
 
     body = max(1, height - 2)
@@ -285,6 +402,20 @@ def _listening(t, y, height, w, rows):
         # A badge because it really started listening while you were watching.
         if r["id"] in t.arrived and rx + 28 < w:
             t.put(yy, rx + 28, "NEW" if (t.frame // 4) % 2 else "•  ", C_GREEN, True)
+
+        # On a wide terminal the space after RISK is dead. Give each row its own
+        # trail: the amplitude is the share of watched time that service had a
+        # connection, and the phase is offset by port so the rows do not march
+        # in lockstep. Nothing new is claimed - it is the measurement the
+        # leftovers view already reasons about, drawn as texture.
+        tx = rx + 33
+        tw = min(46, w - tx - 2)
+        if tw >= 12:
+            use = _use_level(r)
+            _wave(t, yy, tx, tw, use, t.frame + (r.get("port") or 0) % 23,
+                  C_SEL if picked else
+                  (C_DIM if use is None else C_GREEN if use > 0.02 else C_DIM),
+                  speed=0.7, anim=t.anim)
     if t.departed and y + body < len(rows) + y + body:
         gone = len(t.departed)
         t.put(y + body, 2, "· %d service%s stopped listening just now"
@@ -436,6 +567,12 @@ def _status(t, y, w, rows):
             x += 2
         t.put(y, x, text, C_DIM)
         x += len(text) + 4
+    # The same wave, once more, on whatever is left of the line.
+    if w - x > 12:
+        cpu = ((t.sysinfo or {}).get("cpu") or {}).get("load_pct")
+        _wave(t, y, x + 2, min(w - x - 4, 26),
+              None if cpu is None else cpu / 100.0, t.frame, C_DIM,
+              speed=0.6, anim=t.anim)
 
 
 # tui imports this module, so its colour constants cannot be imported at module

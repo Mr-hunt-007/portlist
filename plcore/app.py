@@ -28,8 +28,8 @@ keys
   tab, shift-tab         the next view, the same order as the number keys
   h / l, left, right     move between the dashboard's panes
   enter, o               detail pane
-  O                      open the port in a browser (ctrl+enter where the
-                         terminal sends it)
+  O                      open the port in a browser (shift+enter and ctrl+enter
+                         too, where the terminal sends them)
   /                      search
   f                      a port that is free now and not spoken for later
   a                      animation on the system view, off for good if you like

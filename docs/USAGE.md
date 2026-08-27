@@ -18,6 +18,18 @@ the number keys. **`h`** and **`l`**, or the left and right arrows, move between
 the dashboard's two panes, and `j`/`k` move inside whichever has focus, so the
 same keys scroll the table or the activity feed depending on where you are.
 
+Under each card, and in a band across the top of the table, runs the same
+travelling wave. Its **amplitude and speed are the current level**, not a
+history: the exposure wave rides on how much of what is listening can be reached
+off the machine, the agents wave on how much of it an agent started, the band
+above the table on how much is being used right now. A quiet reading ripples
+slowly and shallowly, a busy one moves faster and taller. Where there is nothing
+to measure, such as a container engine that did not answer, it draws a flat line
+of dots instead: a wave at zero amplitude still reads as a measurement of zero.
+
+Histories are plotted separately, in the sparklines, from real samples. The wave
+is never used where a history belongs.
+
 The machine is drawn as three live dials when the terminal is at least 118
 columns wide, and as meters below that. Each ring is twelve segments, the
 leading one pulses, and the ring eases round when a reading changes rather than

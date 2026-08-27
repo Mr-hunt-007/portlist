@@ -284,18 +284,23 @@ footer a{border:0; color:var(--muted)} footer a:hover{color:var(--accent)}
       <kbd>Tab</kbd> moves to the next view in the same order as the number keys,
       <kbd>h</kbd>/<kbd>l</kbd> move between the panes, and <kbd>j</kbd>/<kbd>k</kbd>
       move inside whichever has focus. The dials ease round as the readings change,
-      and draw an empty ring where nothing could be measured.</p>
+      and one travelling wave runs under every card, its amplitude and speed taken
+      from the metric it sits under.</p>
 
     <div class="term">
       <div class="bar"><i></i><i></i><i></i><span>portlist &middot; dashboard</span></div>
-<pre aria-label="portlist dashboard: cards, the listening table, the selected service and the activity feed"><span class="t-vio">  MACHINE                                           EXPOSURE                  AGENTS                    CONTAINERS</span>
-     <span class="t-dim">·</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-dim">·</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-ok">◉</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span><span class="t-vio">        LISTENING      16         Claude Code    14         ENGINE         docker</span>
-   <span class="t-dim">·</span>         <span class="t-ok">◉</span>     <span class="t-dim">·</span>         <span class="t-ok">●</span>     <span class="t-ok">●</span>         <span class="t-ok">●</span>      EXPOSED        2          terminal       1          STATE          no answer
-  <span class="t-dim">·</span>    29%    <span class="t-dim">·</span>   <span class="t-ok">◉</span>    85%    <span class="t-ok">●</span>   <span class="t-ok">●</span>    96%    <span class="t-ok">●</span>     NEEDS WORK     2          launchd        1          COUNT          unknown
-   <span class="t-dim">·</span><span class="t-dim">   CPU   </span><span class="t-dim">·</span>     <span class="t-ok">●</span><span class="t-dim">   RAM   </span><span class="t-ok">●</span>     <span class="t-ok">●</span><span class="t-dim">  DISK   </span><span class="t-ok">●</span>      UNKNOWN ORIGIN 12                                                  not zero
-     <span class="t-dim">·</span>  <span class="t-dim">·</span>  <span class="t-dim">·</span>         <span class="t-ok">●</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-ok">●</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>
-<span class="t-dim">  LOAD  2.91 3.18 3.51</span>
-
+<pre aria-label="portlist dashboard: cards, the listening table, the selected service and the activity feed"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                 O 23:50:58</span>
+ <span class="t-vio">▌</span>0 Dashboard   1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions   8 System
+<span class="t-dim">─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ <span class="t-dim">┌</span><span class="t-dim">─</span> machine   load 3.42 3.61 3.95 <span class="t-dim">──────────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> exposure <span class="t-dim">────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> agents <span class="t-dim">──────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> containers <span class="t-dim">────────────</span><span class="t-dim">┐</span>
+ <span class="t-dim">│</span>    <span class="t-dim">·</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-dim">·</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-ok">◉</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>       <span class="t-dim">│</span> <span class="t-dim">│</span><span class="t-vio"> LISTENING    16       </span><span class="t-dim">│</span> <span class="t-dim">│</span> Claude Code  14       <span class="t-dim">│</span> <span class="t-dim">│</span> ENGINE       docker     <span class="t-dim">│</span>
+ <span class="t-dim">│</span>  <span class="t-dim">·</span>         <span class="t-ok">●</span>     <span class="t-dim">·</span>         <span class="t-ok">●</span>     <span class="t-ok">●</span>         <span class="t-ok">●</span>     <span class="t-dim">│</span> <span class="t-dim">│</span> EXPOSED      2        <span class="t-dim">│</span> <span class="t-dim">│</span> terminal     1        <span class="t-dim">│</span> <span class="t-dim">│</span> STATE        no answer  <span class="t-dim">│</span>
+ <span class="t-dim">│</span> <span class="t-dim">·</span>    34%    <span class="t-ok">◉</span>   <span class="t-ok">◉</span>    85%    <span class="t-ok">●</span>   <span class="t-ok">●</span>    96%    <span class="t-ok">●</span>    <span class="t-dim">│</span> <span class="t-dim">│</span> NEEDS WORK   2        <span class="t-dim">│</span> <span class="t-dim">│</span> launchd      1        <span class="t-dim">│</span> <span class="t-dim">│</span> COUNT        unknown    <span class="t-dim">│</span>
+ <span class="t-dim">│</span>  <span class="t-dim">·</span><span class="t-dim">   CPU   </span><span class="t-dim">·</span>     <span class="t-ok">●</span><span class="t-dim">   RAM   </span><span class="t-ok">●</span>     <span class="t-ok">●</span><span class="t-dim">  DISK   </span><span class="t-ok">●</span>     <span class="t-dim">│</span> <span class="t-dim">│</span> UNATTRIBUTED 14       <span class="t-dim">│</span> <span class="t-dim">│</span>                       <span class="t-dim">│</span> <span class="t-dim">│</span>              not zero   <span class="t-dim">│</span>
+ <span class="t-dim">│</span>    <span class="t-dim">·</span>  <span class="t-dim">·</span>  <span class="t-dim">·</span>         <span class="t-ok">●</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-ok">●</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>       <span class="t-dim">│</span> <span class="t-dim">│</span>                       <span class="t-dim">│</span> <span class="t-dim">│</span>                       <span class="t-dim">│</span> <span class="t-dim">│</span>                         <span class="t-dim">│</span>
+ <span class="t-dim">│</span> ▂▁   ▁▁▂▃▃▂▂▁   ▃▅▆▇▆▅▃▁  ▁▃▄   ▁▃▅▇<span class="t-ok">█</span><span class="t-teal">▇▆▄▂  ▁▂</span>    <span class="t-dim">│</span> <span class="t-dim">│</span>    ▁▁▁▁▁▁      ▁▁▁▁▁▁ <span class="t-dim">│</span> <span class="t-dim">│</span> ▆▇<span class="t-ok">█</span><span class="t-teal">▇▆▄▂  ▁▃▅▇</span><span class="t-ok">██</span><span class="t-teal">▆▄▂▁ ▁</span> <span class="t-dim">│</span> <span class="t-dim">│</span> <span class="t-dim">······················</span>  <span class="t-dim">│</span>
+ <span class="t-dim">└</span><span class="t-dim">──────────────────────────────────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">───────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">───────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">─────────────────────────</span><span class="t-dim">┘</span>
+       ▁▁▁▁▁▁     ▁▁▁▁▁▁      ▁▁▁▁▁▁     ▁▁▁▁▁▁      ▁▁▁▁▁▁     ▁▁▁▁▁▁      ▁▁▁▁▁      ▁▁▁▁▁▁     ▁▁▁▁▁▁      ▁▁▁▁▁▁     ▁▁▁▁▁▁
 <span class="t-vio">  LISTENING  16 services  O LIVE                                                                              h/l pane   tab view</span>
 <span class="t-dim">    PORT    SERVICE               PROJECT           STARTED BY          REACH           RISK</span>
   <span class="t-ok">●</span> :7337   Portboard             portboard         terminal            Localhost only  12 Info
@@ -306,32 +311,30 @@ footer a{border:0; color:var(--muted)} footer a:hover{color:var(--accent)}
   <span class="t-teal">○</span> :8787   FastAPI / Uvicorn     scanner           Claude Code         Localhost only  12 Info
   <span class="t-teal">○</span><span class="t-warn"> :8807   Python http.server    data-export       Claude Code         All interfaces  71 High</span>
   <span class="t-teal">○</span> :9050   Tor                   /opt/homebrew     launchd             Localhost only  12 Info
-  <span class="t-ok">●</span> :24695  Bun                   ~/Downloads       Claude Code         Localhost only  0 Info
+  <span class="t-teal">○</span> :14649  Bun                   tokenmax          Claude Code         Localhost only  0 Info
   <span class="t-teal">○</span> :44596  Bun                   portlist          Claude Code         Localhost only  0 Info
   <span class="t-teal">○</span> :48744  Bun                   portboard         Claude Code         Localhost only  0 Info
-  <span class="t-ok">●</span> :55909  Bun                   ~/Downloads       Claude Code         Localhost only  6 Info
   <span class="t-teal">○</span> :56609  Bun                   scanner           Claude Code         Localhost only  6 Info
   <span class="t-teal">○</span> :57155  Bun                   portlist          Claude Code         Localhost only  6 Info
-  <span class="t-teal">○</span> :57244  Bun                   data-export       Claude Code         Localhost only  6 Info
 <span class="t-vio">  SELECTED SERVICE                                                           </span><span class="t-dim">│</span><span class="t-vio"> ACTIVITY</span>
                                                                              <span class="t-dim">│</span>
-  Python http.server :8787                                                   <span class="t-dim">│</span> 23:17:37 <span class="t-dim">·</span> Bun opened on :55909 (loopback)
-  ~/Downloads/data-export                                                    <span class="t-dim">│</span> 23:17:37 <span class="t-dim">·</span> Bun opened on :24695 (loopback)
+  Python http.server :8787                                                   <span class="t-dim">│</span> 23:47:17 <span class="t-dim">·</span> Bun on :55909 stopped listening
+  ~/Downloads/data-export                                                    <span class="t-dim">│</span> 23:47:17 <span class="t-dim">·</span> Bun on :24695 stopped listening
+                                                                             <span class="t-dim">│</span> 23:36:14 <span class="t-dim">·</span> Bun opened on :63256 (loopback)
+<span class="t-warn">  REACH      All interfaces                                                  </span><span class="t-dim">│</span> 23:36:14 <span class="t-dim">·</span> Bun opened on :14649 (loopback)
+<span class="t-dim">  PID        96798   Python                                                  </span><span class="t-dim">│</span> 23:17:37 <span class="t-dim">·</span> Bun opened on :55909 (loopback)
+<span class="t-dim">  LAST USED  last used 76m ago                                               </span><span class="t-dim">│</span> 23:17:37 <span class="t-dim">·</span> Bun opened on :24695 (loopback)
                                                                              <span class="t-dim">│</span> 23:07:54 <span class="t-dim">·</span> Python http.server on :39311 stopped listen
-<span class="t-warn">  REACH      All interfaces                                                  </span><span class="t-dim">│</span> 23:07:40 <span class="t-dim">·</span> Python http.server opened on :39311 (loopba
-<span class="t-dim">  PID        96798   Python                                                  </span><span class="t-dim">│</span> 22:52:49 <span class="t-dim">·</span> Bun on :10065 stopped listening
-<span class="t-dim">  LAST USED  last used 52m ago                                               </span><span class="t-dim">│</span> 22:52:45 <span class="t-dim">·</span> Bun on :56766 stopped listening
-                                                                             <span class="t-dim">│</span> 22:50:49 <span class="t-dim">·</span> Handoff / Continuity opened on :62309 (all)
-<span class="t-vio">  ORIGIN                                                                     </span><span class="t-dim">│</span> 22:35:45 <span class="t-dim">·</span> Handoff / Continuity on :53444 stopped list
-    Started by a Claude Code session                                         <span class="t-dim">│</span>
-    already running when portlist first looked                               <span class="t-dim">│</span><span class="t-dim"> CPU</span>
-                                                                             <span class="t-dim">│</span> ▂▂▂▂▂▂▂▂▂▂▂▂▂
+<span class="t-vio">  ORIGIN                                                                     </span><span class="t-dim">│</span>
+    Started by a Claude Code session                                         <span class="t-dim">│</span><span class="t-dim"> CPU</span>
+                                                                             <span class="t-dim">│</span> ▃▃▃▃▃▃▃▃▃▃▃▃▃
 <span class="t-vio">  RISK  71 / 100   High                                                      </span><span class="t-dim">│</span><span class="t-dim"> MEMORY</span>
     +42   Listening on all interfaces (0.0.0.0)                              <span class="t-dim">│</span> ▇▇▇▇▇▇▇▇▇▇▇▇▇
     +10   No authentication seen and reachable off-box                       <span class="t-dim">│</span>
     +10   Static file server exposing its working directory off-box          <span class="t-dim">│</span>
     +9    Python http.server is a medium-sensitivity service (Static file s  <span class="t-dim">│</span>
-  <span class="t-ok">●</span> 2 exposed    <span class="t-bad">◆</span> 2 need attention    ⚠ 12 unknown origin    <span class="t-ok">◉</span> 3 agents    firewall on</pre>
+  <span class="t-ok">●</span> 2 exposed    <span class="t-bad">◆</span> 2 need attention    ⚠ 14 unknown origin    <span class="t-ok">◉</span> 3 agents    firewall on         ▁▂▂▃▃▂▂▁   ▁▁▂▃▃▂▂▁
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                    updated 1s ago</pre>
     </div>
 
     <div class="grid g3" style="margin-top:28px">
@@ -350,6 +353,14 @@ footer a{border:0; color:var(--muted)} footer a:hover{color:var(--accent)}
       </div>
       <div class="card">
         <p class="n">03</p>
+        <h3>The wave carries a reading</h3>
+        <p>One pattern everywhere, with amplitude and speed from the metric under it:
+          quiet ripples slowly and shallowly, busy moves faster and taller. Nothing to
+          measure draws a flat line, because a wave at zero still reads as zero. It is
+          a sine, never a history; the sparklines plot real samples.</p>
+      </div>
+      <div class="card">
+        <p class="n">04</p>
         <h3>"No answer" is not "zero"</h3>
         <p>When the container engine does not respond, the card says the count is
           unknown. A silent zero would be the same sentence as "there are none".</p>

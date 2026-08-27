@@ -12,6 +12,28 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   activity feed, the sparklines and a status line. The risk score is itemised
   rather than asserted, and "unknown origin" gets its own count so that nothing
   quietly inherits a label from whatever owns the port now.
+- **The header, the tab bar and the footer lost their inverse-white bars.** A
+  solid strip is the loudest thing a terminal can draw and it was the first
+  thing your eye hit. The name is coloured, the counts carry their own tone, a
+  hairline rule separates the chrome from the content, and the active tab is
+  marked and underlined rather than filled in.
+- **The dashboard cards are framed** in the same outline the system view uses.
+  The load average rides in the machine frame's top rule rather than costing a
+  row, and the table below stays unframed, because the structure is worth having
+  around the summary and not around the thing you actually read.
+- **A use trail per row** on wide terminals. The space to the right of RISK was
+  dead past about 150 columns; each row now carries a trail whose amplitude is
+  the share of watched time that service had a connection, phase-offset by port
+  so the rows do not march in lockstep. It claims nothing new: it is the
+  measurement the leftovers view already reasons about, drawn as texture.
+- **Ambient waves.** One travelling pattern under every card and across the top
+  of the table, with **amplitude and speed taken from the metric**: exposure
+  rides on the share reachable off-box, agents on the share an agent started,
+  the band above the table on the share measured busy right now. Quiet ripples
+  slowly and shallowly, busy moves faster and taller, and anything unmeasured
+  draws a flat line of dots rather than a wave at zero, because a flat wave
+  still reads as a measurement of zero. The wave is a sine, not a history, and
+  is never drawn where a history belongs: the sparklines keep plotting samples.
 - **Live dials on the dashboard**: three twelve-segment rings for CPU, memory
   and disk, easing round rather than jumping, with the leading segment pulsing.
   An unmeasured reading draws an empty ring instead of resting at zero.

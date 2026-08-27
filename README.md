@@ -110,6 +110,14 @@ The three dials are live: each ring is twelve segments, the leading one pulses,
 and the ring eases round rather than jumping when the reading changes. An
 unmeasured value draws an empty ring and says so instead of resting at zero.
 
+Under every card and across the table runs the same travelling wave, and its
+**amplitude and speed are the reading**: a quiet machine ripples slowly and
+shallowly, a busy one moves faster and taller. It is a sine, not a history, and
+it is never drawn where a history belongs; the sparklines plot real samples. A
+card with nothing to measure draws a flat line of dots rather than a wave at
+zero, because a flat wave still reads as a measurement of zero, and "not
+measured" is not zero.
+
 The risk score is never a bare number. The pane lists what it was made of, so
 `71 High` is auditable rather than magical, and `⚠ 12 unknown origin` is counted
 precisely so those services are not quietly attributed to whatever owns the port
@@ -279,7 +287,8 @@ third-party packages on any platform otherwise, ever.
 - [Setup](docs/SETUP.md) - every install route, and what each one puts where
 - [Usage](docs/USAGE.md) - the views, the keys, and what each column means
 - [Features](docs/FEATURES.md) - the full list, and how each answer is reached
-- [Architecture](docs/ARCHITECTURE.md) - one scan, one model, eight views
+- [Architecture](docs/ARCHITECTURE.md) - one scan, one model, nine views
+- [Motion](docs/MOTION.md) - the animation language, and why each thing moves
 - [Security](SECURITY.md) - what it reads, what it never sends
 - [Contributing](CONTRIBUTING.md)
 

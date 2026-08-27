@@ -174,6 +174,12 @@ def _thousands(n):
     return str(int(n))
 
 
+def _raw_out():
+    """The byte stream under stdout, for escapes curses knows nothing about."""
+    out = getattr(sys.stdout, "buffer", None)
+    return out if out is not None else sys.stdout
+
+
 def _ago(seconds):
     if seconds is None:
         return ""
@@ -603,6 +609,9 @@ class Tui:
         if self.vibe:
             self.vibe.draw(h, w)
             self.s.refresh()
+            # After the refresh, never before: a picture handed to the terminal
+            # before curses flushes is a picture curses paints over.
+            self.vibe.flush(_raw_out())
             return
         rows = self.visible()
 
@@ -1339,7 +1348,7 @@ class Tui:
                 # wanted at all: turning animation off is a request for a still
                 # screen, and this would be the opposite of honouring it.
                 if (not self.vibe and self.anim and not self.typing and not self.overlay
-                        and vibe_mod.load()["auto"]
+                        and vibe_mod.load()["auto_enter"]
                         and time.time() - self.last_key > vibe_mod.IDLE_ENTER):
                     self.enter_vibe()
                     self.draw()
@@ -1355,6 +1364,12 @@ class Tui:
         self.s.clear()
 
     def leave_vibe(self):
+        # The picture lives in the terminal's own graphics layer, not in the
+        # curses window, so clearing the screen does not remove it. Dropping the
+        # object without saying so left it sitting behind the service list.
+        if self.vibe is not None:
+            self.vibe.unpaint()
+            self.vibe.flush(_raw_out())
         self.vibe = None
         self.s.clear()
 

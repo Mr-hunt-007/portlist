@@ -343,9 +343,22 @@ The room is the one scene that brings its own picture, the way the grid scene
 brings its own tiles, so it needs no `--vibe-bg` and ignores one if you set it.
 A picture of yours decorates the other six: name it on the way in with
 `portlist --vibe-bg thing.png`, or drop PNGs into `~/.portlist/backgrounds/` and
-press `g` inside vibe mode to walk them - none, each picture, back to none, with
-the footer naming what is showing. `b` sets how strongly it shows and `B`
-decides which end of it becomes ink.
+press `g` inside vibe mode to walk them, with the footer naming what is showing.
+
+`g` covers both which picture and how it is drawn:
+
+```
+none  ->  room.png as an image  ->  room.png as characters  ->  none
+```
+
+**As an image** means the terminal draws the file itself, behind the text. That
+works on kitty, Ghostty, WezTerm and Konsole, whose graphics protocol has a
+z-index; `z=-1` is the only arrangement where a picture sits behind the readings
+rather than covering them. Everywhere else those steps are not in the ring at
+all, and you get the character rendering, which works over ssh, inside tmux, and
+on a machine with no graphics support of any kind. `b` sets how strongly the
+character version shows, 0 to 100, and `B` decides which end of the picture
+becomes ink.
 
 When a service really appears while you are watching, it is marked **NEW** for a
 few seconds and the strip redraws around it; when one stops listening, that is

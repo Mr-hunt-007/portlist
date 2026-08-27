@@ -167,9 +167,9 @@ Inside vibe mode, four keys do not exit:
 | `t` | theme: observatory, neon, terminal, aurora, minimal |
 | `s` | speed: static, slow, medium, cinematic |
 | `n` | next scene now |
-| `A` | whether it may arrive on its own after thirty idle seconds |
-| `g` | which picture is behind the scene: none, then each PNG in `~/.portlist/backgrounds/`, then none again |
-| `b` | how strongly the background picture shows, if you set one |
+| `A` | auto: whether the scene changes by itself. `n` still steps it by hand |
+| `g` | the background picture: none, then each PNG in `~/.portlist/backgrounds/` as the terminal's own image and then as characters, then none again |
+| `b` | how strongly a character background shows: 0, 20, 40, 60, 80, 100 |
 | `B` | which end of that picture becomes ink: `auto`, `on`, `off` |
 
 Choices are remembered in `~/.portlist/vibe.json`.
@@ -184,10 +184,29 @@ portlist --vibe-bg ~/pictures/thing.png     # name the file once, on the way in
 ```
 
 or drop PNGs into `~/.portlist/backgrounds/` and press **`g`** inside vibe mode
-to walk them: none, each picture, back to none. The footer names what is showing,
-so choosing is done by looking rather than by remembering a path. Pressing `g`
-with nothing there creates the folder and says so. A picture picked this way
-starts at 30 per cent, because one you chose and cannot see is not a choice.
+to walk them. The footer names what is showing, so choosing is done by looking
+rather than by remembering a path. Pressing `g` with nothing there creates the
+folder and says so.
+
+`g` walks **both** which picture and how it is drawn:
+
+```
+none  ->  room.png as an image  ->  room.png as characters  ->  none
+```
+
+**As an image** means the terminal is shown the file and draws it itself, behind
+the text. That needs a terminal that speaks kitty's graphics protocol - kitty,
+Ghostty, WezTerm and Konsole - because that protocol has a z-index, and `z=-1`
+is the only arrangement where a picture sits behind the readings instead of on
+top of them. iTerm2's inline images and sixel both occupy cells, so a picture
+drawn that way would cover the numbers, and a screen whose numbers are hidden by
+decoration is worse than one with no decoration.
+
+On every other terminal the image steps are simply **not in the ring**, because
+a state that does nothing is worse than one fewer state. You get the character
+rendering, which is not a consolation prize: it is what this program was already
+doing, and it works over ssh, in tmux, and on a machine with no graphics at all.
+Set `PORTLIST_NO_GRAPHICS=1` to force that everywhere.
 
 **PNG only, and that is a real limit rather than an oversight.** A PNG is `zlib`
 and a few row filters, which the standard library already has; a JPEG needs a

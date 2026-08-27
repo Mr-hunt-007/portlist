@@ -138,11 +138,17 @@ guessing.
   three readings that fit placed where the picture is dark.
 - **A picture behind the scenes**, off until you ask for it with
   `portlist --vibe-bg thing.png`, or by dropping PNGs into
-  `~/.portlist/backgrounds/` and pressing `g` to walk them from inside.
-  PNG only, decoded with nothing but `zlib`.
+  `~/.portlist/backgrounds/` and pressing `g` to walk them from inside. One key
+  covers both which picture and how it is drawn: none, the terminal's own image,
+  characters, none. PNG only, decoded with nothing but `zlib`.
   Opacity is density rather than alpha, capped at 60 per cent, painted into the
   negative space so the text stays legible, and turned down per scene where the
-  scene is already busy. `b` tunes it live.
+  scene is already busy. `b` tunes it live, 0 to 100.
+- **The file itself, where the terminal can take one.** On kitty, Ghostty,
+  WezTerm and Konsole the PNG is handed to the terminal and drawn behind the
+  text at `z=-1`. Nothing is written on a terminal that has not said it speaks
+  the protocol, so being wrong about support costs a blank background rather
+  than escape codes across somebody's screen.
 - **Arrivals and departures are animated because they happened.** A service that
   starts listening while you watch is marked NEW for a few seconds; one that
   stops is reported. The first frame marks nothing, since everything is new to

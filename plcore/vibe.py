@@ -10,8 +10,9 @@ nothing has been measured yet, the thing sits still and says so. Ambient motion
 that invents activity is a lie told beautifully, and this is a tool for finding
 out what is true about a machine.
 
-Four scenes rotate: the machine, the network between local services, the agents
-and what they started, and what has actually happened lately.
+Seven scenes rotate: the cockpit, the machine, the network between local
+services, the agents and what they started, what has actually happened lately, a
+grid of everything listening, and the room.
 """
 import curses
 import json
@@ -19,7 +20,7 @@ import math
 import os
 import time
 
-from . import history, imgmap, ledger, security
+from . import history, imgmap, ledger, security, termimg
 
 SCENES = ("cockpit", "machine", "network", "agents", "activity", "grid", "room")
 
@@ -29,11 +30,14 @@ SCENES = ("cockpit", "machine", "network", "agents", "activity", "grid", "room")
 SCENE_BG = {"cockpit": 1.0, "machine": 1.0, "grid": 0.55, "room": 1.0,
             "activity": 0.75, "agents": 0.65, "network": 0.40}
 
-# The dial, in steps. Capped well below full on purpose: at full strength the
-# picture wins and the data underneath stops being readable, and a setting that
-# can make the screen worse should not offer that value.
-BG_STEPS = (0, 15, 30, 45, 60)
-BG_MAX = 60
+# The dial, in steps, all the way to full. It used to stop at 60 on the grounds
+# that past there the picture wins and the numbers stop being readable. That is
+# true, and it is also not the dial's business to decide: this is an ambient
+# screen, and somebody who wants the picture and not the numbers is not holding
+# it wrong. The reading is still drawn, and at 100 the stipple is dense enough
+# to sit right up against it.
+BG_STEPS = (0, 20, 40, 60, 80, 100)
+BG_MAX = 100
 
 # The one scene that brings its own picture. The others are drawings of
 # measurements, and a background there is optional decoration behind them.
@@ -142,12 +146,22 @@ def load():
         op = 0
     return {"theme": d.get("theme") if d.get("theme") in THEMES else "observatory",
             "speed": d.get("speed") if d.get("speed") in SPEEDS else "medium",
-            "auto": bool(d.get("auto", True)),
+            # Two different things shared one name and one key. `rotate` is
+            # whether the scene changes by itself, which is what `A` reads as
+            # and what somebody watching the screen wants to stop. `auto_enter`
+            # is whether vibe mode drifts in after thirty idle seconds, which is
+            # a preference you set once. The old `auto` meant the second, so it
+            # is carried into it rather than silently becoming the first.
+            "rotate": bool(d.get("rotate", True)),
+            "auto_enter": bool(d.get("auto_enter", d.get("auto", True))),
             # Off unless somebody asks for it. A tool that quietly starts drawing
             # pictures behind your data has changed what it is without asking.
             "bg": str(d.get("bg") or ""),
             "bg_opacity": max(0, min(BG_MAX, op)),
-            # auto flips a picture that is mostly light, so what gets drawn is
+            # Characters even where the terminal could show the file itself.
+            # Some people want the drawing, and it is far less to send.
+            "ascii_bg": bool(d.get("ascii_bg", False)),
+            # "auto" flips a picture that is mostly light, so what gets drawn is
             # the ink somebody drew rather than the paper it sits on.
             "bg_invert": (d.get("bg_invert") if d.get("bg_invert") in ("auto", "on", "off")
                           else "auto")}
@@ -183,10 +197,14 @@ class Vibe:
         s = load()
         self.theme = s["theme"]
         self.speed = s["speed"]
-        self.auto = s["auto"]
+        self.rotate = s["rotate"]
+        self.auto_enter = s["auto_enter"]
         self.bg = s["bg"]
         self.bg_opacity = s["bg_opacity"]
         self.bg_invert = s["bg_invert"]
+        self.ascii_bg = s["ascii_bg"]
+        self.shown = None        # (path, cols, rows) currently on the terminal
+        self.pending = b""       # bytes for the terminal, after curses flushes
         self.bg_cache = None          # (path, mtime, cols, rows) -> grid
         self.room_bad = False         # the shipped plate failed to load
         self.bg_grid = None
@@ -207,7 +225,7 @@ class Vibe:
     def tick(self):
         self.frame += 1
         dwell = SPEEDS[self.speed][1]
-        if dwell and time.time() - self.scene_since >= dwell:
+        if self.rotate and dwell and time.time() - self.scene_since >= dwell:
             self.scene = (self.scene + 1) % len(SCENES)
             self.scene_since = time.time()
 
@@ -221,7 +239,7 @@ class Vibe:
             self.scene = (self.scene + 1) % len(SCENES)
             self.scene_since = time.time()
         elif ch == ord("A"):
-            self.auto = not self.auto
+            self.rotate = not self.rotate
         elif ch == ord("b"):
             # Tune it live rather than by editing json.
             steps = list(BG_STEPS)
@@ -242,15 +260,26 @@ class Vibe:
                 except OSError as e:
                     self.bg_note = "cannot use %s: %s" % (folder, e.strerror or "failed")
                 return True
-            # none -> each picture -> none. Returning to none matters: a folder
-            # you can enter and not leave is a trap, not a picker.
-            ring = [""] + found
-            here = ring.index(self.bg) if self.bg in ring else 0
-            self.bg = ring[(here + 1) % len(ring)]
+            # One key, one ring, covering both which picture and how it is
+            # drawn: none, then each picture as the terminal's own image and
+            # then as characters, then back to none. A flag for the second half
+            # would be a setting you have to remember instead of a key you can
+            # press and look at. On a terminal that cannot show an image the
+            # real steps are simply not in the ring, because a state that does
+            # nothing is worse than one fewer state.
+            ring = [("", False)]
+            for path in found:
+                if termimg.available():
+                    ring.append((path, False))
+                ring.append((path, True))
+            here = (self.bg, self.ascii_bg)
+            at = ring.index(here) if here in ring else 0
+            self.bg, self.ascii_bg = ring[(at + 1) % len(ring)]
             if self.bg and not self.bg_opacity:
-                self.bg_opacity = 30      # a picture you chose should be visible
+                self.bg_opacity = 40      # a picture you chose should be visible
             self.bg_note = ""
             self.bg_grid = self.bg_cache = None
+            self.unpaint()
         elif ch == ord("B"):
             # The auto guess reads the picture's average brightness, which is
             # right for most of them and wrong for the rest. This is the way to
@@ -260,9 +289,10 @@ class Vibe:
             self.bg_grid = self.bg_cache = None
         else:
             return False
-        save({"theme": self.theme, "speed": self.speed, "auto": self.auto,
+        save({"theme": self.theme, "speed": self.speed, "rotate": self.rotate,
+              "auto_enter": self.auto_enter,
               "bg": self.bg, "bg_opacity": self.bg_opacity,
-              "bg_invert": self.bg_invert})
+              "bg_invert": self.bg_invert, "ascii_bg": self.ascii_bg})
         return True
 
     # ------------------------------------------------------------- painting
@@ -347,6 +377,44 @@ class Vibe:
     # ------------------------------------------------------------ backdrop
     BG_RAMP = " .:-=+*#"
 
+    def paint_real(self, path, cols, rows):
+        """Hand the file to the terminal and let it draw it behind the text.
+
+        Queued rather than written: the bytes have to land *after* curses has
+        flushed its own frame, or curses repaints over them on the way out.
+        """
+        want = (path, cols, rows)
+        if want == self.shown:
+            self.pending = termimg.place(cols, rows)
+            return
+        self.pending = termimg.transmit(path, cols, rows)
+        if not self.pending:
+            # The terminal claimed the protocol and the file would not go. Say
+            # so once and draw characters from here on rather than an empty
+            # background nobody can explain.
+            self.ascii_bg = True
+            self.bg_note = "that picture could not be sent to the terminal, drawing it as characters"
+            self.shown = None
+            return
+        self.shown = want
+
+    def unpaint(self):
+        """Take the picture off the terminal. Leaving one behind is rude."""
+        if self.shown is not None:
+            self.pending = termimg.clear()
+            self.shown = None
+
+    def flush(self, out):
+        """Write whatever the last frame queued. Called after curses refreshes."""
+        if not self.pending:
+            return
+        try:
+            out.write(self.pending)
+            out.flush()
+        except (OSError, ValueError):
+            pass
+        self.pending = b""
+
     def _disown(self, own):
         """Stop retrying a picture that will not load, and blame the right one.
 
@@ -376,7 +444,15 @@ class Vibe:
         else:
             path, opacity, invert = self.bg, self.bg_opacity, self.bg_invert
         if not path or opacity <= 0:
+            self.unpaint()
             return
+        # A terminal that speaks the graphics protocol can show the file, which
+        # is the picture rather than a drawing of it. Everything else gets the
+        # characters, which is not a fallback so much as the original feature.
+        if not self.ascii_bg and termimg.available():
+            self.paint_real(path, max(1, w - 2), max(1, h - 4))
+            return
+        self.unpaint()
         cols, rows = max(1, w - 2), max(1, h - 4)
         key = None
         try:
@@ -471,16 +547,26 @@ class Vibe:
         self.t.put(h - 2, max(3, w - len(right) - 2), right, self.c("dim"))
         hint = "any key returns   t theme   s speed   n scene"
         if SCENES[self.scene] != "room":
-            hint += "   g picture %s" % (
-                os.path.basename(self.bg) if self.bg else "none")
-            hint += "   b %s" % (
-                ("%d%%" % self.bg_opacity) if (self.bg and self.bg_opacity) else "off")
-            if self.bg and self.bg_opacity:
-                hint += "   B ink %s" % self.bg_invert
-        # `A` decides whether this screen arrives on its own after thirty idle
-        # seconds. It has always worked and was never printed, which makes it a
-        # key nobody could find.
-        hint += "   A arrives on its own %s" % ("yes" if self.auto else "no")
+            real = (self.bg and self.bg_opacity and not self.ascii_bg
+                    and termimg.available())
+            hint += "   g %s" % (
+                "none" if not self.bg else
+                "%s %s" % (os.path.basename(self.bg),
+                           "as an image" if real else "as characters"))
+            if not real:
+                # Density and ink are properties of a drawing made of
+                # characters. Where the terminal is showing the file itself,
+                # offering dials that do nothing to it would misdescribe the
+                # screen in front of you.
+                hint += "   b %s" % (
+                    ("%d%%" % self.bg_opacity) if (self.bg and self.bg_opacity) else "off")
+                if self.bg and self.bg_opacity:
+                    hint += "   B ink %s" % self.bg_invert
+        # `A` is auto: whether the scene changes by itself. It used to toggle
+        # whether vibe mode drifted in after thirty idle seconds, which is not
+        # what the letter reads as and not what somebody watching the screen
+        # wants to reach for. It was also never printed at all.
+        hint += "   A auto %s" % ("on" if self.rotate else "off")
         if self.bg_note:
             hint = self.bg_note
         elif w <= len(hint) + 6:

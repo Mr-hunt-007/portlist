@@ -15,11 +15,22 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   machine and to nothing else. A transcript records the tokens a turn carried
   and never the model's limit, so no percentage of a context window is printed:
   that number would have to be invented.
-- **A picture can be chosen from inside vibe mode.** Drop PNGs into
-  `~/.portlist/backgrounds/` and `g` walks them: none, each picture, back to
-  none, with the footer naming what is showing. `--vibe-bg` meant knowing a path
-  and restarting, which is a setting rather than something anybody uses twice.
-  Pressing `g` with nothing there creates the folder and says so.
+- **A picture can be chosen from inside vibe mode, and so can how it is drawn.**
+  Drop PNGs into `~/.portlist/backgrounds/` and `g` walks one ring covering
+  both: none, each picture as the terminal's own image, then as characters, then
+  none. `--vibe-bg` meant knowing a path and restarting, which is a setting
+  rather than something anybody uses twice. Pressing `g` with nothing there
+  creates the folder and says so.
+- **The picture itself, on a terminal that can take one.** kitty, Ghostty,
+  WezTerm and Konsole are handed the PNG and draw it behind the text at `z=-1`,
+  the one arrangement where a background sits behind the readings rather than
+  over them. iTerm2's inline images and sixel occupy cells and would cover the
+  numbers, so they are not used. On every other terminal the image steps are not
+  in the ring at all rather than being offered and doing nothing, and nothing is
+  written unless the terminal has said it speaks the protocol.
+- **`b` goes to 100.** It stopped at 60 on the grounds that past there the
+  picture wins and the numbers stop being readable. Both true, and not the
+  dial's call: this is an ambient screen.
 - **A seventh vibe scene, `room`.** It ships its own plate, drawn as characters
   by the same decoder a `--vibe-bg` picture goes through, with what is
   listening, what is reachable off this box and how many agent sessions are open
@@ -30,6 +41,12 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Fixed
 
+- **`A` toggles what it reads as.** It said auto and toggled whether vibe mode
+  drifted in after thirty idle seconds, while the scene changing by itself was
+  driven only by the speed setting and had no key at all. `A` is now auto scene
+  switching, which is the thing somebody watching the screen wants to stop, and
+  `n` still steps by hand. Drifting in on its own keeps its stored value, carried
+  over rather than silently reassigned.
 - **`A` is finally printed on the screen it belongs to.** It has always toggled
   whether vibe mode arrives on its own after thirty idle seconds, and it was in
   the key table in the docs, but the footer never listed it: a key you can only

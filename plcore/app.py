@@ -34,7 +34,12 @@ keys
   /                      search
   f                      a port that is free now and not spoken for later
   a                      animation on the system view, off for good if you like
-  b                      inside vibe mode: how strongly the background shows
+  g                      inside vibe mode: the background picture. None, then
+                         each PNG in ~/.portlist/backgrounds as the terminal's
+                         own image and then as characters, then none again
+  b                      inside vibe mode: how strongly a character background
+                         shows, 0 to 100
+  A                      inside vibe mode: whether the scene changes by itself
   V                      vibe mode: the ambient screen. Any key comes back, and
                          it drifts in on its own after 30 idle seconds
   r                      rescan now

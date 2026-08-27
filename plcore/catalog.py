@@ -160,8 +160,6 @@ SERVICES = [
          proc=[r"http\.server", r"SimpleHTTPServer"], header=[r"(?i)simplehttp"],
          title=[r"^Directory listing for "],
          note="Serves its whole working directory with no auth, including dotfiles and keys if present."),
-    dict(id="portboard", name="Portboard", cat="Local security dashboard",
-         sensitivity="medium", proc=[r"portboard\.py"], title=[r"^Portboard$"]),
     dict(id="airplay", name="AirPlay Receiver", cat="macOS service", sensitivity="medium",
          ports=[5000, 7000], proc=[r"ControlCenter", r"AirPlay"],
          note="macOS AirPlay Receiver. Turn off in System Settings > General > AirDrop & Handoff."),

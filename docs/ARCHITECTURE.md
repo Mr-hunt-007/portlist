@@ -1,9 +1,9 @@
 # Architecture
 
-One scan, one model, eight views.
+One scan, one model, ten views.
 
 ```
-    the machine                 one model                 eight views
+    the machine                 one model                  ten views
   ┌───────────────┐         ┌───────────────┐         ┌───────────────┐
   │ sockets       │         │               │         │ 1 services    │
   │ processes     │────────▶│  a row per    │────────▶│ 2 exposed     │
@@ -13,6 +13,7 @@ One scan, one model, eight views.
   └───────────────┘         └───────┬───────┘         │ 6 containers  │
                                     │                 │ 7 sessions    │
                             ┌───────▼───────┐         │ 8 system      │
+                                                      │ 9 graph       │
                             │ ~/.portlist   │         └───────────────┘
                             │ launch ledger │
                             │ use history   │

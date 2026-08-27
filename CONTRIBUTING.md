@@ -29,9 +29,10 @@ found here were breaches of one of them.
 
 ## Terminal work
 
-`plcore/tui.py` is shared source with [Portboard](https://github.com/Mr-hunt-007/portboard).
-Keep it free of anything that assumes a web server exists, and re-copy after a
-change to either side.
+`plcore/tui.py`, `vibe.py`, `dash.py` and `graphview.py` are the drawing layer.
+Keep them free of anything that assumes a web server exists: they are read by
+another project that renders the same model, and an import of something only
+this tree has breaks it silently.
 
 Check any layout change at 200, 110, 80 and 60 columns, and at 10 rows. Most
 terminal bugs are width bugs.

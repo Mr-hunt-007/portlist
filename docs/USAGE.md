@@ -42,7 +42,7 @@ counts services that were already listening before portlist first looked: their
 origin is not guessed, and they are counted separately so a stale process does
 not inherit a repository label from whatever owns the port now.
 
-## The nine views
+## The ten views
 
 Every view is a different question asked of one scan. Switching views never
 rescans and never moves your selection to a different service.
@@ -58,6 +58,7 @@ rescans and never moves your selection to a different service.
 | `6` | containers | by compose project, and the host ports they hold |
 | `7` | sessions | coding-agent sessions, what they were about, context used |
 | `8` | system | this machine: load, memory, disks, network, exposure |
+| `9` | graph | the same graph the web dashboard draws, as layered columns |
 
 Views 5 and 6 group rather than filter, so their headers are not selectable.
 
@@ -122,6 +123,23 @@ zero, and a rate that needs two samples says `no rate yet` until it has them.
 
 `a` turns the animation off if you would rather it sat still. It costs about
 half a percent of one core.
+
+## The graph
+
+`9`. The same graph the web dashboard draws, as layered columns: **started by**,
+**project**, **process**, **port**, **reachable from**, with the same edge names
+(`started work in`, `runs`, `listens`, `confirmed on`). One line is one service.
+
+A parent is printed once and carried down with a rule, so the sharing is the
+thing you see first: eleven services under one agent session is a fact about
+your machine that a flat list hides.
+
+`j` and `k` walk it in graph order rather than port order, and `enter` and `O`
+work on the selected row exactly as they do in the list.
+
+The columns are dropped as the terminal narrows - the process first, because a
+pid squeezed to `Python pid 681` is worse than no pid, and the detail pane has
+it in full - and below 100 columns the graph is drawn as headed groups instead.
 
 ## Vibe mode
 

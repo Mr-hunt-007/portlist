@@ -1,4 +1,4 @@
-"""A full-screen terminal view of the machine. `portboard tui`.
+"""A full-screen terminal view of the machine.
 
 The dashboard is a browser page and the CLI is one answer per command. This is
 the third shape: a screen you leave open in a tmux pane while you work, that
@@ -7,8 +7,8 @@ redraws itself and stays out of the way.
 `curses` is in the standard library, so this costs the project nothing. It is not
 available on Windows, and that is reported rather than raised.
 
-This file is shared with `portboard`, the project this is a standalone copy of.
-Keep it free of anything that assumes the web server exists.
+This file is read by another project that renders the same model, so keep it
+free of anything that assumes a web server exists.
 
 Two rules carried over from every other surface, because they matter more here
 than anywhere: a screen redrawing every few seconds must never move under the
@@ -23,8 +23,8 @@ import sys
 import time
 import webbrowser
 
-from . import (activity, agents as agents_mod, collect, dash as dash_mod, ledger,
-               scan, sessions as sess_mod, vibe as vibe_mod)
+from . import (activity, agents as agents_mod, collect, dash as dash_mod,
+               graphview, ledger, scan, sessions as sess_mod, vibe as vibe_mod)
 
 REFRESH = 5.0
 ANIM = 0.12          # frame interval while something on screen is moving
@@ -122,6 +122,7 @@ VIEWS = [
     ("Containers", "6", None),
     ("Sessions", "7", None),
     ("System", "8", None),
+    ("Graph", "9", None),
 ]
 
 for _i, (_label, _key, _filter) in enumerate(VIEWS):
@@ -442,6 +443,9 @@ class Tui:
             # The dashboard's table is every listening service, in port order,
             # so the cursor, the search and the detail pane all still work here.
             return [("row", r) for r in sorted(live, key=lambda r: r["port"])]
+        if name == "Graph":
+            # Graph order, so j and k walk the picture rather than the ports.
+            return [("row", r) for r in graphview.order(live)]
         if keep is not None:
             return [("row", r) for r in sorted(keep(live), key=lambda r: r["port"])]
         if name == "Agents":
@@ -639,6 +643,14 @@ class Tui:
         # Columns sized to the terminal, dropped from the right as it narrows.
         # A fixed layout at 80 columns puts the project on top of the service.
         cols = self.columns(w)          # the header and the row painter share these
+
+        if VIEWS[self.view][0] == "Graph":
+            graphview.draw(self, h, w)
+            if self.overlay:
+                self.draw_overlay(h, w)
+            self.draw_footer(h, w)
+            self.s.refresh()
+            return
 
         if VIEWS[self.view][0] == "Dashboard":
             dash_mod.draw(self, h, w)
@@ -927,7 +939,7 @@ class Tui:
         keys = ("j/k move   h/l pane   tab view   enter detail   O open   "
                 "/ search   f free port   V vibe   q quit")
         if VIEWS[self.view][0] == "System":
-            keys = ("1-8 view   a animation %s   f free port   r rescan   "
+            keys = ("0-9 view   a animation %s   f free port   r rescan   "
                     "? keys   q quit" % ("on" if self.anim else "off"))
         if self.typing:
             keys = "search: %s_   (enter to keep, esc to clear)" % self.query
@@ -1050,7 +1062,7 @@ class Tui:
         field("origin", ledger.phrase(o),
               C_AMBER if (o.get("recorded") and not o.get("carries_context")) else C_NORM)
         if not o.get("observed") and (o.get("recorded") or o.get("live")):
-            field("", "already running when Portboard first looked", C_DIM)
+            field("", "already running when portlist first looked", C_DIM)
         field("last used", activity.phrase(act))
         field("respawns", o.get("respawns", 0))
         field("bound", ", ".join((r.get("exposure") or {}).get("addrs") or []) or "-",
@@ -1320,6 +1332,8 @@ class Tui:
                 "q            quit            6  containers",
                 "a            animation       7  agent sessions, and what they",
                 "V            vibe mode          were about",
+                "                             9  the graph: who started what,",
+                "                                where it runs, what it exposes",
                 "                             8  this machine: load, memory,",
                 "                                disks, network, exposure",
                 "",

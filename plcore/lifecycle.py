@@ -162,6 +162,24 @@ def _launcher(chain_up):
     return None
 
 
+def short_starter(name):
+    """"a Claude Code session" -> "Claude Code".
+
+    The article and the trailing "session" cost eleven columns in a table and
+    carry nothing. Lives here because this module already owns the vocabulary
+    for who starts things, and two view modules were about to keep their own
+    copy of it.
+    """
+    name = str(name or "unattributed")
+    for article in ("a ", "an ", "the "):
+        if name.lower().startswith(article):
+            name = name[len(article):]
+            break
+    if name.lower().endswith(" session"):
+        name = name[:-len(" session")]
+    return name
+
+
 def sentence(row, provenance=None, who=None, chain_up=()):
     """The one line the drawer leads with.
 

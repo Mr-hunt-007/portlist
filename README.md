@@ -23,7 +23,7 @@
  :8787   Python http.server  data-export       All interfaces   71 High  Claude Code 5d
  :9050   Tor                 /opt/homebrew     Localhost only   12 Info  launchd 24d
 
- j/k move   enter detail   O open   1-8 view   / search   f free port   r rescan   q quit
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit
 ```
 
 Twelve things are listening. You started three of them today and you cannot name
@@ -82,14 +82,14 @@ so a single screenshot tells the whole story.
 
   LISTENING  14 services                                                                                      Tab  next section
     PORT    SERVICE               PROJECT           STARTED BY          REACH           RISK
-  ● :7337   Portboard             portboard         terminal            Localhost only  12 Info
+  ● :7337   Grafana               metrics           terminal            Localhost only  12 Info
   ○ :8000   Python http.server    CredRadar         Claude Code         Localhost only  12 Info
   ○ :8787   Python http.server    data-export       Claude Code         All interfaces  71 High
 
   SELECTED SERVICE                                                          │ ACTIVITY
                                                                             │
-  Portboard :7337                                                           │ 22:52:49 · Bun on :10065 stopped listening
-  ~/code/portboard                                                          │ 22:23:58 · Bun opened on :57155 (loopback)
+  Grafana :7337                                                             │ 22:52:49 · Bun on :10065 stopped listening
+  ~/code/metrics                                                            │ 22:23:58 · Bun opened on :57155 (loopback)
                                                                             │
   REACH      Localhost only                                                 │ CPU
   PID        9561   Python                                                  │ ▃▃▄▃▃▂▃▄▅▄▃▃▃
@@ -123,7 +123,7 @@ The risk score is never a bare number. The pane lists what it was made of, so
 precisely so those services are not quietly attributed to whatever owns the port
 now.
 
-## Nine views
+## Ten views
 
 | key | view | what it answers |
 |-----|------|-----------------|
@@ -136,6 +136,7 @@ now.
 | `6` | containers | by compose project, and the host ports they hold |
 | `7` | sessions | coding-agent sessions, what they were about, context used |
 | `8` | system | this machine: load, memory, disks, network, exposure |
+| `9` | graph | who started what, where it runs, and what it exposes |
 | `V` | vibe | the ambient screen, for the second monitor |
 
 Views 5 and 6 group rather than filter. Every view is a different question asked
@@ -145,12 +146,12 @@ of one scan, not a different scan.
 
 ```
 j / k, arrows   move                    tab shift-tab   the next view, the
-h / l           the dashboard's panes                   same order as 0-8
+h / l           the dashboard's panes                   same order as 0-9
 enter, o        detail pane             /   search
 O               open it in a browser    f   a port that is free now, and not
                 (ctrl+enter too, where      spoken for by anything later
                 the terminal sends it)  a   animation      V   vibe mode
-0-8             views                   r   rescan now     ?   keys    q  quit
+0-9             views                   r   rescan now     ?   keys    q  quit
 ```
 
 macOS never delivers Cmd+Enter to a terminal program, so `O` is the binding that
@@ -210,6 +211,33 @@ the plan and the organisation, never the address or the account id.
 It never reads a whole transcript either - they reach eight megabytes. The head
 has the first prompt and the directory, the tail has the title, the latest usage
 and the last activity. Sixty sessions in a tenth of a second.
+
+## The graph
+
+`9`. Who started what, where it runs and what it exposes, laid out the way a
+terminal draws a layered graph well:
+
+```
+  STARTED BY            PROJECT             PROCESS           PORT  AND SERVICE          REACHABLE FROM
+  started work in ──▸   runs ──▸            listens ──▸       confirmed on ──▸
+
+  ◆ Claude Code       ├─CredRadar         ──Python pid 6810 ──:8000   Python http.serv ──Localhost only
+  │                   ├─identity-exposure ──node pid 77259  ──:8422   unidentified     ──Localhost only
+  │                   │                   ──Python pid 96798──:8787   Python http.serv ──All interfaces  confirmed on 192.168.0.2
+  │                   ├─metrics           ──bun pid 32016   ──:48744  Bun              ──Localhost only
+  │                   └─urlintel          ──Python pid 67222──:8787   FastAPI / Uvicorn──Localhost only
+  ◇ launchd           └─no project        ──tor pid 58508   ──:9050   Tor              ──Localhost only
+
+  ◆ an agent session   ◇ something else   10 of 12 services were started by an agent
+```
+
+One line is one service, and a parent is printed once and carried down with a
+rule, which is what makes the sharing visible: eleven services under one agent
+session, four in one project. The edge names are the ones the web version uses,
+so both surfaces describe the machine with one vocabulary.
+
+Narrow terminals get the same graph as headed groups, because that is what a
+tree looks like when it runs out of width.
 
 ## Vibe mode
 
@@ -287,15 +315,9 @@ third-party packages on any platform otherwise, ever.
 - [Setup](docs/SETUP.md) - every install route, and what each one puts where
 - [Usage](docs/USAGE.md) - the views, the keys, and what each column means
 - [Features](docs/FEATURES.md) - the full list, and how each answer is reached
-- [Architecture](docs/ARCHITECTURE.md) - one scan, one model, nine views
+- [Architecture](docs/ARCHITECTURE.md) - one scan, one model, ten views
 - [Motion](docs/MOTION.md) - the animation language, and why each thing moves
 - [Security](SECURITY.md) - what it reads, what it never sends
 - [Contributing](CONTRIBUTING.md)
-
-## Related
-
-portlist is the terminal half of [Portboard](https://github.com/Mr-hunt-007/portboard),
-which adds a web dashboard, a fleet view over SSH and an HTTP API. Same engine,
-same answers. If you only ever wanted the screen, this is it.
 
 MIT.

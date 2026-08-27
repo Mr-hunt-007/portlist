@@ -6,6 +6,13 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **The graph, on `9`**, and the tenth view. Who started what, where it runs and
+  what it exposes - started by, project, process, port, reachable from - drawn as
+  a tree with continuous rules, because sixteen free-floating nodes in a terminal
+  is not a diagram. A parent is printed once and carried down with
+  a rule, so the sharing is what you see first. Columns drop as the terminal
+  narrows and it becomes headed groups below 100 columns.
+
 - **The dashboard, on `0`, and it is now where portlist opens.** Four cards
   (machine, exposure, agents, containers), the listening table, the selected
   service with its origin and its risk broken into the reasons that made it, the
@@ -95,13 +102,13 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 - **Eight tabs did not fit an 80-column terminal.** The counts go first, then
   the labels, down to numbers with only the current view named. Four-letter
   stubs like `Sess` and `Syst` are not names.
-- The splash screen in portlist spelled `PORTBOARD` in ASCII art, left over from
-  the copy it was made from.
+- The splash screen spelled the wrong name in ASCII art, left over from the
+  project this was extracted from.
 
 ## 1.0 - 2026-08-26
 
-First release: the terminal UI, extracted from Portboard as a standalone program
-with no web surface at all.
+First release: the terminal UI as a standalone program, with no web surface at
+all.
 
 - Seven views over one scan: services, exposed, attention, leftovers, agents,
   containers, sessions.

@@ -111,6 +111,17 @@ guessing.
 - Firewall state, stealth mode, SSH, and the container engine.
 - What the listening ports add up to: exposed, critical, high, AI assets.
 
+## The graph
+
+- **The web dashboard's graph, in the terminal.** Started by, project, process,
+  port and reachable from, as layered columns with the same edge names.
+- **Sharing is what it shows.** A parent is printed once and carried down with a
+  rule, so eleven services under one agent session reads at a glance.
+- **The address that proved it.** Where reachability was verified by connecting,
+  the graph says `confirmed on 192.168.0.2` rather than just naming the zone.
+- **It degrades by dropping columns**, the process first, and becomes headed
+  groups below 100 columns.
+
 ## Vibe mode
 
 - **An ambient screen worth leaving open**, on `V` or after thirty idle seconds.

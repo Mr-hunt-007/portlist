@@ -223,6 +223,17 @@ def _scan_now(force=False):
                 evidence = list(evidence) + [
                     ("mcp", "completed an MCP initialize handshake on %s" % mcp_info["endpoint"])]
 
+            if sig is None:
+                # Nothing in the catalogue matched. A service that runs a script
+                # is still better named after that script than left blank:
+                # "store-helper.mjs" tells you where to look and "unidentified"
+                # does not. It is a name, not an identification, so it carries no
+                # category, sensitivity or note, and nothing downstream treats it
+                # as a known service.
+                guess = _script_name(cmdline)
+                if guess:
+                    sig = {"id": None, "name": guess, "cat": None, "note": None}
+
             level = risk.classify_exposure(e["addrs"])
             exposure = dict(risk.EXPOSURE[level])
             exposure["addrs"] = sorted(e["addrs"])
@@ -722,6 +733,35 @@ def detail(row):
 
 _sys_cache = {"t": 0, "v": None}
 _sys_refreshing = threading.Event()
+
+
+SCRIPTY = (".py", ".js", ".mjs", ".cjs", ".ts", ".rb", ".sh", ".pl", ".php", ".jar")
+
+
+def _script_name(cmdline):
+    """-> the script a command runs, or None.
+
+    `node tools/store-helper.mjs`  -> `store-helper.mjs`
+    `/opt/.../python3.14 app.py`   -> `app.py`
+    `python3 -m http.server 8000`  -> `http.server`
+    `python3 .venv/bin/thing`      -> `thing`      (a console script, no suffix)
+    `tor -f /etc/torrc`            -> None         (that is config, not the program)
+
+    Only the argument straight after the interpreter is considered. Scanning
+    further finds the first path-shaped thing on the line, which is how a service
+    ends up named after its config file.
+    """
+    parts = (cmdline or "").split()
+    if len(parts) < 2:
+        return None
+    first = parts[1]
+    if first == "-m" and len(parts) > 2:
+        return parts[2]
+    if first.startswith("-"):
+        return None
+    if first.lower().endswith(SCRIPTY) or "/" in first:
+        return os.path.basename(first) or None
+    return None
 
 
 def system_info(ttl=4.0):

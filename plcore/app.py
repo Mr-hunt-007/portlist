@@ -22,6 +22,7 @@ views
   6  containers          by compose project, and the host ports they hold
   7  sessions            coding-agent sessions, what they were about, context used
   8  system              this machine: load, memory, disks, network, exposure
+  9  graph               who started what, where it runs, what it exposes
 
 keys
   j / k, arrows          move, inside whichever section has focus

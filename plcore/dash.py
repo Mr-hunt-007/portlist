@@ -17,7 +17,7 @@ owns the port now.
 import math
 import time
 
-from . import activity as act_mod, history, ledger
+from . import activity as act_mod, history, ledger, lifecycle
 
 SECTIONS = ("listening", "activity")     # what Tab walks; cards are not focusable
 
@@ -30,19 +30,6 @@ def _risk_mark(row, frame):
     if band == "critical":
         return "◆" if (frame // 4) % 2 else "◇"
     return " "
-
-
-def _short_starter(name):
-    """"a Claude Code session" -> "Claude Code". The article and the word
-    "session" cost eleven columns and carry nothing."""
-    name = str(name or "unattributed")
-    for article in ("a ", "an ", "the "):
-        if name.lower().startswith(article):
-            name = name[len(article):]
-            break
-    if name.lower().endswith(" session"):
-        name = name[:-len(" session")]
-    return name
 
 
 # A ring of twelve segments, hand-placed rather than trigonometric: rounding a
@@ -262,7 +249,7 @@ def _cards(t, y, h, w):
 
     agents = []
     for g in groups[:4]:
-        agents.append((_short_starter(g.get("name")), g.get("count", 0),
+        agents.append((lifecycle.short_starter(g.get("name")), g.get("count", 0),
                        "text" if g.get("alive") else "dim"))
     if not agents:
         agents = [("nothing yet", "", "dim")]
@@ -434,7 +421,7 @@ def _listening(t, y, height, w, rows):
         proj = (r.get("project") or {}).get("name") or r.get("dir_short") or "-"
         t.put(yy, 34, str(proj)[:16], C_SEL if picked else C_DIM)
         if wide:
-            who = _short_starter((r.get("starter") or {}).get("name") or "unattributed")
+            who = lifecycle.short_starter((r.get("starter") or {}).get("name") or "unattributed")
             t.put(yy, 52, who[:19], C_SEL if picked else C_DIM)
         rx = 72 if wide else 52
         reach = (r.get("exposure") or {}).get("label") or "?"

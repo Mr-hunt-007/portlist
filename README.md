@@ -351,14 +351,68 @@ press `g` inside vibe mode to walk them, with the footer naming what is showing.
 none  ->  room.png as an image  ->  room.png as characters  ->  none
 ```
 
-**As an image** means the terminal draws the file itself, behind the text. That
-works on kitty, Ghostty, WezTerm and Konsole, whose graphics protocol has a
-z-index; `z=-1` is the only arrangement where a picture sits behind the readings
-rather than covering them. Everywhere else those steps are not in the ring at
-all, and you get the character rendering, which works over ssh, inside tmux, and
-on a machine with no graphics support of any kind. `b` sets how strongly the
-character version shows, 0 to 100, and `B` decides which end of the picture
-becomes ink.
+**As an image** means the terminal is handed the PNG and draws it itself, behind
+the text. **As characters** is the density rendering: `b` sets how strongly it
+shows, 0 to 100, and `B` decides which end of the picture becomes ink.
+
+### Which terminal shows the real picture
+
+Almost no terminal can draw a picture. The ones that can speak **kitty's
+graphics protocol**, and portlist uses only that protocol, for one reason: it
+has a z-index, and `z=-1` is the only arrangement that puts a picture *behind*
+the readings. iTerm2's inline images and sixel both occupy cells, so a picture
+drawn either way would cover the numbers, and a screen whose numbers are hidden
+by decoration is worse than a screen with no decoration. So iTerm2 and every
+sixel terminal get the character rendering too.
+
+If the ring goes straight from `none` to *as characters*, your terminal cannot
+do it. That is not a setting you are missing.
+
+**macOS** - Terminal.app cannot, and no preference changes that. iTerm2 cannot
+either, for the reason above. Install one of:
+
+```sh
+brew install --cask ghostty     # native, fast, no configuration needed
+brew install --cask kitty       # the reference implementation of the protocol
+brew install --cask wezterm
+```
+
+**Linux** - several work. kitty and Ghostty are packaged for most distributions;
+Konsole (KDE) and WezTerm implement the protocol as well.
+
+```sh
+sudo apt install kitty                 # Debian, Ubuntu
+sudo dnf install kitty                 # Fedora
+sudo pacman -S kitty                   # Arch
+curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin
+```
+
+**Windows** - Windows Terminal speaks sixel, not this protocol, so it draws
+characters. **WezTerm** is the one that works:
+
+```powershell
+winget install wez.wezterm
+```
+
+Under WSL the terminal is whatever is drawing the window, so the same rule
+applies: WezTerm yes, Windows Terminal characters.
+
+**Over ssh** it works when the terminal in front of *you* supports it, because
+the escape travels down the connection like any other output. **Inside tmux** it
+usually does not, unless tmux is configured to pass the escape through. The
+character rendering has none of these conditions, which is why it stays the
+default answer rather than a fallback.
+
+Nothing is written to a terminal that has not said it speaks the protocol, so
+being wrong about support costs a blank background rather than escape codes
+across your screen. To force characters everywhere, including on a terminal that
+could show the file, set `PORTLIST_NO_GRAPHICS=1` or press `g` one more step.
+
+One caveat worth stating plainly: portlist offers the image path wherever the
+terminal advertises the protocol, but implementations differ in how completely
+they follow it. If yours honours the protocol without the z-index, the picture
+will sit *over* the text instead of behind it. Press `g` once more for
+characters, and open an issue naming the terminal.
 
 When a service really appears while you are watching, it is marked **NEW** for a
 few seconds and the strip redraws around it; when one stops listening, that is

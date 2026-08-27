@@ -27,6 +27,13 @@ import os
 IMAGE_ID = 7331
 CHUNK = 4096          # the protocol's limit on one escape's payload
 
+# The whole file is written to the terminal in one flush, so a picture large
+# enough to fill the pty buffer faster than the terminal drains it would block
+# the interface. A normal wallpaper is one or two megabytes and lands instantly;
+# beyond this the honest answer is the character rendering, which costs nothing
+# to send, rather than a screen that stops responding while a photograph loads.
+MAX_BYTES = 8 * 1024 * 1024
+
 
 def protocol(env=None):
     """-> "kitty" if this terminal speaks the graphics protocol, else None.
@@ -39,11 +46,18 @@ def protocol(env=None):
     env = os.environ if env is None else env
     if env.get("PORTLIST_NO_GRAPHICS"):
         return None
-    if env.get("KITTY_WINDOW_ID") or "kitty" in (env.get("TERM") or ""):
+    term = (env.get("TERM") or "").lower()
+    program = (env.get("TERM_PROGRAM") or "").lower()
+    # Two ways to recognise each one, because a terminal multiplexer or a login
+    # shell can drop either variable, and a background that silently does not
+    # appear is a worse bug than one that never worked.
+    if env.get("KITTY_WINDOW_ID") or "kitty" in term:
         return "kitty"
-    # Ghostty and WezTerm implement kitty's protocol. Konsole announces itself
-    # only through TERM, which the branch above already covers.
-    if (env.get("TERM_PROGRAM") or "").lower() in ("ghostty", "wezterm"):
+    if env.get("GHOSTTY_RESOURCES_DIR") or "ghostty" in term or program == "ghostty":
+        return "kitty"
+    if env.get("WEZTERM_PANE") or "wezterm" in term or program == "wezterm":
+        return "kitty"
+    if "konsole" in term or env.get("KONSOLE_VERSION"):
         return "kitty"
     return None
 
@@ -54,6 +68,14 @@ def available(env=None):
 
 def _escape(payload):
     return b"\x1b_G" + payload + b"\x1b\\"
+
+
+def too_big(path):
+    """-> True when the file is past what is safe to write in one go."""
+    try:
+        return os.path.getsize(path) > MAX_BYTES
+    except OSError:
+        return False
 
 
 def transmit(path, cols, rows, env=None):
@@ -70,6 +92,8 @@ def transmit(path, cols, rows, env=None):
     except OSError:
         return b""
     if not raw[:8] == b"\x89PNG\r\n\x1a\n":
+        return b""
+    if len(raw) > MAX_BYTES:
         return b""
     data = base64.standard_b64encode(raw)
     # a=T transmit and display, f=100 the payload is a PNG, t=d it is in this

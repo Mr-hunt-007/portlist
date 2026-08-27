@@ -389,15 +389,21 @@ class Vibe:
         """
         want = (path, cols, rows)
         if want == self.shown:
-            self.pending = termimg.place(cols, rows)
+            # Nothing to do. A placement lives in the terminal's graphics layer
+            # until it is deleted, so it survives every curses repaint; re-sending
+            # it each frame was eight redundant placements a second and a good
+            # way to make the picture flicker under the text it sits behind.
             return
         self.pending = termimg.transmit(path, cols, rows)
         if not self.pending:
             # The terminal claimed the protocol and the file would not go. Say
-            # so once and draw characters from here on rather than an empty
-            # background nobody can explain.
+            # which of the two reasons it was and draw characters from here on,
+            # rather than an empty background nobody can explain.
             self.ascii_bg = True
-            self.bg_note = "that picture could not be sent to the terminal, drawing it as characters"
+            self.bg_note = (
+                "that picture is too large to hand to the terminal, drawing it as characters"
+                if termimg.too_big(path) else
+                "that picture could not be sent to the terminal, drawing it as characters")
             self.shown = None
             return
         self.shown = want

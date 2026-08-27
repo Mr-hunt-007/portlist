@@ -228,6 +228,7 @@ footer a{border:0; color:var(--muted)} footer a:hover{color:var(--accent)}
   <div class="wrap">
     <a class="brand" href="#top">portlist<span class="dot">.</span></a>
     <div class="links">
+      <a href="#dashboard">Dashboard</a>
       <a href="#install">Install</a>
       <a href="#views" class="hide-sm">Views</a>
       <a href="#vibe" class="hide-sm">Vibe</a>
@@ -274,6 +275,88 @@ footer a{border:0; color:var(--muted)} footer a:hover{color:var(--accent)}
     </div>
   </div>
 </header>
+
+<section id="dashboard">
+  <div class="wrap">
+    <p class="kicker">The dashboard</p>
+    <h2>Everything, on one screen.</h2>
+    <p class="sub">Press <kbd>0</kbd>, or just start it: this is where portlist opens.
+      <kbd>Tab</kbd> moves to the next view in the same order as the number keys,
+      <kbd>h</kbd>/<kbd>l</kbd> move between the panes, and <kbd>j</kbd>/<kbd>k</kbd>
+      move inside whichever has focus. The dials ease round as the readings change,
+      and draw an empty ring where nothing could be measured.</p>
+
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>portlist &middot; dashboard</span></div>
+<pre aria-label="portlist dashboard: cards, the listening table, the selected service and the activity feed"><span class="t-vio">  MACHINE                                           EXPOSURE                  AGENTS                    CONTAINERS</span>
+     <span class="t-dim">·</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-dim">·</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-ok">◉</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span><span class="t-vio">        LISTENING      16         Claude Code    14         ENGINE         docker</span>
+   <span class="t-dim">·</span>         <span class="t-ok">◉</span>     <span class="t-dim">·</span>         <span class="t-ok">●</span>     <span class="t-ok">●</span>         <span class="t-ok">●</span>      EXPOSED        2          terminal       1          STATE          no answer
+  <span class="t-dim">·</span>    29%    <span class="t-dim">·</span>   <span class="t-ok">◉</span>    85%    <span class="t-ok">●</span>   <span class="t-ok">●</span>    96%    <span class="t-ok">●</span>     NEEDS WORK     2          launchd        1          COUNT          unknown
+   <span class="t-dim">·</span><span class="t-dim">   CPU   </span><span class="t-dim">·</span>     <span class="t-ok">●</span><span class="t-dim">   RAM   </span><span class="t-ok">●</span>     <span class="t-ok">●</span><span class="t-dim">  DISK   </span><span class="t-ok">●</span>      UNKNOWN ORIGIN 12                                                  not zero
+     <span class="t-dim">·</span>  <span class="t-dim">·</span>  <span class="t-dim">·</span>         <span class="t-ok">●</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-ok">●</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>
+<span class="t-dim">  LOAD  2.91 3.18 3.51</span>
+
+<span class="t-vio">  LISTENING  16 services  O LIVE                                                                              h/l pane   tab view</span>
+<span class="t-dim">    PORT    SERVICE               PROJECT           STARTED BY          REACH           RISK</span>
+  <span class="t-ok">●</span> :7337   Portboard             portboard         terminal            Localhost only  12 Info
+  <span class="t-teal">○</span> :8000   Python http.server    analytics         Claude Code         Localhost only  12 Info
+  <span class="t-teal">○</span> :8078   ?                     payments          Claude Code         Localhost only  7 Info
+  <span class="t-teal">○</span> :8422   ?                     data-export       Claude Code         Localhost only  7 Info
+▸ <span class="t-teal">○</span><span class="t-warn"> :8787   Python http.server    data-export       Claude Code         All interfaces  71 High</span>
+  <span class="t-teal">○</span> :8787   FastAPI / Uvicorn     scanner           Claude Code         Localhost only  12 Info
+  <span class="t-teal">○</span><span class="t-warn"> :8807   Python http.server    data-export       Claude Code         All interfaces  71 High</span>
+  <span class="t-teal">○</span> :9050   Tor                   /opt/homebrew     launchd             Localhost only  12 Info
+  <span class="t-ok">●</span> :24695  Bun                   ~/Downloads       Claude Code         Localhost only  0 Info
+  <span class="t-teal">○</span> :44596  Bun                   portlist          Claude Code         Localhost only  0 Info
+  <span class="t-teal">○</span> :48744  Bun                   portboard         Claude Code         Localhost only  0 Info
+  <span class="t-ok">●</span> :55909  Bun                   ~/Downloads       Claude Code         Localhost only  6 Info
+  <span class="t-teal">○</span> :56609  Bun                   scanner           Claude Code         Localhost only  6 Info
+  <span class="t-teal">○</span> :57155  Bun                   portlist          Claude Code         Localhost only  6 Info
+  <span class="t-teal">○</span> :57244  Bun                   data-export       Claude Code         Localhost only  6 Info
+<span class="t-vio">  SELECTED SERVICE                                                           </span><span class="t-dim">│</span><span class="t-vio"> ACTIVITY</span>
+                                                                             <span class="t-dim">│</span>
+  Python http.server :8787                                                   <span class="t-dim">│</span> 23:17:37 <span class="t-dim">·</span> Bun opened on :55909 (loopback)
+  ~/Downloads/data-export                                                    <span class="t-dim">│</span> 23:17:37 <span class="t-dim">·</span> Bun opened on :24695 (loopback)
+                                                                             <span class="t-dim">│</span> 23:07:54 <span class="t-dim">·</span> Python http.server on :39311 stopped listen
+<span class="t-warn">  REACH      All interfaces                                                  </span><span class="t-dim">│</span> 23:07:40 <span class="t-dim">·</span> Python http.server opened on :39311 (loopba
+<span class="t-dim">  PID        96798   Python                                                  </span><span class="t-dim">│</span> 22:52:49 <span class="t-dim">·</span> Bun on :10065 stopped listening
+<span class="t-dim">  LAST USED  last used 52m ago                                               </span><span class="t-dim">│</span> 22:52:45 <span class="t-dim">·</span> Bun on :56766 stopped listening
+                                                                             <span class="t-dim">│</span> 22:50:49 <span class="t-dim">·</span> Handoff / Continuity opened on :62309 (all)
+<span class="t-vio">  ORIGIN                                                                     </span><span class="t-dim">│</span> 22:35:45 <span class="t-dim">·</span> Handoff / Continuity on :53444 stopped list
+    Started by a Claude Code session                                         <span class="t-dim">│</span>
+    already running when portlist first looked                               <span class="t-dim">│</span><span class="t-dim"> CPU</span>
+                                                                             <span class="t-dim">│</span> ▂▂▂▂▂▂▂▂▂▂▂▂▂
+<span class="t-vio">  RISK  71 / 100   High                                                      </span><span class="t-dim">│</span><span class="t-dim"> MEMORY</span>
+    +42   Listening on all interfaces (0.0.0.0)                              <span class="t-dim">│</span> ▇▇▇▇▇▇▇▇▇▇▇▇▇
+    +10   No authentication seen and reachable off-box                       <span class="t-dim">│</span>
+    +10   Static file server exposing its working directory off-box          <span class="t-dim">│</span>
+    +9    Python http.server is a medium-sensitivity service (Static file s  <span class="t-dim">│</span>
+  <span class="t-ok">●</span> 2 exposed    <span class="t-bad">◆</span> 2 need attention    ⚠ 12 unknown origin    <span class="t-ok">◉</span> 3 agents    firewall on</pre>
+    </div>
+
+    <div class="grid g3" style="margin-top:28px">
+      <div class="card">
+        <p class="n">01</p>
+        <h3>The score is itemised</h3>
+        <p><code>71 High</code> is never a bare number. Every point that made it is
+          listed underneath, so the score can be argued with rather than believed.</p>
+      </div>
+      <div class="card">
+        <p class="n">02</p>
+        <h3>Unknown origin is counted</h3>
+        <p>Services already listening before portlist first looked get their own
+          number. None of them quietly inherits a repository label from whatever
+          owns the port now.</p>
+      </div>
+      <div class="card">
+        <p class="n">03</p>
+        <h3>"No answer" is not "zero"</h3>
+        <p>When the container engine does not respond, the card says the count is
+          unknown. A silent zero would be the same sentence as "there are none".</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section id="problem">
   <div class="wrap">
@@ -409,30 +492,36 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
     <p class="kicker">Vibe mode</p>
     <h2>Leave it open on the second monitor.</h2>
     <p class="sub">Press <kbd>V</kbd>, or leave it alone for thirty seconds and it
-      arrives on its own. Four scenes rotate: the machine and its meters, the network
-      between local services, each agent and what it started, and what has actually
-      happened lately. Any key brings the list straight back.</p>
+      arrives on its own. Five scenes rotate: the cockpit below, the machine and its
+      meters, the network between local services, each agent and what it started, and
+      what has actually happened lately. Any key brings the list straight back.</p>
 
     <div class="term">
-      <div class="bar"><i></i><i></i><i></i><span>portlist &middot; vibe &middot; network</span></div>
-<pre aria-label="portlist vibe mode, the network scene"><span class="t-key">                                      P O R T L I S T</span>
+      <div class="bar"><i></i><i></i><i></i><span>portlist &middot; vibe &middot; cockpit</span></div>
+<pre aria-label="portlist vibe mode, the cockpit scene"><span class="t-key">                                          P O R T L I S T</span>
 
-<span class="t-dim">                                       LOCAL NETWORK</span>
+<span class="t-dim">       CPU </span><span class="t-warn">████████</span><span class="t-dim">░░░░░░░░</span>  49%  MEM <span class="t-warn">██████████████</span><span class="t-dim">░░</span>  86%
+<span class="t-dim">       DISK </span><span class="t-bad">███████████████</span><span class="t-dim">░</span><span class="t-key">  96% o  MACHINE ALIVE</span>
+
+       <span class="t-teal">○</span><span class="t-warn"> :8787   Python http.server    data-export       OFF-BOX   </span><span class="t-bad">◇</span> HIGH
+       <span class="t-teal">○</span><span class="t-warn"> :8807   Python http.server    data-export       OFF-BOX   </span><span class="t-bad">◇</span> HIGH
+       <span class="t-ok">◉</span> :7337   Portboard             portboard         LOCAL
+       <span class="t-teal">○</span> :8000   Python http.server    analytics         LOCAL
+       <span class="t-teal">○</span> :8787   FastAPI / Uvicorn     scanner           LOCAL
+       <span class="t-teal">○</span> :9050   Tor                   /opt/homebrew     LOCAL
+       <span class="t-teal">○</span> :8078   ?                     payments          LOCAL
+       <span class="t-teal">○</span> :8422   ?                     data-export       LOCAL
+       <span class="t-teal">○</span> :56609  Bun                   scanner           LOCAL
+       <span class="t-ok">●</span> :57155  Bun                   portlist          LOCAL
 
 
-                                              <span class="t-teal">○</span><span class="t-dim"> :8787</span>
+              <span class="t-dim">─────────────────────────────────</span><span class="t-key"> HOST </span><span class="t-dim">─────────────────────────────────</span>
+                    <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>
+                   <span class="t-teal">○</span>           <span class="t-teal">○</span>           <span class="t-ok">◉</span>           <span class="t-teal">○</span>           <span class="t-teal">○</span>           <span class="t-teal">○</span>
+                  8787        8807        7337        8000        8787        9050
 
-<span class="t-dim">                   :8422 </span><span class="t-teal">○</span> <span class="t-dim">·</span>                  <span class="t-dim">·</span>                  <span class="t-dim">·</span> <span class="t-teal">○</span><span class="t-dim"> :8807</span>
-                            <span class="t-dim">·····</span>             <span class="t-dim">·</span>             <span class="t-dim">·····</span>
-                                 <span class="t-dim">······</span>       <span class="t-dim">·</span>       <span class="t-dim">······</span>
-                                       <span class="t-dim">·····</span>     <span class="t-dim">·····</span>
-<span class="t-dim">          :8078 </span><span class="t-teal">○</span> <span class="t-dim">··························</span><span class="t-key">HOST</span><span class="t-dim">···························</span> <span class="t-teal">○</span><span class="t-dim"> :7337</span>
-                                       <span class="t-dim">·····</span>     <span class="t-dim">·····</span>
-                                 <span class="t-dim">······</span>       <span class="t-dim">·</span>       <span class="t-dim">······</span>
-                            <span class="t-dim">·····</span>             <span class="t-dim">·</span>             <span class="t-dim">·····</span>
-<span class="t-dim">                   :9050 </span><span class="t-ok">◉</span> <span class="t-dim">·</span>                  <span class="t-dim">·</span>                  <span class="t-dim">·</span> <span class="t-teal">○</span><span class="t-dim"> :8000</span>
 
-                                              <span class="t-teal">○</span><span class="t-dim"> :8787</span></pre>
+<span class="t-key">                   14 SERVICES   </span><span class="t-ok">●</span>   3 AGENTS   <span class="t-ok">●</span>   0 CONTAINERS   <span class="t-ok">●</span><span class="t-warn">   2 OFF-BOX</span></pre>
     </div>
 
     <div class="grid g2" style="margin-top:28px">
@@ -440,9 +529,11 @@ brew install portlist">copy</button><span class="c"># macOS and Linux</span>
         <h3>Nothing moves unless it was measured</h3>
         <p>A dot pulses because that service was measured busy inside the last minute.
           A particle crosses an edge because a loopback connection between those two
-          ports was observed. Where nothing has been measured, the screen says so and
-          sits still. Inventing motion would make the prettiest part of the program the
-          one lying to you.</p>
+          ports was observed. A service is marked NEW because it really started
+          listening while you were watching, and the first frame marks nothing at all,
+          because everything is new to the screen and none of it is new to the machine.
+          Inventing motion would make the prettiest part of the program the one lying
+          to you.</p>
       </div>
       <div class="card">
         <h3>Five themes, four speeds</h3>

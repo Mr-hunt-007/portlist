@@ -23,8 +23,8 @@ import sys
 import time
 import webbrowser
 
-from . import (activity, agents as agents_mod, collect, ledger, scan,
-               sessions as sess_mod, vibe as vibe_mod)
+from . import (activity, agents as agents_mod, collect, dash as dash_mod, ledger,
+               scan, sessions as sess_mod, vibe as vibe_mod)
 
 REFRESH = 5.0
 ANIM = 0.12          # frame interval while something on screen is moving
@@ -105,7 +105,12 @@ EMPTY = [
 
 # (name, key, what it keeps). A view that groups rather than filters says so with
 # a None filter and is built by its own method.
+VIEW_KEYS = {}          # filled in below: the key you press -> the view index
+
 VIEWS = [
+    # The dashboard is first and answers to 0, so that every other view keeps
+    # the number it has always had.
+    ("Dashboard", "0", None),
     ("Services", "1", lambda rows: rows),
     ("Exposed", "2", lambda rows: [r for r in rows
                                    if (r.get("exposure") or {}).get("level") != "loopback"]),
@@ -118,6 +123,9 @@ VIEWS = [
     ("Sessions", "7", None),
     ("System", "8", None),
 ]
+
+for _i, (_label, _key, _filter) in enumerate(VIEWS):
+    VIEW_KEYS[_key] = _i
 
 C_NORM, C_DIM, C_RED, C_AMBER, C_GREEN, C_BLUE, C_HEAD, C_SEL, C_VIOLET = range(1, 10)
 
@@ -222,6 +230,15 @@ class Tui:
         self.sampled = 0.0
         self.vibe = None            # the ambient screen, when it is up
         self.last_key = time.time()
+        self.section = 0            # which dashboard pane has focus
+        self.act_top = 0            # scroll inside the dashboard activity pane
+        # What changed between scans, shared by every screen that shows it.
+        # id -> when. The first scan fills `known` and marks nothing: everything
+        # is new to the program the moment it starts and none of it is new to
+        # the machine.
+        self.known = set()
+        self.arrived = {}
+        self.departed = {}
 
     # ------------------------------------------------------------- painting
     def attr(self, pair, bold=False):
@@ -377,7 +394,30 @@ class Tui:
             self.sysinfo = None
         self.sampled = 0.0
         self.sample()
+        self.note_changes()
         self.last = time.time()
+
+    CHANGE_FOR = 20.0        # seconds an arrival or a departure stays marked
+
+    def note_changes(self):
+        """Diff this scan against the last. Real events, never decoration."""
+        now = time.time()
+        live = {r["id"] for r in self.rows if not r.get("quiet")}
+        first = not self.known
+        if first:
+            self.known = live
+            return
+        for sid in live - self.known:
+            self.arrived[sid] = now
+            self.departed.pop(sid, None)
+        for sid in self.known - live:
+            self.departed[sid] = now
+            self.arrived.pop(sid, None)
+        self.known = live
+        for store in (self.arrived, self.departed):
+            for sid, when in list(store.items()):
+                if now - when > self.CHANGE_FOR:
+                    del store[sid]
 
     def live_rows(self):
         live = [r for r in self.rows if not r.get("quiet")]
@@ -398,6 +438,10 @@ class Tui:
         live = self.live_rows()
         name = VIEWS[self.view][0]
         keep = VIEWS[self.view][2]
+        if name == "Dashboard":
+            # The dashboard's table is every listening service, in port order,
+            # so the cursor, the search and the detail pane all still work here.
+            return [("row", r) for r in sorted(live, key=lambda r: r["port"])]
         if keep is not None:
             return [("row", r) for r in sorted(keep(live), key=lambda r: r["port"])]
         if name == "Agents":
@@ -571,14 +615,15 @@ class Tui:
 
         # Columns sized to the terminal, dropped from the right as it narrows.
         # A fixed layout at 80 columns puts the project on top of the service.
-        # Sessions and System are not lists of services and draw their own
-        # headers below; if this one runs too, both sets of labels land in row 3
-        # and interleave ("PROJECTBLE  RISKCONTEXTAR"), or leave one stray
-        # letter poking out between two boxes.
-        cols = self.columns(w)          # the row painter below uses these too
-        if VIEWS[self.view][0] not in ("Sessions", "System"):
-            for x, width, label in cols:
-                self.put(3, x, label[:width], C_DIM, True)
+        cols = self.columns(w)          # the header and the row painter share these
+
+        if VIEWS[self.view][0] == "Dashboard":
+            dash_mod.draw(self, h, w)
+            if self.overlay:
+                self.draw_overlay(h, w)
+            self.draw_footer(h, w)
+            self.s.refresh()
+            return
 
         if VIEWS[self.view][0] == "System":
             self.draw_system(h, w)
@@ -622,6 +667,14 @@ class Tui:
             self.draw_footer(h, w)
             self.s.refresh()
             return
+        # The column header belongs to the table path and nowhere else. It used
+        # to be drawn in the prologue, which meant every view that draws its own
+        # header got this one on top: two sets of labels interleaved into
+        # "PROJECTBLE  RISKCONTEXTAR". Drawing it here means a new view cannot
+        # inherit that bug simply by existing, which it did three times.
+        for _x, _width, _label in cols:
+            self.put(3, _x, _label[:_width], C_DIM, True)
+
         if self.sel_id and not any(r["id"] == self.sel_id for r in rows):
             self.sel_id = rows[0]["id"] if rows else None
         if not self.sel_id and rows:
@@ -845,8 +898,8 @@ class Tui:
 
     def draw_footer(self, h, w):
         self.put(h - 1, 0, " " * (w - 1), C_HEAD)
-        keys = ("j/k move   enter detail   O open   1-8 view   / search   "
-                "f free port   r rescan   q quit")
+        keys = ("j/k move   h/l pane   tab view   enter detail   O open   "
+                "/ search   f free port   V vibe   q quit")
         if VIEWS[self.view][0] == "System":
             keys = ("1-8 view   a animation %s   f free port   r rescan   "
                     "? keys   q quit" % ("on" if self.anim else "off"))
@@ -1112,7 +1165,8 @@ class Tui:
         """Is anything on this screen animated right now?"""
         if self.vibe:
             return self.vibe.interval() is not None
-        return VIEWS[self.view][0] == "System" and not self.overlay and not self.typing
+        return (VIEWS[self.view][0] in ("System", "Dashboard")
+                and not self.overlay and not self.typing)
 
     def frame_gap(self):
         """Seconds between frames for whatever is moving."""
@@ -1204,16 +1258,33 @@ class Tui:
             self.query = ""
             self.s.clear()
             return True
+        if ch in (9, ord("\t"), curses.KEY_BTAB):
+            # Tab walks the views in the same order as the number keys, so it is
+            # the same journey either way round: 0, 1, 2, 3 and on.
+            step = -1 if ch == curses.KEY_BTAB else 1
+            self.view = (self.view + step) % len(VIEWS)
+            self.top = 0
+            self.s.clear()
+            return True
+        if ch in (ord("h"), curses.KEY_LEFT, ord("l"), curses.KEY_RIGHT):
+            # Left and right move between the panes of whichever view has them.
+            if VIEWS[self.view][0] == "Dashboard":
+                step = -1 if ch in (ord("h"), curses.KEY_LEFT) else 1
+                self.section = (self.section + step) % len(dash_mod.SECTIONS)
+                self.s.clear()
+            return True
         if ch == ord("f"):
             self.free_port()
             return True
         if ch == ord("?"):
             self.overlay = ("Keys", [
-                "j / k        move            1  services",
+                "j / k        move            0  dashboard: everything at once",
+                "tab          next view       1  services",
+                "h / l        dashboard pane  2  reachable off this machine",
                 "O            open in a browser  (Ctrl+Enter too, where the",
                 "                                terminal sends it - macOS never",
                 "                                delivers Cmd+Enter to a program)",
-                "enter, o     detail pane     2  reachable off this machine",
+                "enter, o     detail pane",
                 "/            search          3  needs attention",
                 "f            a free port     4  looks abandoned",
                 "r            rescan now      5  grouped by who started it",
@@ -1245,9 +1316,15 @@ class Tui:
             self.open_selected()
             return True
         if ch in (ord("j"), curses.KEY_DOWN):
-            self.move(1)
+            if VIEWS[self.view][0] == "Dashboard" and self.section == 1:
+                self.act_top += 1
+            else:
+                self.move(1)
         elif ch in (ord("k"), curses.KEY_UP):
-            self.move(-1)
+            if VIEWS[self.view][0] == "Dashboard" and self.section == 1:
+                self.act_top = max(0, self.act_top - 1)
+            else:
+                self.move(-1)
         elif ch in (curses.KEY_NPAGE, ord(" ")):
             self.move(10)
         elif ch == curses.KEY_PPAGE:
@@ -1262,8 +1339,8 @@ class Tui:
         elif ch == ord("a"):
             self.anim = not self.anim
             self.status = "animation %s" % ("on" if self.anim else "off")
-        elif ord("1") <= ch <= ord("8"):
-            self.view = min(len(VIEWS) - 1, ch - ord("1"))
+        elif chr(ch) in VIEW_KEYS if 32 <= ch < 127 else False:
+            self.view = VIEW_KEYS[chr(ch)]
             self.top = 0
             # A grouped view and a flat one have different line lengths, so a
             # partial redraw leaves the tail of the old view on screen. Force a

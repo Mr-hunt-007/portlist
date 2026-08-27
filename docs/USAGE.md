@@ -6,13 +6,38 @@ portlist
 
 That is the whole command line. Everything else is keys.
 
-## The eight views
+## The dashboard
+
+`0`, and where portlist opens: four cards (machine, exposure, agents,
+containers), the listening table, the selected service with its origin and the
+risk broken into the reasons that made it, the activity feed, the CPU and memory
+sparklines, and a status line.
+
+**Tab** moves to the next view and **shift-Tab** goes back, in the same order as
+the number keys. **`h`** and **`l`**, or the left and right arrows, move between
+the dashboard's two panes, and `j`/`k` move inside whichever has focus, so the
+same keys scroll the table or the activity feed depending on where you are.
+
+The machine is drawn as three live dials when the terminal is at least 118
+columns wide, and as meters below that. Each ring is twelve segments, the
+leading one pulses, and the ring eases round when a reading changes rather than
+jumping. A value that cannot be measured draws an empty ring rather than a
+zero.
+
+Two numbers there are worth reading carefully. **NEEDS WORK** counts critical and
+high risk, and every point is itemised in the pane below. **UNKNOWN ORIGIN**
+counts services that were already listening before portlist first looked: their
+origin is not guessed, and they are counted separately so a stale process does
+not inherit a repository label from whatever owns the port now.
+
+## The nine views
 
 Every view is a different question asked of one scan. Switching views never
 rescans and never moves your selection to a different service.
 
 | key | view | what it answers |
 |-----|------|-----------------|
+| `0` | dashboard | everything at once, and where it opens |
 | `1` | services | everything listening, with who started it |
 | `2` | exposed | reachable from beyond this machine |
 | `3` | attention | critical, high and medium risk |
@@ -35,6 +60,8 @@ Views 5 and 6 group rather than filter, so their headers are not selectable.
 | `f` | suggest a port that is free |
 | `a` | animation on the system view |
 | `V` | vibe mode |
+| `tab` `shift-tab` | the next view, in the same order as the number keys |
+| `h` `l`, left, right | move between the dashboard's panes |
 | `r` | rescan now |
 | `?` | keys |
 | `q` | quit |
@@ -91,10 +118,11 @@ gives way to an ambient screen worth leaving open on a second monitor. Any key
 brings the list straight back, and that key is swallowed rather than acted on,
 so returning never also opens, filters or moves anything.
 
-Four scenes rotate:
+Five scenes rotate:
 
 | | |
 |---|---|
+| **cockpit** | everything at once: meters, the services worth looking at first, and the host strip |
 | **machine** | load, memory and disk as meters, the CPU and memory waves, and what the machine adds up to |
 | **network** | the host with its services around it, and a particle travelling every edge where a loopback connection was actually observed |
 | **agents** | each agent, editor or terminal, and the services it started |
@@ -110,6 +138,11 @@ Inside vibe mode, four keys do not exit:
 | `A` | whether it may arrive on its own after thirty idle seconds |
 
 Choices are remembered in `~/.portlist/vibe.json`.
+
+When a service really appears while you are watching, it is marked **NEW** for
+a few seconds; when one stops listening, that is reported too. The first frame
+marks nothing at all, because everything is new to the screen the moment it
+opens and none of it is new to the machine.
 
 **Nothing on this screen moves unless something was measured.** A service dot
 pulses because that service was measured busy in the last minute, not because

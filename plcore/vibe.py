@@ -20,7 +20,7 @@ import time
 
 from . import history, ledger, security
 
-SCENES = ("machine", "network", "agents", "activity")
+SCENES = ("cockpit", "machine", "network", "agents", "activity")
 
 # name -> (frame interval in seconds, seconds a scene holds before the next)
 SPEEDS = {
@@ -83,7 +83,7 @@ def load():
     except Exception:
         d = {}
     return {"theme": d.get("theme") if d.get("theme") in THEMES else "observatory",
-            "speed": d.get("speed") if d.get("speed") in SPEEDS else "slow",
+            "speed": d.get("speed") if d.get("speed") in SPEEDS else "medium",
             "auto": bool(d.get("auto", True))}
 
 
@@ -122,6 +122,10 @@ class Vibe:
         self.frame = 0
         self.scene_since = time.time()
         self.entered = 0.0
+        # Change detection, so an arriving service is visibly an event rather
+        # than a row that was suddenly always there. Both maps are id -> when.
+        self.seen = {}
+        self.gone = {}
 
     # ------------------------------------------------------------- plumbing
     def interval(self):
@@ -179,11 +183,76 @@ class Vibe:
         self.t.put(y, x, g.full * fill, self.c(tone), True)
         self.t.put(y, x + fill, g.empty * (width - fill), self.c("dim"))
 
+    NEW_FOR = 12.0          # seconds an arrival or a departure stays marked
+
+    def notice(self):
+        """The scan owns the diff now; this keeps the old names pointing at it."""
+        self.seen = {sid: 1.0 for sid in self.t.known}
+        self.gone = dict(self.t.departed)
+        return
+
+    def _notice_unused(self):
+        """Diff the live set against the last frame. Real events, not decoration.
+
+        The first pass establishes a baseline and marks nothing: everything is
+        new to *this screen* the moment it opens, and none of it is new to the
+        machine. Marking all fourteen services NEW because vibe mode just
+        started is the same lie as inventing motion, told in a different way.
+        """
+        now = time.time()
+        live = {r["id"]: r for r in self.t.live_rows()}
+        first = not self.seen and not self.gone
+        for sid in live:
+            if sid not in self.seen:
+                self.seen[sid] = 0.0 if first else now
+            self.gone.pop(sid, None)
+        for sid in list(self.seen):
+            if sid not in live:
+                self.gone.setdefault(sid, now)
+                del self.seen[sid]
+        for sid, when in list(self.gone.items()):
+            if now - when > self.NEW_FOR:
+                del self.gone[sid]
+
+    def fresh(self, sid):
+        when = self.t.arrived.get(sid)
+        if when is None:
+            return None
+        age = time.time() - when
+        return None if age > self.t.CHANGE_FOR else (age / self.t.CHANGE_FOR)
+
+    def _fresh_unused(self, sid):
+        """-> 0.0 to 1.0 for a service that appeared while this screen watched.
+
+        `0.0` in `seen` is the baseline marker: it was already listening, so it
+        is not an arrival and never gets marked.
+        """
+        when = self.seen.get(sid)
+        if not when:
+            return None
+        age = time.time() - when
+        return None if age > self.NEW_FOR else (age / self.NEW_FOR)
+
     def draw(self, h, w):
+        self.notice()
         name = SCENES[self.scene]
         self.mid(1, w, "P O R T L I S T" if w >= 40 else "PORTLIST", "accent", True)
         getattr(self, "_" + name)(h, w)
         self.footer(h, w)
+        self.wipe(h, w)
+
+    def wipe(self, h, w):
+        """A scene arrives left to right. Presentation only: it claims nothing."""
+        if self.speed == "static":
+            return
+        span = 0.45
+        since = time.time() - self.scene_since
+        if since >= span:
+            return
+        edge = int(w * (since / span))
+        for y in range(2, h - 2):
+            self.t.put(y, edge, " " * max(0, w - edge - 1), self.c("dim"))
+        self.t.put(min(h - 3, max(2, h // 2)), edge, self.t.g.v, self.c("accent"), True)
 
     def footer(self, h, w):
         left = "%s   %s   %s" % (SCENES[self.scene], self.theme, self.speed)
@@ -196,6 +265,107 @@ class Vibe:
             self.mid(h - 1, w, hint, "dim")
 
     # --------------------------------------------------------------- scenes
+    def _cockpit(self, h, w):
+        """Everything at once: the screenshot the whole thing is designed around."""
+        t = self.t
+        d = t.sysinfo or {}
+        cpu = d.get("cpu") or {}
+        mem = d.get("memory") or {}
+        disks = d.get("disks") or []
+        s = t.summary or {}
+        # Risk first, then port: on a screen that shows six of fourteen, the six
+        # worth showing are the ones that scored.
+        rows = sorted(t.live_rows(),
+                      key=lambda r: (-(r.get("risk") or 0), r.get("port") or 0))
+        y = 3
+
+        # one strip of meters and counts
+        bar = max(8, min(16, (w - 58) // 2))
+        x = max(2, (w - (bar * 2 + 54)) // 2)
+        t.put(y, x, "CPU", self.c("dim"))
+        self.meter(y, x + 4, bar, cpu.get("load_pct"))
+        if cpu.get("load_pct") is not None:
+            t.put(y, x + 5 + bar, "%3.0f%%" % cpu["load_pct"], self.c("text"), True)
+        t.put(y, x + 11 + bar, "MEM", self.c("dim"))
+        self.meter(y, x + 15 + bar, bar, mem.get("pct"), "glow")
+        if mem.get("pct") is not None:
+            t.put(y, x + 16 + bar * 2, "%3.0f%%" % mem["pct"], self.c("text"), True)
+        if disks:
+            t.put(y + 1, x, "DISK", self.c("dim"))
+            self.meter(y + 1, x + 5, bar, disks[0].get("pct"))
+            if disks[0].get("pct") is not None:
+                t.put(y + 1, x + 6 + bar, "%3.0f%%" % disks[0]["pct"], self.c("text"), True)
+        beat = "%s  MACHINE ALIVE" % self.beat()
+        t.put(y + 1, x + 11 + bar, beat, self.c("glow"), True)
+        y += 3
+
+        # the services, with a state that is measured and a risk mark that is scored
+        room = max(3, min(len(rows), (h - y - 12)))
+        wide = w >= 78
+        for i, r in enumerate(rows[:room]):
+            yy = y + i
+            st = state_of(r)
+            glyph = GLYPH[st]
+            mark = glyph[self.phase(3) % len(glyph)] if len(glyph) > 1 else glyph
+            arriving = self.fresh(r["id"])
+            role = "glow" if st == "active" else "text" if st == "running" else "dim"
+            t.put(yy, x, mark, self.c(role), st == "active")
+            t.put(yy, x + 2, ":%-6s" % r.get("port"), self.c("accent"))
+            t.put(yy, x + 10, (r.get("service") or "?")[:20], self.c("text"))
+            if wide:
+                proj = (r.get("project") or {}).get("name") or r.get("dir_short") or ""
+                t.put(yy, x + 32, str(proj)[:16], self.c("dim"))
+                reach = (r.get("exposure") or {}).get("level")
+                t.put(yy, x + 50, "LOCAL" if reach == "loopback" else "OFF-BOX",
+                      self.c("dim" if reach == "loopback" else "warn"))
+            band = (r.get("risk_band") or "")
+            if band in ("Critical", "High"):
+                t.put(yy, x + 60 if wide else x + 32,
+                      ("◆" if self.phase(3) % 2 else "◇") + " " + band.upper(),
+                      self.c("bad"), True)
+            if arriving is not None:
+                # A new service arrives as an event: the marker fades over the
+                # first few seconds and then it is just another row.
+                t.put(yy, x + 70 if wide else x + 44, "NEW", self.c("glow"), True)
+        y += room + 1
+
+        for sid, when in list(self.gone.items())[:2]:
+            if y < h - 8:
+                t.put(y, x, "· gone", self.c("warn"))
+                t.put(y, x + 8, "a service stopped listening %ds ago"
+                      % int(time.time() - when), self.c("dim"))
+                y += 1
+
+        # the strip along the bottom, and the counts
+        if h - y >= 6:
+            self._strip(y + 1, h - 4, w, rows)
+        agents = len([g for g in (t.groups or []) if g.get("count")])
+        cont = len(((t.containers or {}).get("containers")) or [])
+        self.mid(h - 4, w, "%d SERVICES   %s   %d AGENTS   %s   %d CONTAINERS   %s   %d OFF-BOX"
+                 % (s.get("shown", 0), t.g.dot, agents, t.g.dot, cont, t.g.dot,
+                    s.get("exposed", 0)), "text", True)
+
+    def _strip(self, y, bottom, w, rows):
+        """A host bar with its busiest ports hanging off it."""
+        t = self.t
+        picks = rows[:6]
+        if not picks or bottom - y < 3:
+            return
+        span = min(w - 12, 12 * len(picks))
+        x0 = (w - span) // 2
+        t.put(y, x0, t.g.h * span, self.c("dim"))
+        t.put(y, x0 + span // 2 - 3, " HOST ", self.c("accent"), True)
+        for i, r in enumerate(picks):
+            x = x0 + int((i + 0.5) * span / len(picks))
+            t.put(y + 1, x, t.g.v, self.c("dim"))
+            st = state_of(r)
+            glyph = GLYPH[st]
+            mark = glyph[self.phase(3) % len(glyph)] if len(glyph) > 1 else glyph
+            t.put(y + 2, x - 1, mark, self.c("glow" if st == "active" else "dim"),
+                  st == "active")
+            label = str(r.get("port"))
+            t.put(y + 3, x - len(label) // 2, label, self.c("text"))
+
     def _machine(self, h, w):
         t = self.t
         d = t.sysinfo or {}
@@ -283,6 +453,8 @@ class Vibe:
                 self._particle(cy, cx, y, x)
 
         t.put(cy, cx - 2, "HOST", self.c("accent"), True)
+        for sid, when in list(self.gone.items())[:3]:
+            pass        # departures are reported in the note below, not drawn
         for r, y, x in placed:
             st = state_of(r)
             glyph = GLYPH[st]
@@ -292,11 +464,16 @@ class Vibe:
             left = x < cx
             t.put(y, x, mark, self.c(role), st == "active")
             t.put(y, x + 2 if not left else x - len(label) - 1, label, self.c("dim"))
+            if self.fresh(r["id"]) is not None:
+                t.put(y - 1, x - 1, "NEW", self.c("glow"), True)
 
         note = ("%d connection%s observed between local services"
                 % (moving, "" if moving == 1 else "s")) if moving else \
                "no connections observed between them yet"
         self.mid(h - 4, w, note, "dim")
+        if self.gone:
+            self.mid(h - 3, w, "%d stopped listening in the last few minutes"
+                     % len(self.gone), "warn")
 
     def _line(self, y0, x0, y1, x1, role):
         """A straight run of dots. Bresenham, minus the ends."""

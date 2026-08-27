@@ -6,9 +6,26 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **The dashboard, on `0`, and it is now where portlist opens.** Four cards
+  (machine, exposure, agents, containers), the listening table, the selected
+  service with its origin and its risk broken into the reasons that made it, the
+  activity feed, the sparklines and a status line. The risk score is itemised
+  rather than asserted, and "unknown origin" gets its own count so that nothing
+  quietly inherits a label from whatever owns the port now.
+- **Live dials on the dashboard**: three twelve-segment rings for CPU, memory
+  and disk, easing round rather than jumping, with the leading segment pulsing.
+  An unmeasured reading draws an empty ring instead of resting at zero.
+- **`Tab` moves to the next view**, in the same order as the number keys, and
+  `shift-Tab` goes back. `h` and `l` move between the dashboard's panes, and `j`
+  and `k` move inside whichever has focus.
+- **The dashboard animates**: dials, state dots, risk diamonds, the selected row
+  and the newest event, plus a badge on any service that starts or stops
+  listening while you are watching. `a` stops all of it, after which the screen
+  repaints only when the data changes.
 - **Vibe mode.** `V`, or leave it alone for thirty seconds and it arrives on its
   own: the list gives way to an ambient screen worth leaving open on a second
-  monitor. Four scenes rotate (machine, network, agents, activity), five themes,
+  monitor. Five scenes rotate (cockpit, machine, network, agents, activity),
+  five themes,
   four speeds, all remembered in `~/.portlist/vibe.json`. Any key brings the
   list straight back, and that key is swallowed rather than acted on, so
   returning never also opens or filters something.
@@ -19,6 +36,10 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   nothing has been measured the screen says so and sits still, because inventing
   motion would make the prettiest part of the program the one lying to you.
   Turning animation off with `a` also stops vibe mode arriving by itself.
+  A service that starts listening while you watch is marked NEW for a few
+  seconds and one that stops is reported, both from the real scan diff; the
+  first frame marks nothing, because everything is new to the screen the moment
+  it opens and none of it is new to the machine.
 - **View 8, system.** The machine itself: load, memory and disk as meters,
   uptime, processes, the CPU and memory sparklines, the addresses this host
   answers on, the firewall and SSH state, and what those twelve listening ports

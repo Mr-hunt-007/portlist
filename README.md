@@ -66,10 +66,60 @@ git clone https://github.com/Mr-hunt-007/portlist && cd portlist && python3 port
 
 Then run `portlist`.
 
-## Eight views
+## The dashboard
+
+`0`, and it is where portlist opens. Everything about the machine on one screen,
+so a single screenshot tells the whole story.
+
+```
+  MACHINE                                           EXPOSURE                    AGENTS                      CONTAINERS
+     ·  ●  ●         ·  ●  ●         ◉  ●  ●        LISTENING      16           Claude Code    14           ENGINE         docker
+   ·         ●     ·         ●     ●         ●      EXPOSED        2            terminal       1            STATE          no answer
+  ·    36%    ◉   ◉    85%    ●   ●    96%    ●     NEEDS WORK     2            launchd        1                           count unknown
+   ·   CPU   ·     ●   RAM   ●     ●  DISK   ●      UNKNOWN ORIGIN 12                                                      not zero
+     ·  ·  ·         ●  ●  ●         ●  ●  ●
+  LOAD  3.56 3.37 3.64
+
+  LISTENING  14 services                                                                                      Tab  next section
+    PORT    SERVICE               PROJECT           STARTED BY          REACH           RISK
+  ● :7337   Portboard             portboard         terminal            Localhost only  12 Info
+  ○ :8000   Python http.server    CredRadar         Claude Code         Localhost only  12 Info
+  ○ :8787   Python http.server    data-export       Claude Code         All interfaces  71 High
+
+  SELECTED SERVICE                                                          │ ACTIVITY
+                                                                            │
+  Portboard :7337                                                           │ 22:52:49 · Bun on :10065 stopped listening
+  ~/code/portboard                                                          │ 22:23:58 · Bun opened on :57155 (loopback)
+                                                                            │
+  REACH      Localhost only                                                 │ CPU
+  PID        9561   Python                                                  │ ▃▃▄▃▃▂▃▄▅▄▃▃▃
+  LAST USED  in use now                                                     │ MEMORY
+                                                                            │ ▇▇▇▇▇▇▇▇▇▇▇▇▇
+  RISK  71 / 100   High                                                     │
+    +42   Listening on all interfaces (0.0.0.0)                             │
+    +10   No authentication seen and reachable off-box                      │
+
+  ● 2 exposed    ◆ 2 need attention    ⚠ 12 unknown origin    ◉ 3 agents    firewall on
+```
+
+**Tab** moves to the next view, in the same order as the number keys, and
+**shift-Tab** goes back. **`h`** and **`l`** (or the arrows) move between the
+dashboard's panes, and `j`/`k` move inside whichever has focus.
+
+The three dials are live: each ring is twelve segments, the leading one pulses,
+and the ring eases round rather than jumping when the reading changes. An
+unmeasured value draws an empty ring and says so instead of resting at zero.
+
+The risk score is never a bare number. The pane lists what it was made of, so
+`71 High` is auditable rather than magical, and `⚠ 12 unknown origin` is counted
+precisely so those services are not quietly attributed to whatever owns the port
+now.
+
+## Nine views
 
 | key | view | what it answers |
 |-----|------|-----------------|
+| `0` | dashboard | everything at once, and where it opens |
 | `1` | services | everything listening, with who started it |
 | `2` | exposed | reachable from beyond this machine |
 | `3` | attention | critical, high and medium risk |
@@ -86,13 +136,13 @@ of one scan, not a different scan.
 ## Keys
 
 ```
-j / k, arrows   move                    /   search
-enter, o        detail pane             f   a port that is free now, and not
-O               open it in a browser        spoken for by anything later
-                (ctrl+enter too, where  a   animation on the system view
-                the terminal sends it)  V   vibe mode
-1-8             views                   r   rescan now
-                                        ?   keys      q   quit
+j / k, arrows   move                    tab shift-tab   the next view, the
+h / l           the dashboard's panes                   same order as 0-8
+enter, o        detail pane             /   search
+O               open it in a browser    f   a port that is free now, and not
+                (ctrl+enter too, where      spoken for by anything later
+                the terminal sends it)  a   animation      V   vibe mode
+0-8             views                   r   rescan now     ?   keys    q  quit
 ```
 
 macOS never delivers Cmd+Enter to a terminal program, so `O` is the binding that
@@ -172,9 +222,15 @@ Press **V**, or leave it alone for thirty seconds:
                   1 connection observed between local services
 ```
 
-Four scenes rotate: the machine and its meters, the network between local
-services, each agent and what it started, and what has actually happened lately.
-Five themes, four speeds, `t` and `s` to cycle them, any other key to come back.
+Five scenes rotate: the cockpit (everything at once), the machine and its
+meters, the network between local services, each agent and what it started, and
+what has actually happened lately. Five themes, four speeds, `t` and `s` to
+cycle them, any other key to come back.
+
+When a service really appears while you are watching, it is marked **NEW** for a
+few seconds and the strip redraws around it; when one stops listening, that is
+reported too. The first frame marks nothing, because everything is new to the
+screen the moment it opens and none of it is new to the machine.
 
 **Nothing on that screen moves unless something was measured.** A dot pulses
 because that service was measured busy inside the last minute. A particle

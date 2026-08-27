@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate Portboard's copies of the shared terminal files from portlist's.
 
-`tui.py` and `vibe.py` are one source of truth living in two trees. Hand-editing
+`tui.py`, `vibe.py` and `dash.py` are one source of truth living in two trees. Hand-editing
 both is how the splash screen in portlist ended up spelling PORTBOARD, so the
 copy is generated and the differences are declared here, in one table, rather
 than remembered.
@@ -58,7 +58,7 @@ def convert(text):
 def main():
     check = "--check" in sys.argv
     bad = 0
-    for name in ("tui.py", "vibe.py"):
+    for name in ("tui.py", "vibe.py", "dash.py"):
         src = os.path.join(HERE, "plcore", name)
         dst = os.path.join(BOARD, "pbcore", name)
         want = convert(open(src).read())

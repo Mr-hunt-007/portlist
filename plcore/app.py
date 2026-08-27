@@ -12,6 +12,8 @@ VERSION = "1.1"
 
 KEYS = """\
 views
+  0  dashboard           everything at once: machine, exposure, agents, the
+                         listening table, the selected service and the activity
   1  services            everything listening, with who started it
   2  exposed             reachable from beyond this machine
   3  attention           critical, high and medium risk
@@ -22,7 +24,9 @@ views
   8  system              this machine: load, memory, disks, network, exposure
 
 keys
-  j / k, arrows          move
+  j / k, arrows          move, inside whichever section has focus
+  tab, shift-tab         the next view, the same order as the number keys
+  h / l, left, right     move between the dashboard's panes
   enter, o               detail pane
   O                      open the port in a browser (ctrl+enter where the
                          terminal sends it)

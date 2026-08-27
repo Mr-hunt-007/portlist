@@ -4,6 +4,28 @@ Grouped by the question each one answers. Every answer here is reached by
 measuring something, and where it cannot be measured portlist says so instead of
 guessing.
 
+## The dashboard
+
+- **Everything on one screen**, and where portlist opens: machine, exposure,
+  agents and containers as cards; the listening table; the selected service with
+  its origin and risk; the activity feed and the sparklines; a status line.
+- **Live dials.** Three twelve-segment rings for CPU, memory and disk. The ring
+  eases round when the reading changes and the leading segment pulses; an
+  unmeasured value draws an empty ring instead of resting at zero.
+- **Tab moves between views** in the same order as the number keys; `h` and `l`
+  move between the dashboard's panes and `j`/`k` move inside the focused one.
+- **It stays alive while you watch it.** The dials, the state dots, the risk
+  diamonds, the selected row and the newest event all pulse, and a service that
+  starts or stops listening while you are looking is marked. `a` stops all of
+  it, and then the screen repaints only when the data changes.
+- **The risk score is itemised, never bare.** `71 High` is followed by the points
+  and the reason for each, so the number is auditable rather than magical.
+- **Unknown origin is counted, not hidden.** Services already listening before
+  portlist first looked get their own number, so none of them quietly inherits a
+  repository label from whatever owns the port now.
+- **"The engine did not answer" is its own state** on the containers card, and it
+  never renders as a count of zero.
+
 ## What is listening
 
 - Every listening socket, IPv4 and IPv6, TCP and UDP, deduplicated into one row
@@ -81,8 +103,13 @@ guessing.
 ## Vibe mode
 
 - **An ambient screen worth leaving open**, on `V` or after thirty idle seconds.
-- **Four scenes**: the machine and its meters; the host with its services around
-  it; each agent and what it started; what has actually happened lately.
+- **Five scenes**: the cockpit, with everything at once; the machine and its
+  meters; the host with its services around it; each agent and what it started;
+  what has actually happened lately.
+- **Arrivals and departures are animated because they happened.** A service that
+  starts listening while you watch is marked NEW for a few seconds; one that
+  stops is reported. The first frame marks nothing, since everything is new to
+  the screen and none of it is new to the machine.
 - **Five themes** (observatory, neon, terminal, aurora, minimal) and **four
   speeds** (static to cinematic), remembered between runs.
 - **Every moving thing is a measurement.** A dot pulses because that service was

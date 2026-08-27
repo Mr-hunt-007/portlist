@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>portlist - every port on this machine, and where it came from</title>
-<meta name="description" content="A terminal program that shows every listening port on your machine and what started it: which agent session, which project, whether the network can reach it, and whether anyone still uses it. No dashboard, no server, no dependencies. macOS, Linux, Windows. MIT.">
+<meta name="description" content="See everything running on localhost and what started it. AI coding tools like Claude, Cursor and Codex leave dev servers, APIs and containers running: portlist shows which agent session started each one, which project it belongs to, whether the network can reach it, and whether anyone still uses it. A terminal program, no dashboard, no server, no dependencies. macOS, Linux, Windows. MIT."/>
 <link rel="canonical" href="https://mr-hunt-007.github.io/portlist/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#F2EFE7">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="portlist">
 <meta property="og:title" content="portlist - every port on this machine, and where it came from">
-<meta property="og:description" content="Twelve things are listening. You started three of them today and you cannot name the rest. Drive the real thing in your browser.">
+<meta property="og:description" content="Twelve things are listening on localhost and you cannot name half of them. AI coding tools started some of them. See which, and what is safe to kill. Drive the real thing in your browser."/>
 <meta property="og:url" content="https://mr-hunt-007.github.io/portlist/">
 <meta property="og:image" content="https://mr-hunt-007.github.io/portlist/og.png">
 <meta property="og:image:width" content="1200">
@@ -26,7 +26,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"portlist",
-"description":"A terminal program that shows every listening port on this machine and what started it.",
+"description":"A terminal program that shows every listening port on this machine and what started it, including the ones AI coding tools left running.",
 "url":"https://mr-hunt-007.github.io/portlist/","codeRepository":"https://github.com/Mr-hunt-007/portlist","downloadUrl":"https://github.com/Mr-hunt-007/portlist",
 "applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows, BSD",
 "softwareVersion":"1.1","programmingLanguage":"Python","isAccessibleForFree":true,
@@ -45,6 +45,8 @@
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+ {"@type":"Question","name":"I let Claude or Cursor run things. What does that leave behind?",
+  "acceptedAnswer":{"@type":"Answer","text":"Usually more than you think: a dev server, an API, a file watcher, sometimes a container, all still listening days later. portlist reads the transcript each AI coding tool already writes, so a listening service can say which agent session started it and what that session was working on. It reads Claude Code, Codex, GitHub Copilot CLI, VS Code chat, Cursor and Gemini CLI, installs nothing into any of them, and no prompt leaves the machine."}},
  {"@type":"Question","name":"How is portlist different from lsof or netstat?",
   "acceptedAnswer":{"@type":"Answer","text":"lsof answers which process holds a port. portlist answers where that process came from: which agent session or terminal started it, from which project directory, whether the network can actually reach it, and whether anyone has used it since. It writes a launch record the first time it sees a service, so the answer survives the agent exiting and the service restarting."}},
  {"@type":"Question","name":"Does portlist open a port of its own?",
@@ -351,9 +353,11 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
       <div>
         <h1>Your machine,<span class="l2"><em>observed</em>.</span></h1>
         <p class="kana-sub jp">ポート・オブザーバトリー</p>
-        <p class="lede">Twelve things are listening. You started three of them today and you cannot
-          name the rest. <code>lsof</code> gives you a PID. This gives you the agent session, the
-          project, and whether anyone has touched it since Tuesday.</p>
+        <p class="lede">Twelve things are listening on localhost and you cannot name half of
+          them. <strong>AI coding tools make this worse</strong>: Claude, Cursor and Codex start
+          servers you never typed, and days later nothing tells you what is still up or what is
+          safe to kill. <code>lsof</code> gives you a PID. This gives you the agent session that
+          started it, the project it belongs to, and whether anyone has touched it since Tuesday.</p>
       </div>
       <div class="facts">
         <dl>
@@ -720,8 +724,8 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
                           .                            ...::..                        oldest open session   5h ago
 
 
-  room   observatory   static                                                                  04:18:18   Fri 28 Aug
-                                    any key returns   t theme   s speed   n scene</pre>
+  room   observatory   static                                                                  04:27:33   Fri 28 Aug
+                       any key returns   t theme   s speed   n scene   A arrives on its own no</pre>
       </div>
       <div class="keys" id="keys">
         <button data-k="0" data-view="dashboard" aria-current="true">0 dashboard</button>
@@ -1110,6 +1114,12 @@ brew install portlist">copy</button><span class="p">$</span> brew tap Mr-hunt-00
       <div class="glyph jp" aria-hidden="true">問</div>
     </div>
     <ul class="plain">
+      <li class="rise" data-n="Q"><span><strong>I let Claude or Cursor run things. What does
+        that leave behind?</strong> Usually more than you think: a dev server, an API, a
+        watcher, sometimes a container, all still listening days later. portlist reads the
+        transcript each tool already writes, so every one of those rows can say which session
+        started it and what that session was working on. Six tools, nothing installed into any
+        of them, and no prompt leaves the machine.</span></li>
       <li class="rise" data-n="Q"><span><strong>How is this different from lsof?</strong>
         lsof answers which process holds a port. portlist answers where that process came
         from: which agent session or terminal started it, from which project, whether the

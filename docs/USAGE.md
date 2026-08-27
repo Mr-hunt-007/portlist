@@ -168,6 +168,7 @@ Inside vibe mode, four keys do not exit:
 | `s` | speed: static, slow, medium, cinematic |
 | `n` | next scene now |
 | `A` | whether it may arrive on its own after thirty idle seconds |
+| `g` | which picture is behind the scene: none, then each PNG in `~/.portlist/backgrounds/`, then none again |
 | `b` | how strongly the background picture shows, if you set one |
 | `B` | which end of that picture becomes ink: `auto`, `on`, `off` |
 
@@ -175,11 +176,18 @@ Choices are remembered in `~/.portlist/vibe.json`.
 
 ### A picture behind it
 
-Off until you ask for it:
+Off until you ask for it. Two ways, and the second is the one you will use
+twice:
 
 ```sh
-portlist --vibe-bg ~/pictures/thing.png
+portlist --vibe-bg ~/pictures/thing.png     # name the file once, on the way in
 ```
+
+or drop PNGs into `~/.portlist/backgrounds/` and press **`g`** inside vibe mode
+to walk them: none, each picture, back to none. The footer names what is showing,
+so choosing is done by looking rather than by remembering a path. Pressing `g`
+with nothing there creates the folder and says so. A picture picked this way
+starts at 30 per cent, because one you chose and cannot see is not a choice.
 
 **PNG only, and that is a real limit rather than an oversight.** A PNG is `zlib`
 and a few row filters, which the standard library already has; a JPEG needs a

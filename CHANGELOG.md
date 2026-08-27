@@ -15,6 +15,11 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   machine and to nothing else. A transcript records the tokens a turn carried
   and never the model's limit, so no percentage of a context window is printed:
   that number would have to be invented.
+- **A picture can be chosen from inside vibe mode.** Drop PNGs into
+  `~/.portlist/backgrounds/` and `g` walks them: none, each picture, back to
+  none, with the footer naming what is showing. `--vibe-bg` meant knowing a path
+  and restarting, which is a setting rather than something anybody uses twice.
+  Pressing `g` with nothing there creates the folder and says so.
 - **A seventh vibe scene, `room`.** It ships its own plate, drawn as characters
   by the same decoder a `--vibe-bg` picture goes through, with what is
   listening, what is reachable off this box and how many agent sessions are open

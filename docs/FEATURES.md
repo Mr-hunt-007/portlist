@@ -137,7 +137,9 @@ guessing.
   room, a plate that ships with the program and is drawn as characters, with the
   three readings that fit placed where the picture is dark.
 - **A picture behind the scenes**, off until you ask for it with
-  `portlist --vibe-bg thing.png`. PNG only, decoded with nothing but `zlib`.
+  `portlist --vibe-bg thing.png`, or by dropping PNGs into
+  `~/.portlist/backgrounds/` and pressing `g` to walk them from inside.
+  PNG only, decoded with nothing but `zlib`.
   Opacity is density rather than alpha, capped at 60 per cent, painted into the
   negative space so the text stays legible, and turned down per scene where the
   scene is already busy. `b` tunes it live.

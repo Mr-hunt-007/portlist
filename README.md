@@ -341,7 +341,11 @@ cycle them, any other key to come back.
 
 The room is the one scene that brings its own picture, the way the grid scene
 brings its own tiles, so it needs no `--vibe-bg` and ignores one if you set it.
-A picture of yours decorates the other six.
+A picture of yours decorates the other six: name it on the way in with
+`portlist --vibe-bg thing.png`, or drop PNGs into `~/.portlist/backgrounds/` and
+press `g` inside vibe mode to walk them - none, each picture, back to none, with
+the footer naming what is showing. `b` sets how strongly it shows and `B`
+decides which end of it becomes ink.
 
 When a service really appears while you are watching, it is marked **NEW** for a
 few seconds and the strip redraws around it; when one stops listening, that is

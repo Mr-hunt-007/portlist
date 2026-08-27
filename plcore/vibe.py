@@ -106,6 +106,26 @@ THEMES = {
 THEME_ORDER = ("observatory", "neon", "terminal", "aurora", "minimal")
 
 
+def backgrounds_dir():
+    """Where a picture can be dropped so vibe mode can find it by itself.
+
+    `--vibe-bg` means knowing the path and restarting the program. A folder
+    means dropping a file in and pressing a key, which is the difference
+    between a setting and a feature somebody uses.
+    """
+    return os.path.join(security.data_dir(), "backgrounds")
+
+
+def backgrounds():
+    """-> the PNGs in that folder, sorted. Never raises; missing is empty."""
+    folder = backgrounds_dir()
+    try:
+        names = sorted(n for n in os.listdir(folder) if n.lower().endswith(".png"))
+    except OSError:
+        return []
+    return [os.path.join(folder, n) for n in names]
+
+
 def _settings_path():
     return os.path.join(security.data_dir(), "vibe.json")
 
@@ -207,6 +227,29 @@ class Vibe:
             steps = list(BG_STEPS)
             here = min(range(len(steps)), key=lambda i: abs(steps[i] - self.bg_opacity))
             self.bg_opacity = steps[(here + 1) % len(steps)]
+            self.bg_grid = self.bg_cache = None
+        elif ch == ord("g"):
+            found = backgrounds()
+            if not found:
+                # Being told a path that does not exist is a worse answer than
+                # being handed the folder. Pressing the key is the request, so
+                # making it here is not a surprise.
+                folder = backgrounds_dir()
+                try:
+                    if not os.path.isdir(folder):
+                        os.makedirs(folder)
+                    self.bg_note = "put a .png in %s, then press g" % folder
+                except OSError as e:
+                    self.bg_note = "cannot use %s: %s" % (folder, e.strerror or "failed")
+                return True
+            # none -> each picture -> none. Returning to none matters: a folder
+            # you can enter and not leave is a trap, not a picker.
+            ring = [""] + found
+            here = ring.index(self.bg) if self.bg in ring else 0
+            self.bg = ring[(here + 1) % len(ring)]
+            if self.bg and not self.bg_opacity:
+                self.bg_opacity = 30      # a picture you chose should be visible
+            self.bg_note = ""
             self.bg_grid = self.bg_cache = None
         elif ch == ord("B"):
             # The auto guess reads the picture's average brightness, which is
@@ -428,7 +471,9 @@ class Vibe:
         self.t.put(h - 2, max(3, w - len(right) - 2), right, self.c("dim"))
         hint = "any key returns   t theme   s speed   n scene"
         if SCENES[self.scene] != "room":
-            hint += "   b background %s" % (
+            hint += "   g picture %s" % (
+                os.path.basename(self.bg) if self.bg else "none")
+            hint += "   b %s" % (
                 ("%d%%" % self.bg_opacity) if (self.bg and self.bg_opacity) else "off")
             if self.bg and self.bg_opacity:
                 hint += "   B ink %s" % self.bg_invert
@@ -442,7 +487,7 @@ class Vibe:
             # A narrow terminal used to get no hint at all, which is the one
             # width where guessing the keys is hardest. Shorten it instead.
             hint = "any key returns   t s n%s A" % (
-                " b B" if SCENES[self.scene] != "room" else "")
+                " g b B" if SCENES[self.scene] != "room" else "")
         if w > len(hint) + 6:
             self.mid(h - 1, w, hint, "dim")
 

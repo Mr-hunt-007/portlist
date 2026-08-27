@@ -31,6 +31,15 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 - **`b` goes to 100.** It stopped at 60 on the grounds that past there the
   picture wins and the numbers stop being readable. Both true, and not the
   dial's call: this is an ambient screen.
+- **One background strength for every scene.** Each scene used to scale the
+  picture down by its own factor, so 60 per cent looked like four different
+  things depending on which scene had come round and the quiet scenes looked
+  broken beside the loud ones. The margin is what keeps the picture off the
+  text, so the per-scene dimming was solving that twice and creating a new
+  problem doing it.
+- **The room scene shows your picture when you have set one.** It ships a plate
+  so it is a scene at all, but the one scene built around a photograph was the
+  one place your own photograph was ignored, which is backwards.
 - **A seventh vibe scene, `room`.** It ships its own plate, drawn as characters
   by the same decoder a `--vibe-bg` picture goes through, with what is
   listening, what is reachable off this box and how many agent sessions are open

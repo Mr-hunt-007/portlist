@@ -339,8 +339,8 @@ the program, drawn as characters, with the three numbers that fit placed where
 it is dark. Five themes, four speeds, `t` and `s` to
 cycle them, any other key to come back.
 
-The room is the one scene that brings its own picture, the way the grid scene
-brings its own tiles, so it needs no `--vibe-bg` and ignores one if you set it.
+The room scene ships a picture so that it is a scene at all, but that is a
+default and not a fixture: set a picture of your own and the room shows yours.
 A picture of yours decorates the other six: name it on the way in with
 `portlist --vibe-bg thing.png`, or drop PNGs into `~/.portlist/backgrounds/` and
 press `g` inside vibe mode to walk them, with the footer naming what is showing.

@@ -24,11 +24,15 @@ from . import history, imgmap, ledger, security, termimg
 
 SCENES = ("cockpit", "machine", "network", "agents", "activity", "grid", "room")
 
-# How much of a background each scene will carry. A scene that is mostly empty
-# can hold a picture; one that is already lines and nodes cannot, and turning it
-# down per scene is the difference between atmosphere and a mess.
-SCENE_BG = {"cockpit": 1.0, "machine": 1.0, "grid": 0.55, "room": 1.0,
-            "activity": 0.75, "agents": 0.65, "network": 0.40}
+# One strength, everywhere. Each scene used to scale the background down by its
+# own factor - the network scene got 40 per cent, the grid 55 - on the reasoning
+# that a busy scene cannot carry as much picture. In use that just meant the dial
+# lied: 60 per cent looked like four different things depending on which scene
+# had come round, and the quiet ones looked broken next to the loud ones. The
+# picture is kept off the text by the margin, which is the mechanism that
+# actually protects legibility, so the per-scene dimming was solving a problem
+# twice and creating a new one.
+SCENE_BG = 1.0
 
 # The dial, in steps, all the way to full. It used to stop at 60 on the grounds
 # that past there the picture wins and the numbers stop being readable. That is
@@ -433,16 +437,19 @@ class Vibe:
         Decoding is done once and cached: a 1600x900 PNG takes about half a
         second to unfilter, which is fine on entry and impossible per frame.
         """
-        # One scene *is* its picture, the way the grid scene is its tiles, so it
-        # always draws the plate that ships with the program and always at the
-        # cap. A picture of your own decorates the other six; letting it replace
-        # this one meant "room" quietly stopped being the room.
-        own = (scene == "room" and not self.room_bad
+        # The room scene needs a picture to be a scene at all, so it ships one.
+        # It is a default, not a fixture: set a picture of your own and the room
+        # shows yours. Making it always draw the shipped plate meant the one
+        # scene built around a photograph was the one place your own photograph
+        # was ignored, which is backwards.
+        own = (scene == "room" and not self.bg and not self.room_bad
                and os.path.exists(ROOM_PNG))
         if own:
             path, opacity, invert = ROOM_PNG, ROOM_BG, "off"
         else:
             path, opacity, invert = self.bg, self.bg_opacity, self.bg_invert
+            if scene == "room" and path and not opacity:
+                opacity = ROOM_BG
         if not path or opacity <= 0:
             self.unpaint()
             return
@@ -487,7 +494,7 @@ class Vibe:
         # of text came out speckled. Asking curses what is already in each cell
         # and skipping the ones that are taken costs one inch() per cell and
         # keeps the data perfectly legible, which is the whole bargain.
-        strength = (opacity / 100.0) * SCENE_BG.get(scene, 0.7)
+        strength = (opacity / 100.0) * SCENE_BG
         ramp = self.BG_RAMP
         top = len(ramp) - 1
         scr = self.t.s
@@ -563,7 +570,7 @@ class Vibe:
         self.t.put(h - 2, 2, left, self.c("dim"))
         self.t.put(h - 2, max(3, w - len(right) - 2), right, self.c("dim"))
         hint = "any key returns   t theme   s speed   n scene"
-        if SCENES[self.scene] != "room":
+        if SCENES[self.scene] != "room" or self.bg:
             real = (self.bg and self.bg_opacity and not self.ascii_bg
                     and termimg.available())
             hint += "   g %s" % (
@@ -590,7 +597,7 @@ class Vibe:
             # A narrow terminal used to get no hint at all, which is the one
             # width where guessing the keys is hardest. Shorten it instead.
             hint = "any key returns   t s n%s A" % (
-                " g b B" if SCENES[self.scene] != "room" else "")
+                " g b B" if (SCENES[self.scene] != "room" or self.bg) else "")
         if w > len(hint) + 6:
             self.mid(h - 1, w, hint, "dim")
 

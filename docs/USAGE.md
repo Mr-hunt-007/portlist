@@ -148,7 +148,7 @@ gives way to an ambient screen worth leaving open on a second monitor. Any key
 brings the list straight back, and that key is swallowed rather than acted on,
 so returning never also opens, filters or moves anything.
 
-Six scenes rotate:
+Seven scenes rotate:
 
 | | |
 |---|---|
@@ -158,6 +158,7 @@ Six scenes rotate:
 | **network** | the host with its services around it, and a particle travelling every edge where a loopback connection was actually observed |
 | **agents** | each agent, editor or terminal, and the services it started |
 | **activity** | what has really happened lately, newest first, freshest pulsing |
+| **room** | a plate that ships with the program, drawn as characters, with what is listening, what is off this box and how many agent sessions are open placed in its dark corners |
 
 Inside vibe mode, four keys do not exit:
 
@@ -201,6 +202,10 @@ theme has. Two things follow, both deliberate:
 - **Each scene decides how much it can carry.** The cockpit and machine scenes
   are mostly air and take it at full strength; the network scene is already
   lines and nodes on empty space, so it gets 40 per cent of whatever you set.
+- **One scene is exempt.** `room` ships its own plate and draws it at the cap,
+  because there is the picture and there is nothing else; a picture of yours
+  decorates the other six and is ignored there. `b` and `B` do nothing in it,
+  and the footer stops offering them rather than showing a dial that is inert.
 
 A picture that is mostly light is **flipped** before it is drawn, so what shows
 is the ink somebody drew rather than the paper it sits on. The first time a

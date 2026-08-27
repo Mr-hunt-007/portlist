@@ -21,12 +21,12 @@ import time
 
 from . import history, imgmap, ledger, security
 
-SCENES = ("cockpit", "machine", "network", "agents", "activity", "grid")
+SCENES = ("cockpit", "machine", "network", "agents", "activity", "grid", "room")
 
 # How much of a background each scene will carry. A scene that is mostly empty
 # can hold a picture; one that is already lines and nodes cannot, and turning it
 # down per scene is the difference between atmosphere and a mess.
-SCENE_BG = {"cockpit": 1.0, "machine": 1.0, "grid": 0.55,
+SCENE_BG = {"cockpit": 1.0, "machine": 1.0, "grid": 0.55, "room": 1.0,
             "activity": 0.75, "agents": 0.65, "network": 0.40}
 
 # The dial, in steps. Capped well below full on purpose: at full strength the
@@ -34,6 +34,27 @@ SCENE_BG = {"cockpit": 1.0, "machine": 1.0, "grid": 0.55,
 # can make the screen worse should not offer that value.
 BG_STEPS = (0, 15, 30, 45, 60)
 BG_MAX = 60
+
+# The one scene that brings its own picture. The others are drawings of
+# measurements, and a background there is optional decoration behind them.
+# Here the picture is the scene, so it opens at the cap that the others treat
+# as a limit, and the few readings that fit are placed where the room is dark.
+ROOM_PNG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "room.png")
+ROOM_BG = BG_MAX
+
+def elapsed(stamp):
+    """A wall-clock stamp as how long ago it was, or "" when there is none."""
+    if not stamp:
+        return ""
+    s = int(max(0, time.time() - stamp))
+    if s < 90:
+        return "%ds ago" % s
+    if s < 5400:
+        return "%dm ago" % (s // 60)
+    if s < 172800:
+        return "%dh ago" % (s // 3600)
+    return "%dd ago" % (s // 86400)
+
 
 # name -> (frame interval in seconds, seconds a scene holds before the next)
 SPEEDS = {
@@ -147,6 +168,7 @@ class Vibe:
         self.bg_opacity = s["bg_opacity"]
         self.bg_invert = s["bg_invert"]
         self.bg_cache = None          # (path, mtime, cols, rows) -> grid
+        self.room_bad = False         # the shipped plate failed to load
         self.bg_grid = None
         self.bg_note = ""
         self.scene = 0
@@ -282,35 +304,57 @@ class Vibe:
     # ------------------------------------------------------------ backdrop
     BG_RAMP = " .:-=+*#"
 
+    def _disown(self, own):
+        """Stop retrying a picture that will not load, and blame the right one.
+
+        Every failure here used to clear `self.bg`, which is correct for a file
+        the user named and wrong for the one that ships with the program: a
+        broken install would silently throw away their background instead.
+        """
+        if own and not self.bg:
+            self.room_bad = True
+        else:
+            self.bg = ""
+
     def backdrop(self, h, w, scene):
         """Draw the picture behind the scene, if one was asked for.
 
         Decoding is done once and cached: a 1600x900 PNG takes about half a
         second to unfilter, which is fine on entry and impossible per frame.
         """
-        if not self.bg or self.bg_opacity <= 0:
+        # One scene *is* its picture, the way the grid scene is its tiles, so it
+        # always draws the plate that ships with the program and always at the
+        # cap. A picture of your own decorates the other six; letting it replace
+        # this one meant "room" quietly stopped being the room.
+        own = (scene == "room" and not self.room_bad
+               and os.path.exists(ROOM_PNG))
+        if own:
+            path, opacity, invert = ROOM_PNG, ROOM_BG, "off"
+        else:
+            path, opacity, invert = self.bg, self.bg_opacity, self.bg_invert
+        if not path or opacity <= 0:
             return
         cols, rows = max(1, w - 2), max(1, h - 4)
         key = None
         try:
-            key = (self.bg, os.path.getmtime(self.bg), cols, rows, self.bg_invert)
+            key = (path, os.path.getmtime(path), cols, rows, invert)
         except OSError as e:
             self.bg_note = "background unreadable: %s" % (e.strerror or "no such file")
-            self.bg = ""
+            self._disown(own)
             return
         if key != self.bg_cache:
             try:
-                flip = {"auto": "auto", "on": True, "off": False}[self.bg_invert]
-                self.bg_grid = imgmap.cells(self.bg, cols, rows, invert=flip)
+                flip = {"auto": "auto", "on": True, "off": False}[invert]
+                self.bg_grid = imgmap.cells(path, cols, rows, invert=flip)
                 self.bg_note = ""
             except imgmap.Unsupported as e:
                 self.bg_note = "background: %s" % e
-                self.bg = ""
+                self._disown(own)
                 self.bg_grid = None
                 return
             except Exception:
                 self.bg_note = "background could not be read"
-                self.bg = ""
+                self._disown(own)
                 self.bg_grid = None
                 return
             self.bg_cache = key
@@ -324,7 +368,7 @@ class Vibe:
         # of text came out speckled. Asking curses what is already in each cell
         # and skipping the ones that are taken costs one inch() per cell and
         # keeps the data perfectly legible, which is the whole bargain.
-        strength = (self.bg_opacity / 100.0) * SCENE_BG.get(scene, 0.7)
+        strength = (opacity / 100.0) * SCENE_BG.get(scene, 0.7)
         ramp = self.BG_RAMP
         top = len(ramp) - 1
         scr = self.t.s
@@ -382,10 +426,13 @@ class Vibe:
         right = time.strftime("%H:%M:%S   %a %d %b")
         self.t.put(h - 2, 2, left, self.c("dim"))
         self.t.put(h - 2, max(3, w - len(right) - 2), right, self.c("dim"))
-        hint = "any key returns   t theme   s speed   n scene   b background %s" % (
-            ("%d%%" % self.bg_opacity) if (self.bg and self.bg_opacity) else "off")
-        if self.bg and self.bg_opacity:
-            hint += "   B ink %s" % self.bg_invert
+        if SCENES[self.scene] == "room":
+            hint = "any key returns   t theme   s speed   n scene"
+        else:
+            hint = "any key returns   t theme   s speed   n scene   b background %s" % (
+                ("%d%%" % self.bg_opacity) if (self.bg and self.bg_opacity) else "off")
+            if self.bg and self.bg_opacity:
+                hint += "   B ink %s" % self.bg_invert
         if self.bg_note:
             hint = self.bg_note
         if w > len(hint) + 6:
@@ -492,6 +539,55 @@ class Vibe:
                   st == "active")
             label = str(r.get("port"))
             t.put(y + 3, x - len(label) // 2, label, self.c("text"))
+
+    def _room(self, h, w):
+        """The room, and the few numbers that fit inside it.
+
+        Every other scene is a drawing of measurements. This one is a picture,
+        and the measurements sit in its dark corners: what is listening, what
+        is still open, and how long since anything moved. It is the scene for
+        the screen you are not reading, so it says less than the others on
+        purpose and nothing on it moves that was not measured.
+        """
+        t = self.t
+        rows = t.live_rows()
+        doc = getattr(t, "sessions", None) or {}
+        sess = doc.get("sessions") or []
+        live = [r for r in sess if r.get("live")]
+
+        self.mid(3, w, "THE ROOM", "dim")
+
+        # Bottom left, where the plate is floor and nothing is drawn.
+        y = max(6, h - 9)
+        x = 4
+        lines = [("listening", "%d" % len(rows) if rows is not None else None),
+                 ("off this box", "%d" % sum(
+                     1 for r in rows
+                     if (r.get("exposure") or {}).get("level") not in (None, "loopback"))),
+                 ("agent sessions open", "%d" % len(live) if doc else None)]
+        for label, value in lines:
+            if y > h - 4:
+                break
+            self.t.put(y, x, label, self.c("dim"))
+            # A reading that could not be taken is drawn as one, not as zero.
+            self.t.put(y, x + 24, value if value is not None else "not measured",
+                       self.c("accent" if value is not None else "dim"), value is not None)
+            y += 1
+
+        if not doc:
+            return
+        # The oldest thing still open, on the right. It is the one fact this
+        # scene exists to nag about from across the room.
+        oldest = None
+        for r in live:
+            when = r.get("last_active")
+            if when and (oldest is None or when < oldest[0]):
+                oldest = (when, r)
+        if not oldest:
+            return
+        note = "oldest open session   %s" % elapsed(oldest[0])
+        if w > len(note) + 8:
+            self.t.put(max(6, h - 5), max(4, w - len(note) - 4), note, self.c("dim"))
 
     def _grid(self, h, w):
         """Every listening service as a tile. The whole surface at a glance.

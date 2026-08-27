@@ -203,20 +203,51 @@ always works.
 
 Ten agent windows, none of them closed, and no way to tell which is which.
 
-Press **7**:
+Press **7**. Open sessions first, because those are the only rows you can act
+on; everything under them is a transcript nobody is holding:
 
 ```
-  sessions                     5 running, 60 on disk, 42 stale
+ TOOL     WHAT IT WAS ABOUT                    PROJECT      CONTEXT  VS BIGGEST  LAST USED
+ 4 agent processes running  -  30 transcripts on disk
+     Claude Code      max - default max 20x
+     Codex            not signed in
 
-  Refactor the billing webhook retries                  2d 4h ago
-   claude     payments                 621,511 tokens, 11 turns
-   first: the stripe webhook retries twice on 5xx, work out why and fix it
-   4 agents are running in that directory, so which one is this cannot be told
+ 6 open right now  -  2.9M tokens between them  -  oldest untouched 5h
+ * claude Refactor the billing webhook retries  payments       215k  ██░░░░░░    2s ago    4 here
+ * claude Port the admin table to components    admin-ui       904k  ████████    17m ago   4 here
+ * claude Trace the flaky integration test      api            479k  ████░░░░    26m ago   4 here
 
-  Port the admin table to server components              2d 6h ago
-   claude     admin-ui                 182,000 tokens, 34 turns
-   running as pid 14502   -   close it with: kill 14502
+ 24 left on disk, no process behind them
+   claude Split the worker into two queues      worker         935k  ████████    7h ago
+   claude Make the search endpoint paginate     docs           193k  ██░░░░░░    9h ago
 ```
+
+The bar compares each session with the **biggest one on this machine**, and
+with nothing else. A transcript records the tokens a turn carried; it never
+records the model's context limit, so portlist will not print a percentage of a
+window it cannot read.
+
+`enter` opens the rest of it - the first prompt you typed, where the session got
+to, and how to close it:
+
+```
+ context       903,802 tokens on the last turn  -  214 turns
+ last active   28 Aug 04:14  (17m ago)
+ running       pid 14502
+ close it      kill 14502
+ first prompt  the stripe webhook retries twice on 5xx, work out why and fix...
+ last prompt   run the migration against staging first
+```
+
+When several agents share one directory it says so instead of choosing:
+
+```
+ running       pid 9316, 5864, 30000, 43725 - more than one agent is in this
+               directory, so which of them is this session cannot be told from outside
+ close it      from its own window - the line above says why a pid cannot be picked for you
+```
+
+A `kill` that might close the wrong window is worse than no command at all.
 
 Six tools, each read from the store it already writes:
 
@@ -300,11 +331,17 @@ Press **V**, or leave it alone for thirty seconds:
                   1 connection observed between local services
 ```
 
-Six scenes rotate: the cockpit (everything at once), a grid of every listening
+Seven scenes rotate: the cockpit (everything at once), a grid of every listening
 service, the machine and its
-meters, the network between local services, each agent and what it started, and
-what has actually happened lately. Five themes, four speeds, `t` and `s` to
+meters, the network between local services, each agent and what it started,
+what has actually happened lately, and **the room** - a plate that ships with
+the program, drawn as characters, with the three numbers that fit placed where
+it is dark. Five themes, four speeds, `t` and `s` to
 cycle them, any other key to come back.
+
+The room is the one scene that brings its own picture, the way the grid scene
+brings its own tiles, so it needs no `--vibe-bg` and ignores one if you set it.
+A picture of yours decorates the other six.
 
 When a service really appears while you are watching, it is marked **NEW** for a
 few seconds and the strip redraws around it; when one stops listening, that is

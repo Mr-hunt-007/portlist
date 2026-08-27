@@ -2,6 +2,43 @@
 
 Dates are the day the work landed. Versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **The sessions view answers "which of these can I close?"** Open sessions are
+  grouped first, with a line saying how many there are, how many tokens they are
+  carrying between them and how long the oldest has gone untouched; everything
+  under them is a transcript with no process behind it. Ordering the whole list
+  by recency buried the only rows that could be acted on.
+- **A bar beside each context figure**, scaled to the biggest session on this
+  machine and to nothing else. A transcript records the tokens a turn carried
+  and never the model's limit, so no percentage of a context window is printed:
+  that number would have to be invented.
+- **A seventh vibe scene, `room`.** It ships its own plate, drawn as characters
+  by the same decoder a `--vibe-bg` picture goes through, with what is
+  listening, what is reachable off this box and how many agent sessions are open
+  placed where the picture is dark. It is the one scene that carries its own
+  background and ignores yours, the way the grid scene carries its own tiles.
+  `tools/gen_vibe_bg.py` bakes the plate down to 27 KB of 8-bit greyscale with
+  `zlib` and `struct`, so the wheel gains a picture and no dependency.
+
+### Fixed
+
+- **`close it` no longer prints a `kill` it cannot stand behind.** When several
+  agents share a directory the session cannot be matched to one of them from
+  outside, and the detail pane was still printing `kill <first pid>`. It now
+  says why it will not choose. A command that might close the wrong window is
+  worse than no command.
+- **One long field can no longer eat the detail pane.** A first prompt of three
+  thousand words filled it and pushed out where the session actually got to,
+  which is the half that decides whether to keep it. Every wrapped field now has
+  a line budget and elides.
+- **A failing shipped plate no longer clears a background you set.** Every
+  failure path emptied `bg`, which is right for a file you named and wrong for
+  the file that ships: a broken install threw away your picture instead of its
+  own.
+
 ## 1.1 - 2026-08-27
 
 ### Added

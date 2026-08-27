@@ -163,6 +163,17 @@ def _tone(row):
     return C_GREEN
 
 
+def _thousands(n):
+    """Token counts as k and M. Nobody reads seven digits off a screen."""
+    if n is None:
+        return ""
+    if n >= 1000000:
+        return "%.1fM" % (n / 1000000.0)
+    if n >= 1000:
+        return "%dk" % (n // 1000)
+    return str(int(n))
+
+
 def _ago(seconds):
     if seconds is None:
         return ""
@@ -220,6 +231,7 @@ class Tui:
         self.overlay = None      # ("title", [lines]) drawn over the list
         self.sessions = None
         self.sess_id = None
+        self.sess_max = 0        # biggest context measured, the bar's scale
         self.sysinfo = None
         self.g = Glyphs(_utf8())
         # Animation is a redraw budget, not a decoration budget: it only runs
@@ -387,8 +399,11 @@ class Tui:
         # on the same beat as everything else.
         try:
             self.sessions = sess_mod.listing(limit=30)
+            self.sess_max = max([r.get("context") or 0
+                                 for r in (self.sessions.get("sessions") or [])] or [0])
         except Exception:
             self.sessions = None
+            self.sess_max = 0
         try:
             self.sysinfo = scan.system_info()
         except Exception:
@@ -518,8 +533,29 @@ class Tui:
                                " - ".join(bits) if bits
                                else ("signed in" if a.get("signed_in") else "not signed in")),
                             C_DIM))
-            for r in recs:
-                out.append(("sess", r))
+            # Open now, then left on disk. The list used to be one run ordered
+            # by recency, which buries the only rows you can act on: a session
+            # with a process behind it can be closed, and one without it cannot.
+            open_now = [r for r in recs if r.get("live")]
+            closed = [r for r in recs if not r.get("live")]
+            if open_now:
+                carried = sum(r.get("context") or 0 for r in open_now)
+                oldest = min((r.get("last_active") or 0) for r in open_now)
+                note = "%d open right now" % len(open_now)
+                if carried:
+                    note += "  -  %s tokens between them" % _thousands(carried)
+                if oldest:
+                    note += "  -  oldest untouched %s" % _ago(time.time() - oldest)
+                out.append(("head", "", C_DIM))
+                out.append(("head", note, C_GREEN))
+                for r in open_now:
+                    out.append(("sess", r))
+            if closed:
+                out.append(("head", "", C_DIM))
+                out.append(("head", "%d left on disk, no process behind them"
+                            % len(closed), C_DIM))
+                for r in closed:
+                    out.append(("sess", r))
             if not recs:
                 out.append(("head", "  no sessions found under ~/.claude/projects "
                                     "or ~/.codex/sessions", C_DIM))
@@ -711,8 +747,9 @@ class Tui:
             self.put(3, 1, "TOOL", C_DIM, True)
             self.put(3, 10, "WHAT IT WAS ABOUT", C_DIM, True)
             self.put(3, 50, "PROJECT", C_DIM, True)
-            self.put(3, 70, "CONTEXT", C_DIM, True)
-            self.put(3, 79, "LAST USED", C_DIM, True)
+            self.put(3, 68, "CONTEXT", C_DIM, True)
+            self.put(3, 77, "VS BIGGEST", C_DIM, True)
+            self.put(3, 89, "LAST USED", C_DIM, True)
             for i, it in enumerate(items[self.top:self.top + body]):
                 y = 4 + i
                 if it[0] == "head":
@@ -1001,9 +1038,18 @@ class Tui:
         self.put(y, 50, (r.get("project") or "-")[:18], C_SEL if picked else C_DIM)
         if ctx:
             # A context number nobody can read is decoration. k, one decimal.
-            self.put(y, 70, "%6.0fk" % (ctx / 1000.0), tone)
-        self.put(y, 79, _ago(age) + " ago", C_SEL if picked else C_DIM)
-        if r.get("live_pids") and w > 96:
+            self.put(y, 68, "%7.0fk" % (ctx / 1000.0), tone)
+            # And a bar beside it, because "is this one nearly full?" is the
+            # question, and 904k only answers it next to something. The scale is
+            # the biggest session on this machine and nothing else: portlist
+            # cannot read a model's context limit, so it does not draw one.
+            top = self.sess_max or ctx
+            filled = int(round(8.0 * min(1.0, ctx / float(top or 1))))
+            bar = (self.g.full * filled) + (self.g.empty * (8 - filled))
+            self.put(y, 77, bar, C_SEL if picked else
+                     (C_AMBER if filled >= 7 else C_DIM))
+        self.put(y, 89, _ago(age) + " ago", C_SEL if picked else C_DIM)
+        if r.get("live_pids") and w > 105:
             # A pid is only worth printing when it is *this* session's pid. Four
             # agents in one directory cannot be told apart from outside, and
             # repeating the same two pids down every row is noise pretending to
@@ -1012,13 +1058,13 @@ class Tui:
                 note = "%d here" % len(r["live_pids"])
             else:
                 note = "pid %d" % r["live_pids"][0]
-            self.put(y, 92, note, C_SEL if picked else C_DIM)
+            self.put(y, 101, note, C_SEL if picked else C_DIM)
 
     def draw_session_detail(self, y0, h, w, r):
         line = y0
         self.put(y0 - 1, 1, "-" * (w - 3), C_DIM)
 
-        def field(label, value, pair=C_NORM, wrap=False):
+        def field(label, value, pair=C_NORM, wrap=False, budget=3):
             nonlocal line
             if line >= h - 2 or value in (None, ""):
                 return
@@ -1029,15 +1075,25 @@ class Tui:
                 line += 1
                 return
             room = max(20, w - 17)
-            while text and line < h - 2:
+            # A first prompt can be three thousand words. Unbudgeted it filled
+            # the pane and pushed out where the session actually got to, which
+            # is the half that tells you whether to keep it.
+            drawn = 0
+            while text and line < h - 2 and drawn < budget:
+                last = (drawn == budget - 1) or (line == h - 3)
                 cut = text[:room]
                 if len(text) > room:
                     sp = cut.rfind(" ")
                     if sp > room * 0.6:
                         cut = cut[:sp]
+                rest = text[len(cut):].strip()
+                if last and rest:
+                    cut = cut[:max(0, room - 3)].rstrip() + "..."
+                    rest = ""
                 self.put(line, 15, cut, pair)
-                text = text[len(cut):].strip()
+                text = rest
                 line += 1
+                drawn += 1
 
         field("session", r.get("id"))
         field("tool", "%s%s" % (r.get("tool") or "?",
@@ -1045,9 +1101,14 @@ class Tui:
         field("project", r.get("cwd") or r.get("project"))
         ctx = r.get("context")
         if ctx:
-            field("context", "%s tokens on the last turn  -  %d turns"
+            # No claim about how full it is: the transcript records what was
+            # carried, never the model's limit, and inventing a percentage of a
+            # window portlist cannot read would be a made-up number.
+            field("context", "%s tokens on the last turn  -  %d turns  -  the bar "
+                             "compares this with the biggest session here, not "
+                             "with a limit"
                   % ("{:,}".format(ctx), r.get("turns") or 0),
-                  C_AMBER if ctx > 500000 else C_NORM)
+                  C_AMBER if ctx > 500000 else C_NORM, wrap=True, budget=2)
         if r.get("last_active"):
             field("last active", "%s  (%s ago)"
                   % (time.strftime("%d %b %H:%M", time.localtime(r["last_active"])),
@@ -1059,14 +1120,21 @@ class Tui:
                      "them is this session cannot be told from outside"
                      if r.get("ambiguous") else ""),
                   C_GREEN)
-            field("close it", "kill %s" % r["live_pids"][0], C_DIM)
+            if r.get("ambiguous"):
+                # Printing `kill 9316` here would be a coin flip between four
+                # agents in one directory. A command that might close the wrong
+                # window is worse than no command.
+                field("close it", "from its own window - the line above says why "
+                                  "a pid cannot be picked for you", C_DIM)
+            else:
+                field("close it", "kill %s" % r["live_pids"][0], C_DIM)
         else:
             field("running", "no agent process in that directory", C_DIM)
-        field("first prompt", r.get("first_prompt"), C_NORM, wrap=True)
+        field("first prompt", r.get("first_prompt"), C_NORM, wrap=True, budget=3)
         if r.get("summary"):
-            field("where it got", r.get("summary"), C_DIM, wrap=True)
+            field("where it got", r.get("summary"), C_DIM, wrap=True, budget=2)
         elif r.get("last_prompt"):
-            field("last prompt", r.get("last_prompt"), C_DIM, wrap=True)
+            field("last prompt", r.get("last_prompt"), C_DIM, wrap=True, budget=3)
 
     def draw_detail(self, y0, h, w, rows, idx):
         if not rows:

@@ -46,3 +46,6 @@ portlist = "plcore.app:main"
 
 [tool.setuptools]
 packages = ["plcore", "plcore.platforms"]
+# The room scene's plate. It is 27 KB and it is the scene, so a wheel without
+# it installs a menu entry that draws nothing.
+package-data = {plcore = ["data/*.png"]}

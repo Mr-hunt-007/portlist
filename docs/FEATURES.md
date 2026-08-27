@@ -131,9 +131,11 @@ guessing.
 ## Vibe mode
 
 - **An ambient screen worth leaving open**, on `V` or after thirty idle seconds.
-- **Six scenes**: the cockpit, with everything at once; the machine and its
+- **Seven scenes**: the cockpit, with everything at once; the machine and its
   meters; the host with its services around it; each agent and what it started;
-  what has actually happened lately; and a grid of every listening service.
+  what has actually happened lately; a grid of every listening service; and the
+  room, a plate that ships with the program and is drawn as characters, with the
+  three readings that fit placed where the picture is dark.
 - **A picture behind the scenes**, off until you ask for it with
   `portlist --vibe-bg thing.png`. PNG only, decoded with nothing but `zlib`.
   Opacity is density rather than alpha, capped at 60 per cent, painted into the

@@ -31,7 +31,38 @@
 "applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows, BSD",
 "softwareVersion":"1.1","programmingLanguage":"Python","isAccessibleForFree":true,
 "license":"https://opensource.org/licenses/MIT",
-"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"featureList":[
+ "Shows every listening port with the agent, editor or terminal that started it",
+ "Provenance that survives a restart, from an append-only launch ledger",
+ "Reachability checked by connecting, not by reading a bind string",
+ "Finds abandoned servers from measured use rather than uptime",
+ "Reads coding-agent sessions from Claude Code, Codex, Copilot, VS Code, Cursor and Gemini",
+ "Suggests a port that is free now and not spoken for later"],
+"screenshot":"https://mr-hunt-007.github.io/portlist/og.png",
+"softwareHelp":"https://mr-hunt-007.github.io/portlist/USAGE.md",
+"author":{"@type":"Organization","name":"portlist contributors"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+ {"@type":"Question","name":"How is portlist different from lsof or netstat?",
+  "acceptedAnswer":{"@type":"Answer","text":"lsof answers which process holds a port. portlist answers where that process came from: which agent session or terminal started it, from which project directory, whether the network can actually reach it, and whether anyone has used it since. It writes a launch record the first time it sees a service, so the answer survives the agent exiting and the service restarting."}},
+ {"@type":"Question","name":"Does portlist open a port of its own?",
+  "acceptedAnswer":{"@type":"Answer","text":"No. It connects outward to ports on this machine to see what answers, and binds a candidate port for a moment to check it is free. Neither calls listen(), so nothing can connect to portlist."}},
+ {"@type":"Question","name":"Does portlist send anything anywhere?",
+  "acceptedAnswer":{"@type":"Answer","text":"No. There is no server, no telemetry and no update check. Agent transcripts are read locally and never leave the machine."}},
+ {"@type":"Question","name":"Can portlist kill a process?",
+  "acceptedAnswer":{"@type":"Answer","text":"No. The detail pane prints the command and you run it. A tool that both guesses which process is abandoned and can end it will eventually end the wrong one."}},
+ {"@type":"Question","name":"Which coding agents does portlist read?",
+  "acceptedAnswer":{"@type":"Answer","text":"Claude Code, Codex, GitHub Copilot CLI, VS Code chat, Cursor and Gemini CLI. Each is read from the store it already writes; nothing is installed into any of them."}},
+ {"@type":"Question","name":"What does portlist run on?",
+  "acceptedAnswer":{"@type":"Answer","text":"macOS, Linux, BSD and Windows, on Python 3.9 or newer. The standard library is the whole dependency list everywhere except Windows, which needs the windows-curses wheel."}}]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+ {"@type":"ListItem","position":1,"name":"portlist","item":"https://mr-hunt-007.github.io/portlist/"},
+ {"@type":"ListItem","position":2,"name":"Install","item":"https://mr-hunt-007.github.io/portlist/#install"},
+ {"@type":"ListItem","position":3,"name":"Usage","item":"https://mr-hunt-007.github.io/portlist/USAGE.md"}]}
 </script>
 <style>
 :root{
@@ -147,6 +178,21 @@ h1 em{font-style:normal; color:var(--shu)}
   color:var(--grey); padding:4px 10px; cursor:pointer}
 .crtbtn[aria-pressed="true"]{border-color:var(--shu); color:var(--shu)}
 
+/* the observatory plate, full bleed, cropped like a magazine spread */
+.spread{margin:104px 0 0; position:relative}
+.spread img{width:100%; height:auto; display:block; filter:contrast(1.03)}
+.spread .band{display:grid; grid-template-columns:1fr auto; gap:24px; align-items:baseline;
+  border-top:1px solid var(--ink); padding:14px 0 0; margin-top:16px}
+.spread .band b{font-family:var(--disp); font-weight:700; font-size:15px}
+.spread figcaption{color:var(--grey); max-width:60ch; margin:10px 0 0; font-size:14.5px}
+
+.shot{margin:44px 0 0}
+.shot .band{display:grid; grid-template-columns:1fr auto; gap:20px; align-items:baseline;
+  border-top:1px solid var(--ink); padding:12px 0 0; margin-top:14px}
+.shot .band b{font-family:var(--disp); font-weight:700; font-size:14px}
+.shot figcaption{color:var(--grey); max-width:60ch; margin:9px 0 0; font-size:14px}
+.shot .screens{padding:16px 16px 10px}
+
 /* ---- chapters -------------------------------------------------------- */
 .chapter{padding:118px 0 0; position:relative}
 .ch-head{display:grid; grid-template-columns:96px minmax(0,1fr) 120px; gap:30px; align-items:start;
@@ -172,6 +218,10 @@ h1 em{font-style:normal; color:var(--shu)}
 .eco{margin-top:52px}
 .eco svg{width:100%; height:auto; max-width:760px; display:block; margin:0 auto}
 .eco .lbl{font-family:var(--mono); font-size:11px; letter-spacing:.1em; fill:var(--grey)}
+.eco .mark path{fill:var(--ink); opacity:.42; transition:opacity .5s ease, fill .5s ease}
+.eco g.live .mark path{fill:var(--tone); opacity:1}
+.ilogo{width:15px; height:15px; vertical-align:-3px; margin-right:7px; fill:currentColor}
+.iwrap{display:inline-flex; align-items:center}
 .eco .seal{fill:var(--paper); stroke:var(--ink-soft); stroke-width:1}
 .eco .wire{fill:none; stroke:var(--rule); stroke-width:1}
 .eco .flow{fill:none; stroke-width:1.6; stroke-dasharray:4 320; stroke-dashoffset:324; opacity:0}
@@ -234,8 +284,8 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
     <a href="#ch1" class="hide-sm">Listening</a>
     <a href="#ch2" class="hide-sm">Origin</a>
     <a href="#install">Install</a>
-    <a href="https://github.com/Mr-hunt-007/portlist">GitHub</a>
-    <a href="https://buymeacoffee.com/mr.hunt.007">Coffee</a>
+    <a class="iwrap" href="https://github.com/Mr-hunt-007/portlist"><svg class="ilogo" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>GitHub</a>
+    <a class="iwrap" href="https://buymeacoffee.com/mr.hunt.007"><svg class="ilogo" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.216 6.415l-.132-.666c-.119-.598-.388-1.163-1.001-1.379-.197-.069-.42-.098-.57-.241-.152-.143-.196-.366-.231-.572-.065-.378-.125-.756-.192-1.133-.057-.325-.102-.69-.25-.987-.195-.4-.597-.634-.996-.788a5.723 5.723 0 00-.626-.194c-1-.263-2.05-.36-3.077-.416a25.834 25.834 0 00-3.7.062c-.915.083-1.88.184-2.75.5-.318.116-.646.256-.888.501-.297.302-.393.77-.177 1.146.154.267.415.456.692.58.36.162.737.284 1.123.366 1.075.238 2.189.331 3.287.37 1.218.05 2.437.01 3.65-.118.299-.033.598-.073.896-.119.352-.054.578-.513.474-.834-.124-.383-.457-.531-.834-.473-.466.074-.96.108-1.382.146-1.177.08-2.358.082-3.536.006a22.228 22.228 0 01-1.157-.107c-.086-.01-.18-.025-.258-.036-.243-.036-.484-.08-.724-.13-.111-.027-.111-.185 0-.212h.005c.277-.06.557-.108.838-.147h.002c.131-.009.263-.032.394-.048a25.076 25.076 0 013.426-.12c.674.019 1.347.067 2.017.144l.228.031c.267.04.533.088.798.145.392.085.895.113 1.07.542.055.137.08.288.111.431l.319 1.484a.237.237 0 01-.199.284h-.003c-.037.006-.075.01-.112.015a36.704 36.704 0 01-4.743.295 37.059 37.059 0 01-4.699-.304c-.14-.017-.293-.042-.417-.06-.326-.048-.649-.108-.973-.161-.393-.065-.768-.032-1.123.161-.29.16-.527.404-.675.701-.154.316-.199.66-.267 1-.069.34-.176.707-.135 1.056.087.753.613 1.365 1.37 1.502a39.69 39.69 0 0011.343.376.483.483 0 01.535.53l-.071.697-1.018 9.907c-.041.41-.047.832-.125 1.237-.122.637-.553 1.028-1.182 1.171-.577.131-1.165.2-1.756.205-.656.004-1.31-.025-1.966-.022-.699.004-1.556-.06-2.095-.58-.475-.458-.54-1.174-.605-1.793l-.731-7.013-.322-3.094c-.037-.351-.286-.695-.678-.678-.336.015-.718.3-.678.679l.228 2.185.949 9.112c.147 1.344 1.174 2.068 2.446 2.272.742.12 1.503.144 2.257.156.966.016 1.942.053 2.892-.122 1.408-.258 2.465-1.198 2.616-2.657.34-3.332.683-6.663 1.024-9.995l.215-2.087a.484.484 0 01.39-.426c.402-.078.787-.212 1.074-.518.455-.488.546-1.124.385-1.766zm-1.478.772c-.145.137-.363.201-.578.233-2.416.359-4.866.54-7.308.46-1.748-.06-3.477-.254-5.207-.498-.17-.024-.353-.055-.47-.18-.22-.236-.111-.71-.054-.995.052-.26.152-.609.463-.646.484-.057 1.046.148 1.526.22.577.088 1.156.159 1.737.212 2.48.226 5.002.19 7.472-.14.45-.06.899-.13 1.345-.21.399-.072.84-.206 1.08.206.166.281.188.657.162.974a.544.544 0 01-.169.364zm-6.159 3.9c-.862.37-1.84.788-3.109.788a5.884 5.884 0 01-1.569-.217l.877 9.004c.065.78.717 1.38 1.5 1.38 0 0 1.243.065 1.658.065.447 0 1.786-.065 1.786-.065.783 0 1.434-.6 1.499-1.38l.94-9.95a3.996 3.996 0 00-1.322-.238c-.826 0-1.491.284-2.26.613z"></path></svg>Coffee</a>
   </div>
 </div></nav>
 
@@ -520,7 +570,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
    claude Rename the config keys                  analytics              686k  6d ago
    claude Batch the outbound emails               worker                 579k  6d ago       4 here
    claude Pin the CI image                        docs                    81k  6d ago       4 here
-   copilo Refactor the billing webhook retries   Dinfra                       8d ago       4 here
+   copilo Refactor the billing webhook retries    infra                       8d ago       4 here
 <span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
  j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
 <pre class="screen" data-view="system" aria-hidden="true"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:25</span>
@@ -633,6 +683,22 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
 </div>
 
 <main>
+<figure class="spread wrap rise">
+  <img src="plate-observatory.png" width="1280" height="853" loading="lazy"
+       alt="A technical plate in the Japanese editorial manner: a dense circular
+            diagram of concentric rings and radial ticks at the centre, wave forms
+            running off to the right, small satellite charts and legends around the
+            margins, and four vertical kanji marks reading observation, listening,
+            origin and danger.">
+  <div class="band">
+    <b>Plate 02 &nbsp;&mdash;&nbsp; 観測図</b>
+    <span class="meta">observation chart</span>
+  </div>
+  <figcaption>The same four marks this page is organised around: 観測 observation,
+    聴 listening, 起 origin, 危 danger. A machine has more going on than a list of
+    ports admits, which is the whole argument.</figcaption>
+</figure>
+
 <section class="chapter" id="ch1">
   <div class="wrap">
     <div class="ch-head rise">
@@ -683,38 +749,38 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
       <g class="link" style="--tone:#B4472F">
         <path class="wire" d="M150 92 Q 265 153 381 214"></path>
         <path class="flow" d="M150 92 Q 265 153 381 214" stroke="#B4472F"></path>
-        <circle class="seal" cx="150" cy="92" r="5"></circle>
-        <text class="lbl" x="150" y="78" text-anchor="start">Claude Code</text>
+        <g class="mark" transform="translate(141 83) scale(.75)"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"></path></g>
+        <text class="lbl" x="150" y="74" text-anchor="start">Claude Code</text>
       </g>
       <g class="link" style="--tone:#1F7A66">
         <path class="wire" d="M612 92 Q 496 153 381 214"></path>
         <path class="flow" d="M612 92 Q 496 153 381 214" stroke="#1F7A66"></path>
-        <circle class="seal" cx="612" cy="92" r="5"></circle>
-        <text class="lbl" x="612" y="78" text-anchor="end">Codex</text>
+        <g class="mark" transform="translate(603 83) scale(.75)"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"></path></g>
+        <text class="lbl" x="612" y="74" text-anchor="end">Codex</text>
       </g>
       <g class="link" style="--tone:#2A2724">
         <path class="wire" d="M86 232 Q 233 223 381 214"></path>
         <path class="flow" d="M86 232 Q 233 223 381 214" stroke="#2A2724"></path>
         <circle class="seal" cx="86" cy="232" r="5"></circle>
-        <text class="lbl" x="86" y="218" text-anchor="start">Cursor</text>
+        <text class="lbl" x="86" y="214" text-anchor="start">Cursor</text>
       </g>
       <g class="link" style="--tone:#4A4740">
         <path class="wire" d="M676 232 Q 528 223 381 214"></path>
         <path class="flow" d="M676 232 Q 528 223 381 214" stroke="#4A4740"></path>
-        <circle class="seal" cx="676" cy="232" r="5"></circle>
-        <text class="lbl" x="676" y="218" text-anchor="end">GitHub Copilot</text>
+        <g class="mark" transform="translate(667 223) scale(.75)"><path d="M23.922 16.997C23.061 18.492 18.063 22.02 12 22.02 5.937 22.02.939 18.492.078 16.997A.641.641 0 0 1 0 16.741v-2.869a.883.883 0 0 1 .053-.22c.372-.935 1.347-2.292 2.605-2.656.167-.429.414-1.055.644-1.517a10.098 10.098 0 0 1-.052-1.086c0-1.331.282-2.499 1.132-3.368.397-.406.89-.717 1.474-.952C7.255 2.937 9.248 1.98 11.978 1.98c2.731 0 4.767.957 6.166 2.093.584.235 1.077.546 1.474.952.85.869 1.132 2.037 1.132 3.368 0 .368-.014.733-.052 1.086.23.462.477 1.088.644 1.517 1.258.364 2.233 1.721 2.605 2.656a.841.841 0 0 1 .053.22v2.869a.641.641 0 0 1-.078.256Zm-11.75-5.992h-.344a4.359 4.359 0 0 1-.355.508c-.77.947-1.918 1.492-3.508 1.492-1.725 0-2.989-.359-3.782-1.259a2.137 2.137 0 0 1-.085-.104L4 11.746v6.585c1.435.779 4.514 2.179 8 2.179 3.486 0 6.565-1.4 8-2.179v-6.585l-.098-.104s-.033.045-.085.104c-.793.9-2.057 1.259-3.782 1.259-1.59 0-2.738-.545-3.508-1.492a4.359 4.359 0 0 1-.355-.508Zm2.328 3.25c.549 0 1 .451 1 1v2c0 .549-.451 1-1 1-.549 0-1-.451-1-1v-2c0-.549.451-1 1-1Zm-5 0c.549 0 1 .451 1 1v2c0 .549-.451 1-1 1-.549 0-1-.451-1-1v-2c0-.549.451-1 1-1Zm3.313-6.185c.136 1.057.403 1.913.878 2.497.442.544 1.134.938 2.344.938 1.573 0 2.292-.337 2.657-.751.384-.435.558-1.15.558-2.361 0-1.14-.243-1.847-.705-2.319-.477-.488-1.319-.862-2.824-1.025-1.487-.161-2.192.138-2.533.529-.269.307-.437.808-.438 1.578v.021c0 .265.021.562.063.893Zm-1.626 0c.042-.331.063-.628.063-.894v-.02c-.001-.77-.169-1.271-.438-1.578-.341-.391-1.046-.69-2.533-.529-1.505.163-2.347.537-2.824 1.025-.462.472-.705 1.179-.705 2.319 0 1.211.175 1.926.558 2.361.365.414 1.084.751 2.657.751 1.21 0 1.902-.394 2.344-.938.475-.584.742-1.44.878-2.497Z"></path></g>
+        <text class="lbl" x="676" y="214" text-anchor="end">GitHub Copilot</text>
       </g>
       <g class="link" style="--tone:#2B5CB8">
         <path class="wire" d="M232 336 Q 306 275 381 214"></path>
         <path class="flow" d="M232 336 Q 306 275 381 214" stroke="#2B5CB8"></path>
-        <circle class="seal" cx="232" cy="336" r="5"></circle>
-        <text class="lbl" x="232" y="322" text-anchor="start">Gemini CLI</text>
+        <g class="mark" transform="translate(223 327) scale(.75)"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"></path></g>
+        <text class="lbl" x="232" y="318" text-anchor="start">Gemini CLI</text>
       </g>
       <g class="link" style="--tone:#1F6FB2">
         <path class="wire" d="M530 336 Q 455 275 381 214"></path>
         <path class="flow" d="M530 336 Q 455 275 381 214" stroke="#1F6FB2"></path>
         <circle class="seal" cx="530" cy="336" r="5"></circle>
-        <text class="lbl" x="530" y="322" text-anchor="end">VS Code</text>
+        <text class="lbl" x="530" y="318" text-anchor="end">VS Code</text>
       </g>
         <circle class="ring" cx="381" cy="214" r="30"></circle>
         <circle class="hub" cx="381" cy="214" r="30"></circle>
@@ -722,6 +788,82 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
         <text class="lbl" x="381" y="404" text-anchor="middle">portlist &nbsp;/&nbsp; reads, never writes</text>
       </svg>
     </div>
+
+
+    <figure class="shot rise">
+      <div class="chrome"><div class="stage"><div class="screens">
+<pre class="screen on" aria-label="agent sessions"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:22</span>
+  0 Dashboard   1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers  <span class="t-vio">▌</span>7 Sessions   8 System   9 Graph
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ TOOL     WHAT IT WAS ABOUT                       PROJECT             CONTEXT  LAST USED
+ 4 agent processes running  -  30 transcripts on disk
+     Claude Code      claude max - default claude max 20x
+     Codex            not signed in
+     GitHub Copilot   signed in
+     Gemini           signed in
+ * claude Refactor the billing webhook retries    payments               811k  8s ago       4 here
+ * claude Port the admin table to components      admin-ui               904k  36m ago      4 here
+ * claude Trace the flaky integration test        api                    479k  44m ago      4 here
+ * claude Add a rate limit to the upload route    storefront             307k  44m ago      4 here
+ * claude Write the migration for the new index   scanner                628k  3h ago       4 here
+ * claude Fix the timezone bug in the report      analytics              334k  3h ago       4 here
+   claude Split the worker into two queues        worker                 935k  5h ago
+   claude Make the search endpoint paginate       docs                   193k  8h ago
+   claude Update the deploy script for staging    infra                  196k  25h ago      4 here
+   claude Cache the pricing lookup                checkout               182k  2d ago
+   claude Retry the webhook on 5xx                payments               518k  2d ago       4 here
+   claude Move the cron into the scheduler        admin-ui               371k  2d ago
+   claude Document the auth flow                  api                    287k  2d ago       4 here
+   claude Drop the unused columns                 storefront             240k  3d ago       4 here
+   claude Tidy the error messages                 scanner                 53k  6d ago       4 here
+   claude Rename the config keys                  analytics              686k  6d ago
+   claude Batch the outbound emails               worker                 579k  6d ago       4 here
+   claude Pin the CI image                        docs                    81k  6d ago       4 here
+   copilo Refactor the billing webhook retries    infra                       8d ago       4 here
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
+      </div></div></div>
+      <div class="band"><b>Plate 03 &nbsp;&mdash;&nbsp; エージェント</b><span class="meta">agent sessions</span></div>
+      <figcaption>Six tools, each read from the store it already writes. The generated title, the first prompt you typed, the project, the turn count, and the context each session is carrying, which is the number that decides what to clear. It also shows which plan each tool is signed in under. Prompts never leave the machine.</figcaption>
+    </figure>
+
+
+    <figure class="shot rise">
+      <div class="chrome"><div class="stage"><div class="screens">
+<pre class="screen on" aria-label="grouped by who started it"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:15</span>
+  0 Dashboard   1 Services   2 Exposed   3 Attention   4 Leftovers  <span class="t-vio">▌</span>5 Agents   6 Containers   7 Sessions   8 System   9 Graph
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+<span class="t-dim"> PORT    SERVICE                 PROJECT           REACHABLE      RISK     STARTED BY</span>
+ a Claude Code session  -  session has exited  -  14 services
+ :8000   Python http.server      analytics         Localhost only 12 Info  Claude Code 21d
+ :8078   sink.py                 payments          Localhost only 6 Info   Claude Code 29d
+ :8422   store-helper.mjs        data-export       Localhost only 6 Info   Claude Code 2d
+<span class="t-warn"> :8787   Python http.server      data-export       All interfaces 71 High  Claude Code 6d</span>
+ :8787   FastAPI / Uvicorn       scanner           Localhost only 12 Info  Claude Code 23d
+<span class="t-warn"> :8807   Python http.server      data-export       All interfaces 71 High  Claude Code 3d</span>
+ :42065  Bun                     portlist          Localhost only 0 Info   Claude Code 4h
+ :48744  Bun                     shopfront         Localhost only 0 Info   Claude Code 25h
+ :55302  Bun                     portlist          Localhost only 6 Info   Claude Code 4h
+ :56050  Bun                     ~/Downloads       Localhost only 6 Info   Claude Code 3h
+ :56609  Bun                     scanner           Localhost only 6 Info   Claude Code 25d
+ :57244  Bun                     data-export       Localhost only 6 Info   Claude Code 6d
+ :59195  Bun                     ~/Downloads       Localhost only 0 Info   Claude Code 3h
+ :61535  Bun                     shopfront         Localhost only 6 Info   Claude Code 25h
+ a terminal  -  still running  -  1 service
+ :7337   shopfront               shopfront         Localhost only 6 Info   terminal 10h
+ launchd  -  still running  -  1 service
+ :9050   Tor                     /opt/homebrew     Localhost only 12 Info  launchd 24d
+
+
+
+
+
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
+      </div></div></div>
+      <div class="band"><b>Plate 04 &nbsp;&mdash;&nbsp; 系統</b><span class="meta">grouped by who started it</span></div>
+      <figcaption>The same services, grouped by the thing that started them. Eleven under one agent session is a fact about your machine that a flat list hides, and the group says whether that session is still running or has since exited.</figcaption>
+    </figure>
   </div>
 </section>
 
@@ -754,10 +896,76 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
   </div>
 </section>
 
-<section class="chapter" id="install">
+<section class="chapter" id="architecture">
   <div class="wrap">
     <div class="ch-head rise">
       <div class="ch-num">04</div>
+      <div class="ch-body">
+        <h2>One scan, one model, ten views.</h2>
+        <p>A view is a question asked of the model, never a second trip to the machine.
+          That is why switching views is instant, why the counts always agree with the rows
+          underneath, and why a new view costs a filter rather than a collector.</p>
+      </div>
+      <div class="glyph jp" aria-hidden="true">図</div>
+    </div>
+
+    <figure class="rise" style="margin-top:44px">
+      <svg class="arch" viewBox="0 0 980 300" role="img"
+           aria-label="Diagram: sockets, processes, containers, git roots and agent transcripts are read once into one model, which is stored in the launch ledger and rendered as ten views">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path>
+          </marker>
+        </defs>
+        <g fill="none" stroke="currentColor" stroke-width="1" opacity=".55">
+          <rect x="8" y="52" width="212" height="150"></rect>
+          <rect x="384" y="52" width="200" height="150"></rect>
+          <rect x="754" y="30" width="218" height="194"></rect>
+          <rect x="384" y="240" width="200" height="52" stroke-dasharray="4 3"></rect>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor">
+          <text x="14" y="42" opacity=".55">the machine</text>
+          <text x="390" y="42" opacity=".55">one model</text>
+          <text x="760" y="20" opacity=".55">ten views</text>
+          <text x="28" y="82">sockets</text><text x="28" y="106">processes</text>
+          <text x="28" y="130">containers</text><text x="28" y="154">git roots</text>
+          <text x="28" y="178">transcripts</text>
+          <text x="404" y="112">a row per service</text><text x="404" y="134">on a port</text>
+          <text x="404" y="164" opacity=".55">signature, not pid</text>
+          <text x="404" y="268">~/.portlist</text>
+          <text x="404" y="286" opacity=".55">launch ledger, use history</text>
+          <text x="774" y="58">0 dashboard</text><text x="884" y="58">5 agents</text>
+          <text x="774" y="82">1 services</text><text x="884" y="82">6 containers</text>
+          <text x="774" y="106">2 exposed</text><text x="884" y="106">7 sessions</text>
+          <text x="774" y="130">3 attention</text><text x="884" y="130">8 system</text>
+          <text x="774" y="154">4 leftovers</text><text x="884" y="154">9 graph</text>
+          <text x="774" y="186" opacity=".55">a filter or a grouping,</text>
+          <text x="774" y="202" opacity=".55">never a second scan</text>
+        </g>
+        <g stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)" fill="none">
+          <line x1="222" y1="127" x2="376" y2="127"></line>
+          <line x1="586" y1="127" x2="746" y2="127"></line>
+          <line x1="484" y1="204" x2="484" y2="234"></line>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor" opacity=".6">
+          <text x="252" y="118">read once</text>
+          <text x="618" y="118">filter, group</text>
+          <text x="498" y="212">written once,</text>
+          <text x="498" y="226">never rewritten</text>
+        </g>
+      </svg>
+      <figcaption style="font-family:var(--mono); font-size:12.5px; color:var(--grey); margin-top:14px">
+        The ledger is the only thing that persists, and it is matched by signature rather
+        than by pid, which is what lets provenance survive a restart.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="chapter" id="install">
+  <div class="wrap">
+    <div class="ch-head rise">
+      <div class="ch-num">05</div>
       <div class="ch-body">
         <h2>Install.</h2>
         <p>One program, no dependencies, nothing system-wide unless your package manager puts it
@@ -803,16 +1011,48 @@ brew install portlist">copy</button><span class="p">$</span> brew tap Mr-hunt-00
 </section>
 </main>
 
+<section class="chapter" id="faq">
+  <div class="wrap">
+    <div class="ch-head rise">
+      <div class="ch-num">06</div>
+      <div class="ch-body">
+        <h2>Questions.</h2>
+        <p>The ones worth answering before you install anything that reads your machine.</p>
+      </div>
+      <div class="glyph jp" aria-hidden="true">問</div>
+    </div>
+    <ul class="plain">
+      <li class="rise" data-n="Q"><span><strong>How is this different from lsof?</strong>
+        lsof answers which process holds a port. portlist answers where that process came
+        from: which agent session or terminal started it, from which project, whether the
+        network can actually reach it, and whether anyone has used it since.</span></li>
+      <li class="rise" data-n="Q"><span><strong>Does it open a port of its own?</strong>
+        No. It connects outward to see what answers, and binds a candidate port for a
+        moment to check it is free. Neither calls <code>listen()</code>.</span></li>
+      <li class="rise" data-n="Q"><span><strong>Does it send anything anywhere?</strong>
+        No server, no telemetry, no update check. Agent transcripts are read locally and
+        stay there.</span></li>
+      <li class="rise" data-n="Q"><span><strong>Which agents does it read?</strong>
+        Claude Code, Codex, GitHub Copilot CLI, VS Code chat, Cursor and Gemini CLI, each
+        from the store it already writes. Nothing is installed into any of them.</span></li>
+      <li class="rise" data-n="Q"><span><strong>What does it run on?</strong>
+        macOS, Linux, BSD and Windows, on Python 3.9 or newer. The standard library is the
+        whole dependency list everywhere but Windows, which needs one wheel.</span></li>
+    </ul>
+  </div>
+</section>
+
 <footer><div class="wrap">
   <div class="row">
-    <a href="https://github.com/Mr-hunt-007/portlist">Source</a>
+    <a class="iwrap" href="https://github.com/Mr-hunt-007/portlist"><svg class="ilogo" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>Source</a>
     <a href="https://github.com/Mr-hunt-007/portlist/issues">Issues</a>
     <a href="https://github.com/Mr-hunt-007/portlist/releases">Releases</a>
     <a href="SETUP.md">Setup</a>
     <a href="USAGE.md">Usage</a>
     <a href="MOTION.md">Motion</a>
     <a href="https://github.com/Mr-hunt-007/portlist/blob/main/LICENSE">MIT</a>
-    <a href="https://buymeacoffee.com/mr.hunt.007">Buy me a coffee</a>
+    <a href="NOTICE.md">Marks</a>
+    <a class="iwrap" href="https://buymeacoffee.com/mr.hunt.007"><svg class="ilogo" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.216 6.415l-.132-.666c-.119-.598-.388-1.163-1.001-1.379-.197-.069-.42-.098-.57-.241-.152-.143-.196-.366-.231-.572-.065-.378-.125-.756-.192-1.133-.057-.325-.102-.69-.25-.987-.195-.4-.597-.634-.996-.788a5.723 5.723 0 00-.626-.194c-1-.263-2.05-.36-3.077-.416a25.834 25.834 0 00-3.7.062c-.915.083-1.88.184-2.75.5-.318.116-.646.256-.888.501-.297.302-.393.77-.177 1.146.154.267.415.456.692.58.36.162.737.284 1.123.366 1.075.238 2.189.331 3.287.37 1.218.05 2.437.01 3.65-.118.299-.033.598-.073.896-.119.352-.054.578-.513.474-.834-.124-.383-.457-.531-.834-.473-.466.074-.96.108-1.382.146-1.177.08-2.358.082-3.536.006a22.228 22.228 0 01-1.157-.107c-.086-.01-.18-.025-.258-.036-.243-.036-.484-.08-.724-.13-.111-.027-.111-.185 0-.212h.005c.277-.06.557-.108.838-.147h.002c.131-.009.263-.032.394-.048a25.076 25.076 0 013.426-.12c.674.019 1.347.067 2.017.144l.228.031c.267.04.533.088.798.145.392.085.895.113 1.07.542.055.137.08.288.111.431l.319 1.484a.237.237 0 01-.199.284h-.003c-.037.006-.075.01-.112.015a36.704 36.704 0 01-4.743.295 37.059 37.059 0 01-4.699-.304c-.14-.017-.293-.042-.417-.06-.326-.048-.649-.108-.973-.161-.393-.065-.768-.032-1.123.161-.29.16-.527.404-.675.701-.154.316-.199.66-.267 1-.069.34-.176.707-.135 1.056.087.753.613 1.365 1.37 1.502a39.69 39.69 0 0011.343.376.483.483 0 01.535.53l-.071.697-1.018 9.907c-.041.41-.047.832-.125 1.237-.122.637-.553 1.028-1.182 1.171-.577.131-1.165.2-1.756.205-.656.004-1.31-.025-1.966-.022-.699.004-1.556-.06-2.095-.58-.475-.458-.54-1.174-.605-1.793l-.731-7.013-.322-3.094c-.037-.351-.286-.695-.678-.678-.336.015-.718.3-.678.679l.228 2.185.949 9.112c.147 1.344 1.174 2.068 2.446 2.272.742.12 1.503.144 2.257.156.966.016 1.942.053 2.892-.122 1.408-.258 2.465-1.198 2.616-2.657.34-3.332.683-6.663 1.024-9.995l.215-2.087a.484.484 0 01.39-.426c.402-.078.787-.212 1.074-.518.455-.488.546-1.124.385-1.766zm-1.478.772c-.145.137-.363.201-.578.233-2.416.359-4.866.54-7.308.46-1.748-.06-3.477-.254-5.207-.498-.17-.024-.353-.055-.47-.18-.22-.236-.111-.71-.054-.995.052-.26.152-.609.463-.646.484-.057 1.046.148 1.526.22.577.088 1.156.159 1.737.212 2.48.226 5.002.19 7.472-.14.45-.06.899-.13 1.345-.21.399-.072.84-.206 1.08.206.166.281.188.657.162.974a.544.544 0 01-.169.364zm-6.159 3.9c-.862.37-1.84.788-3.109.788a5.884 5.884 0 01-1.569-.217l.877 9.004c.065.78.717 1.38 1.5 1.38 0 0 1.243.065 1.658.065.447 0 1.786-.065 1.786-.065.783 0 1.434-.6 1.499-1.38l.94-9.95a3.996 3.996 0 00-1.322-.238c-.826 0-1.491.284-2.26.613z"></path></svg>Buy me a coffee</a>
   </div>
   <p class="end jp">観測 &nbsp;&nbsp; portlist 1.1</p>
 </div></footer>

@@ -7,3 +7,6 @@ dist/
 
 # local tooling state, not part of the project (it holds a session token)
 .gstack/
+
+# the full-size plate; docs/plate-observatory.png is generated from it
+docs/plate-observatory-source.png

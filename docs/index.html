@@ -6,849 +6,908 @@
 <title>portlist - every port on this machine, and where it came from</title>
 <meta name="description" content="A terminal program that shows every listening port on your machine and what started it: which agent session, which project, whether the network can reach it, and whether anyone still uses it. No dashboard, no server, no dependencies. macOS, Linux, Windows. MIT.">
 <link rel="canonical" href="https://mr-hunt-007.github.io/portlist/">
-<meta name="author" content="portlist contributors">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<meta name="theme-color" content="#080D13">
-
+<meta name="theme-color" content="#F2EFE7">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="portlist">
 <meta property="og:title" content="portlist - every port on this machine, and where it came from">
-<meta property="og:description" content="Twelve things are listening. You started three of them today and you cannot name the rest. portlist names them: the agent session, the project, the reachability, the last time anyone used it.">
+<meta property="og:description" content="Twelve things are listening. You started three of them today and you cannot name the rest. Drive the real thing in your browser.">
 <meta property="og:url" content="https://mr-hunt-007.github.io/portlist/">
 <meta property="og:image" content="https://mr-hunt-007.github.io/portlist/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="portlist: every port, and where it came from">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="portlist - every port on this machine, and where it came from">
-<meta name="twitter:description" content="A terminal program for the twelve things listening on your laptop. Who started each one, whether the network can reach it, and whether anyone still uses it.">
+<meta name="twitter:description" content="A terminal program for the twelve things listening on your laptop. Press 0 to 9 and drive it.">
 <meta name="twitter:image" content="https://mr-hunt-007.github.io/portlist/og.png">
-
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23080D13'/><rect x='6' y='9' width='9' height='3' fill='%23E8A33D'/><rect x='6' y='15' width='20' height='3' fill='%236B7C90'/><rect x='6' y='21' width='14' height='3' fill='%233FA7A0'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23F2EFE7'/><rect x='7' y='8' width='18' height='2' fill='%2314110E'/><rect x='7' y='15' width='11' height='2' fill='%23C8452F'/><rect x='7' y='22' width='15' height='2' fill='%2314110E'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "portlist",
-  "description": "A terminal program that shows every listening port on this machine and what started it: the agent session, the project directory, whether the network can reach it, and whether anyone still uses it.",
-  "url": "https://mr-hunt-007.github.io/portlist/",
-  "downloadUrl": "https://github.com/Mr-hunt-007/portlist",
-  "codeRepository": "https://github.com/Mr-hunt-007/portlist",
-  "applicationCategory": "DeveloperApplication",
-  "applicationSubCategory": "Command Line Tool",
-  "operatingSystem": "macOS, Linux, Windows, BSD",
-  "softwareVersion": "1.1",
-  "programmingLanguage": "Python",
-  "license": "https://opensource.org/licenses/MIT",
-  "isAccessibleForFree": true,
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "featureList": [
-    "Shows every listening port with the agent, editor or terminal that started it",
-    "Provenance that survives a restart, from an append-only launch ledger",
-    "Reachability checked by connecting, not by reading a bind string",
-    "Finds abandoned servers from measured use rather than uptime",
-    "Reads coding-agent sessions from Claude Code, Codex, Copilot, VS Code, Cursor and Gemini",
-    "Suggests a port that is free now and not spoken for later"
-  ]
-}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"portlist",
+"description":"A terminal program that shows every listening port on this machine and what started it.",
+"url":"https://mr-hunt-007.github.io/portlist/","codeRepository":"https://github.com/Mr-hunt-007/portlist","downloadUrl":"https://github.com/Mr-hunt-007/portlist",
+"applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows, BSD",
+"softwareVersion":"1.1","programmingLanguage":"Python","isAccessibleForFree":true,
+"license":"https://opensource.org/licenses/MIT",
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    { "@type": "Question", "name": "How is portlist different from lsof or netstat?",
-      "acceptedAnswer": { "@type": "Answer", "text": "lsof answers which process holds a port. portlist answers where that process came from: which agent session or terminal started it, from which project directory, whether the network can actually reach it, and whether anyone has used it since. It keeps a launch record so the answer survives the agent exiting and the service restarting." } },
-    { "@type": "Question", "name": "Does portlist open a port of its own?",
-      "acceptedAnswer": { "@type": "Answer", "text": "No. It connects outward to ports on this machine to see what answers, and binds a candidate port for a moment to check it is free. Neither calls listen(), so nothing can connect to portlist." } },
-    { "@type": "Question", "name": "Does portlist send anything anywhere?",
-      "acceptedAnswer": { "@type": "Answer", "text": "No. There is no server, no telemetry and no update check. Agent transcripts are read locally and never leave the machine." } },
-    { "@type": "Question", "name": "Can portlist kill a process?",
-      "acceptedAnswer": { "@type": "Answer", "text": "No. The detail pane prints the command and you run it. A tool that both guesses which process is abandoned and can end it will eventually end the wrong one." } }
-  ]
-}
-</script>
-
 <style>
 :root{
-  --ink:#070B11; --ink-2:#0C121A; --line:#1B2432; --line-2:#26313F;
-  --text:#DCE5EE; --muted:#8FA1B4; --faint:#64768A;
-  --amber:#E8A33D; --teal:#3FA7A0; --violet:#B98BD9;
-  --red:#D9544D; --green:#66B06E;
+  --paper:#F2EFE7; --paper-2:#EAE6DC; --ink:#14110E; --ink-soft:#2A2724;
+  --grey:#6E6A63; --faint:#9A958C; --rule:#D8D3C7;
+  --shu:#C8452F;                      /* vermilion, the only accent */
+  --panel:#12100E;                    /* the terminal is the ink block */
+  --disp:"Shippori Mincho B1", "Times New Roman", serif;
+  --sans:"Zen Kaku Gothic New", system-ui, -apple-system, sans-serif;
   --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --sans:"IBM Plex Sans", system-ui, -apple-system, Segoe UI, sans-serif;
-  --wrap:1120px;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
-body{
-  margin:0; background:var(--ink); color:var(--text);
-  font-family:var(--sans); font-size:16.5px; line-height:1.65;
-  -webkit-font-smoothing:antialiased; overflow-x:hidden;
-}
-/* the ground: a generated cell grid, and a field of ports drifting behind it */
-body::before{
-  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:url("bg-grid.png") repeat; background-size:320px 320px; opacity:.5;
-}
-body::after{
-  content:""; position:fixed; inset:-10% -10% -10% -10%; z-index:0; pointer-events:none;
-  background:url("bg-ports.png") no-repeat center/cover; opacity:.30;
-  will-change:transform;
-}
-.glow{position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:
-    radial-gradient(60rem 40rem at 12% -10%, rgba(232,163,61,.10), transparent 60%),
-    radial-gradient(50rem 36rem at 92% 8%, rgba(63,167,160,.09), transparent 60%),
-    radial-gradient(70rem 50rem at 50% 120%, rgba(185,139,217,.07), transparent 60%);
-}
-main, nav, footer{position:relative; z-index:1}
-.wrap{max-width:var(--wrap); margin:0 auto; padding:0 26px}
-a{color:var(--text); text-decoration:none; border-bottom:1px solid var(--line-2)}
-a:hover{color:var(--amber); border-bottom-color:var(--amber)}
-a:focus-visible,button:focus-visible{outline:2px solid var(--amber); outline-offset:3px; border-radius:4px}
-h1,h2,h3{font-family:var(--mono); font-weight:600; letter-spacing:-.02em; margin:0; text-wrap:balance}
+html{scroll-behavior:smooth}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:16px; line-height:1.75; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased}
+body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:url("bg-paper.png") repeat; background-size:400px 400px;
+  opacity:.55; mix-blend-mode:multiply}
+.wrap{max-width:1220px; margin:0 auto; padding:0 40px; position:relative; z-index:1}
+@media(max-width:700px){ .wrap{padding:0 22px} }
+a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--rule)}
+a:hover{border-bottom-color:var(--shu); color:var(--shu)}
+a:focus-visible,button:focus-visible{outline:1.5px solid var(--shu); outline-offset:3px}
+h1,h2,h3{margin:0; font-family:var(--disp); font-weight:700; letter-spacing:-.01em; line-height:1.06}
 code,kbd,pre{font-family:var(--mono)}
+.meta{font-family:var(--mono); font-size:11px; letter-spacing:.24em; text-transform:uppercase;
+      color:var(--faint)}
+.jp{font-family:var(--disp); font-feature-settings:"palt"}
 
-/* nav */
-nav{position:sticky; top:0; z-index:30; backdrop-filter:blur(12px);
-    background:color-mix(in srgb, var(--ink) 78%, transparent);
-    border-bottom:1px solid var(--line)}
-nav .wrap{display:flex; align-items:center; gap:22px; height:60px}
-.brand{font-family:var(--mono); font-weight:600; letter-spacing:.06em; border:0; font-size:15.5px}
-.brand b{color:var(--amber); font-weight:600}
-nav .links{margin-left:auto; display:flex; gap:20px; align-items:center; font-size:14px}
-nav .links a{border:0; color:var(--muted)}
-nav .links a:hover{color:var(--amber)}
-.coffee{border:1px solid var(--line-2)!important; border-radius:999px; padding:6px 13px;
-        color:var(--amber)!important; font-family:var(--mono); font-size:12.5px;
-        white-space:nowrap}
-.coffee:hover{background:rgba(232,163,61,.10)}
-@media(max-width:860px){ nav .links a.hide-sm{display:none} }
-@media(max-width:520px){
-  nav .links{gap:14px}
-  .coffee{font-size:11.5px; padding:5px 10px}
-  .coffee .long{display:none}
-}
-/* anchor jumps should not land under the sticky bar */
-section, header.hero{scroll-margin-top:76px}
+/* ---- masthead -------------------------------------------------------- */
+nav{position:sticky; top:0; z-index:40; background:color-mix(in srgb,var(--paper) 90%,transparent);
+    backdrop-filter:blur(8px); border-bottom:1px solid var(--rule)}
+nav .wrap{display:flex; align-items:baseline; gap:26px; height:62px}
+.brand{font-family:var(--disp); font-weight:800; font-size:19px; letter-spacing:.02em; border:0}
+.brand span{color:var(--shu)}
+nav .kana{font-family:var(--disp); font-size:12px; color:var(--faint); letter-spacing:.3em}
+nav .links{margin-left:auto; display:flex; gap:22px; align-items:center;
+           font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase}
+nav .links a{border:0; color:var(--grey)} nav .links a:hover{color:var(--shu)}
+@media(max-width:820px){ nav .kana, nav .links a.hide-sm{display:none} }
 
-/* hero */
-header.hero{position:relative; padding:96px 0 40px; overflow:hidden}
-#field{position:absolute; inset:0; width:100%; height:100%; z-index:0; opacity:.55}
-header.hero .wrap{position:relative; z-index:1}
-.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase;
-         color:var(--amber); margin:0 0 20px}
-h1{font-size:clamp(36px,6.4vw,68px); line-height:1.02; margin-bottom:22px}
-h1 .b{display:block}
-h1 em{font-style:normal; color:var(--amber)}
-.lede{font-size:clamp(17px,2vw,20px); color:var(--muted); max-width:58ch; margin:0 0 32px}
-.lede code{color:var(--text); background:rgba(255,255,255,.05); padding:1px 6px; border-radius:5px}
-.cta{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:18px}
-.copy{display:inline-flex; align-items:center; gap:12px; background:var(--ink-2);
-      border:1px solid var(--line-2); border-radius:10px; padding:12px 15px;
-      font-family:var(--mono); font-size:13.5px; max-width:100%; overflow-x:auto;
-      white-space:nowrap}
-.copy::-webkit-scrollbar{height:6px}
-.copy::-webkit-scrollbar-thumb{background:#1E2837; border-radius:6px}
-.copy .p{color:var(--amber)}
-.copy button{background:none; border:0; color:var(--faint); cursor:pointer;
-             font-family:var(--mono); font-size:11.5px; padding:3px 7px; border-radius:5px}
-.copy button:hover{color:var(--amber); background:rgba(232,163,61,.10)}
-.ghost{border:1px solid var(--line-2); border-radius:10px; padding:12px 17px; font-size:13.5px;
-       font-family:var(--mono); color:var(--muted); background:var(--ink-2)}
-.ghost:hover{border-color:var(--amber)}
-.badges{display:flex; gap:20px; flex-wrap:wrap; font-family:var(--mono); font-size:12.5px;
-        color:var(--faint); margin:6px 0 0}
+/* ---- hero ------------------------------------------------------------ */
+header{padding:96px 0 0; position:relative; overflow:hidden}
+.kanji-mark{position:absolute; top:40px; right:-8px; font-family:var(--disp); font-weight:800;
+  font-size:clamp(120px,20vw,300px); line-height:.86; color:var(--ink); opacity:.045;
+  writing-mode:vertical-rl; letter-spacing:.06em; user-select:none; pointer-events:none}
+.hero-grid{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:56px; align-items:end}
+@media(max-width:980px){ .hero-grid{grid-template-columns:1fr; gap:30px} }
+h1{font-size:clamp(46px,9vw,116px); font-weight:800; letter-spacing:-.035em}
+h1 .l2{display:block; padding-left:.06em}
+h1 em{font-style:normal; color:var(--shu)}
+.kana-sub{font-family:var(--disp); font-size:clamp(13px,1.5vw,17px); letter-spacing:.42em;
+          color:var(--grey); margin:22px 0 0}
+.lede{font-size:17px; color:var(--ink-soft); max-width:46ch; margin:26px 0 0}
+.lede code{font-size:15px; background:var(--paper-2); padding:1px 6px}
+.facts{border-top:1px solid var(--ink); padding-top:14px}
+.facts dl{margin:0; display:grid; grid-template-columns:1fr 1fr; gap:14px 20px}
+.facts dt{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+          color:var(--faint)}
+.facts dd{margin:2px 0 0; font-family:var(--disp); font-size:30px; font-weight:700; line-height:1}
+.facts dd small{font-family:var(--sans); font-size:12px; font-weight:400; color:var(--grey);
+                display:block; letter-spacing:.02em}
+.cta{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin:46px 0 0}
+.cmd{display:inline-flex; align-items:center; gap:12px; background:var(--ink); color:#EDE9E0;
+     padding:13px 17px; font-family:var(--mono); font-size:13px; white-space:nowrap;
+     max-width:100%; overflow-x:auto}
+.cmd .p{color:var(--shu)}
+.cmd button{background:none; border:0; color:#8B857A; cursor:pointer; font-family:var(--mono);
+            font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; padding:2px 4px}
+.cmd button:hover{color:var(--shu)}
+.ghost{border:1px solid var(--ink); padding:13px 18px; font-family:var(--mono); font-size:11.5px;
+       letter-spacing:.14em; text-transform:uppercase; color:var(--ink); background:none; cursor:pointer}
+.ghost:hover{background:var(--ink); color:var(--paper)}
 
-/* terminal */
-.term{background:#05090E; border:1px solid var(--line-2); border-radius:12px; overflow:hidden;
-      box-shadow:0 26px 70px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.02) inset;
-      margin:36px 0 0}
-.term .bar{display:flex; align-items:center; gap:8px; padding:11px 15px; border-bottom:1px solid var(--line)}
-.term .bar i{width:10px; height:10px; border-radius:50%; display:block; background:#25303F}
-.term .bar span{font-family:var(--mono); font-size:11.5px; color:var(--faint); margin-left:10px}
-.term pre{margin:0; padding:18px 16px; overflow-x:auto; color:#C9D4E0;
-          font-size:12.5px; line-height:1.55}
-.term pre::-webkit-scrollbar{height:9px}
-.term pre::-webkit-scrollbar-thumb{background:#1E2837; border-radius:9px}
-.t-head{color:#05090E; background:#C9D4E0; font-weight:600}
-.t-key{color:var(--amber)} .t-dim{color:#5A6D82} .t-ok{color:var(--green)}
-.t-warn{color:var(--amber)} .t-bad{color:var(--red)} .t-teal{color:var(--teal)} .t-vio{color:var(--violet)}
+/* the one line that runs through the page */
+.stroke{display:block; width:100%; height:60px; margin:44px 0 0; overflow:visible}
+.stroke path{fill:none; stroke:var(--shu); stroke-width:1.2;
+  stroke-dasharray:1400; stroke-dashoffset:1400; transition:stroke-dashoffset 2.2s cubic-bezier(.22,1,.36,1)}
+.stroke.in path{stroke-dashoffset:0}
 
-/* sections */
-section{padding:96px 0; border-top:1px solid var(--line)}
-.kicker{font-family:var(--mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase;
-        color:var(--faint); margin:0 0 14px}
-h2{font-size:clamp(25px,3.4vw,36px); margin-bottom:16px}
-h3{font-size:16.5px; margin-bottom:8px}
-.sub{color:var(--muted); max-width:64ch; margin:0 0 36px}
-.grid{display:grid; gap:18px}
-.g3{grid-template-columns:repeat(auto-fit,minmax(258px,1fr))}
-.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-.card{background:linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.008));
-      border:1px solid var(--line-2); border-radius:12px; padding:24px}
-.card p{margin:0; color:var(--muted); font-size:14.5px}
-.card .n{font-family:var(--mono); color:var(--amber); font-size:12px; letter-spacing:.12em; margin-bottom:10px}
-kbd{display:inline-block; min-width:23px; text-align:center; background:rgba(232,163,61,.12);
-    color:var(--amber); border:1px solid rgba(232,163,61,.3); border-radius:6px;
-    padding:1px 7px; font-size:12.5px; font-family:var(--mono)}
+/* ---- the plate: the terminal, framed like an image -------------------- */
+.plate{margin:34px 0 0; position:relative}
+.plate .caption{display:flex; justify-content:space-between; align-items:baseline;
+  border-bottom:1px solid var(--ink); padding-bottom:9px; margin-bottom:0}
+.plate .caption b{font-family:var(--disp); font-weight:700; font-size:15px}
+.chrome{background:var(--panel); position:relative}
+.stage{position:relative; overflow:hidden}
+.screens{position:relative; padding:20px 18px 12px; overflow-x:auto}
+.screen{display:none; margin:0; font-size:11px; line-height:1.5; color:#C7D2DE; white-space:pre}
+.screen.on{display:block}
+.screens::-webkit-scrollbar{height:7px}
+.screens::-webkit-scrollbar-thumb{background:#2A2F38}
+.keys{display:flex; flex-wrap:wrap; gap:0; border-top:1px solid #23262C}
+.keys button{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; padding:9px 13px;
+  cursor:pointer; background:none; border:0; border-right:1px solid #23262C; color:#7E8792}
+.keys button:hover{color:var(--paper); background:#1A1D22}
+.keys button[aria-current="true"]{color:var(--panel); background:#D9D3C6}
+.keys .sp{flex:1; border-right:0}
+.hint{font-family:var(--mono); font-size:10.5px; color:#6B7178; padding:9px 14px; align-self:center}
+.t-head{color:var(--panel); background:#C7D2DE; font-weight:600}
+.t-key{color:#E0A34A} .t-dim{color:#5A6673} .t-ok{color:#6FAE79}
+.t-warn{color:#E0A34A} .t-bad{color:#D2544D} .t-teal{color:#48A49E} .t-vio{color:#B08AD0}
+.stage.crt .screens{color:#CBF7DF; text-shadow:0 0 6px rgba(120,255,190,.26)}
+.stage.crt::after{content:""; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(180deg,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.3) 2px 4px)}
+.stage.crt::before{content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
+  background:radial-gradient(120% 90% at 50% 50%,transparent 56%,rgba(0,0,0,.5) 100%);
+  animation:flicker 6s steps(60) infinite}
+@keyframes flicker{0%,97%{opacity:1}97.5%{opacity:.88}98%{opacity:1}99%{opacity:.94}100%{opacity:1}}
+.crtbtn{position:absolute; top:-34px; right:0; font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.16em; text-transform:uppercase; background:none; border:1px solid var(--rule);
+  color:var(--grey); padding:4px 10px; cursor:pointer}
+.crtbtn[aria-pressed="true"]{border-color:var(--shu); color:var(--shu)}
 
-/* the lsof comparison */
-.vs{width:100%; border-collapse:collapse; font-size:14.5px}
-.vs th{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
-       color:var(--faint); text-align:left; padding:0 12px 12px; font-weight:500}
-.vs td{padding:13px 12px; border-top:1px solid var(--line); vertical-align:top; color:var(--muted)}
-.vs td:first-child{color:var(--text); font-family:var(--mono); font-size:13.5px; width:26%}
-.vs td:nth-child(2){color:var(--faint); width:26%}
-.vs td:last-child{color:var(--text)}
-@media(max-width:760px){ .vs, .vs tbody, .vs tr, .vs td, .vs th{display:block; width:auto}
-  .vs th{display:none} .vs tr{border-top:1px solid var(--line); padding:12px 0}
-  .vs td{border:0; padding:3px 0} .vs td:first-child{width:auto} }
+/* ---- chapters -------------------------------------------------------- */
+.chapter{padding:118px 0 0; position:relative}
+.ch-head{display:grid; grid-template-columns:96px minmax(0,1fr) 120px; gap:30px; align-items:start;
+         border-top:1px solid var(--ink); padding-top:22px}
+@media(max-width:820px){ .ch-head{grid-template-columns:60px 1fr; } .ch-head .glyph{display:none} }
+.ch-num{font-family:var(--disp); font-size:44px; font-weight:700; line-height:.9; color:var(--shu)}
+.ch-body h2{font-size:clamp(28px,4.4vw,52px); letter-spacing:-.025em; margin-bottom:18px}
+.ch-body p{color:var(--ink-soft); max-width:52ch; margin:0}
+.ch-head .glyph{font-family:var(--disp); font-size:78px; font-weight:700; line-height:1;
+  color:var(--ink); opacity:.10; text-align:right; writing-mode:vertical-rl}
 
-/* install tabs */
-.tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px}
-.tabs button{font-family:var(--mono); font-size:13px; padding:9px 15px; border-radius:9px; cursor:pointer;
-             background:var(--ink-2); border:1px solid var(--line-2); color:var(--muted)}
-.tabs button[aria-selected="true"]{border-color:var(--amber); color:var(--amber); background:rgba(232,163,61,.1)}
-.panel{display:none} .panel.on{display:block}
-.panel .note{color:var(--muted); font-size:14px; margin:14px 0 0; max-width:64ch}
-pre.sh{background:#05090E; color:#C9D4E0; border:1px solid var(--line-2);
-       border-radius:11px; padding:17px 18px; overflow-x:auto; font-size:13.5px; margin:0; position:relative}
-pre.sh .c{color:#5A6D82} pre.sh .p{color:var(--amber)}
-.copybtn{position:absolute; top:10px; right:10px; background:#111A24; border:1px solid var(--line-2);
-         color:var(--faint); font-family:var(--mono); font-size:11px; padding:4px 9px;
-         border-radius:6px; cursor:pointer}
-.copybtn:hover{color:var(--amber); border-color:var(--amber)}
+.vs{width:100%; border-collapse:collapse; font-size:15px; margin-top:44px}
+.vs th{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+       color:var(--faint); text-align:left; padding:0 0 12px; font-weight:400}
+.vs td{padding:16px 22px 16px 0; border-top:1px solid var(--rule); vertical-align:top; color:var(--ink-soft)}
+.vs td:first-child{font-family:var(--mono); font-size:13px; color:var(--ink); width:24%}
+.vs td:nth-child(2){color:var(--faint); width:24%; font-family:var(--mono); font-size:12.5px}
+@media(max-width:760px){ .vs,.vs tbody,.vs tr,.vs td,.vs th{display:block; width:auto}
+  .vs th{display:none} .vs tr{border-top:1px solid var(--rule); padding:14px 0}
+  .vs td{border:0; padding:2px 0} .vs td:first-child{width:auto} }
 
-/* views */
-.views{width:100%; border-collapse:collapse; font-size:14.5px}
-.views td{padding:11px 10px; border-bottom:1px solid var(--line); vertical-align:top}
-.views tr:last-child td{border-bottom:0}
-.views td:first-child{width:44px}
-.views td:nth-child(2){font-family:var(--mono); color:var(--text); width:132px}
-.views td:last-child{color:var(--muted)}
+/* ecosystem, as seals around one mark */
+.eco{margin-top:52px}
+.eco svg{width:100%; height:auto; max-width:760px; display:block; margin:0 auto}
+.eco .lbl{font-family:var(--mono); font-size:11px; letter-spacing:.1em; fill:var(--grey)}
+.eco .seal{fill:var(--paper); stroke:var(--ink-soft); stroke-width:1}
+.eco .wire{fill:none; stroke:var(--rule); stroke-width:1}
+.eco .flow{fill:none; stroke-width:1.6; stroke-dasharray:4 320; stroke-dashoffset:324; opacity:0}
+.eco g.live .flow{opacity:1; animation:flow 1.6s linear}
+.eco g.live .lbl{fill:var(--tone)}
+.eco g.live .seal{fill:var(--tone); stroke:var(--tone)}
+@keyframes flow{from{stroke-dashoffset:324}to{stroke-dashoffset:0}}
+.eco .hub{fill:var(--ink); stroke:none}
+.eco .hubname{font-family:var(--disp); font-weight:700; font-size:15px; fill:var(--paper)}
+.eco .ring{fill:none; stroke:var(--shu); stroke-width:1; opacity:0}
+.eco.hit .ring{animation:ring 1s ease-out}
+@keyframes ring{0%{opacity:.6; r:30}100%{opacity:0; r:62}}
 
-figure{margin:0}
-figcaption{font-size:13.5px; color:var(--faint); margin-top:12px; font-family:var(--mono)}
-.arch{width:100%; height:auto}
+/* install */
+.tabs{display:flex; gap:0; margin:44px 0 0; border-bottom:1px solid var(--ink)}
+.tabs button{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  padding:12px 18px; cursor:pointer; background:none; border:0; color:var(--grey)}
+.tabs button[aria-selected="true"]{color:var(--paper); background:var(--ink)}
+.panel{display:none; padding-top:26px} .panel.on{display:block}
+.panel .note{color:var(--ink-soft); font-size:14.5px; margin:16px 0 0; max-width:56ch}
+pre.sh{background:var(--ink); color:#E4E0D6; padding:19px 20px; overflow-x:auto;
+       font-size:13px; margin:0; position:relative}
+pre.sh .c{color:#807A6E} pre.sh .p{color:var(--shu)}
+.copybtn{position:absolute; top:10px; right:10px; background:none; border:1px solid #3A362F;
+  color:#8B857A; font-family:var(--mono); font-size:10px; letter-spacing:.14em;
+  text-transform:uppercase; padding:4px 9px; cursor:pointer}
+.copybtn:hover{color:var(--shu); border-color:var(--shu)}
 
-ul.plain{list-style:none; padding:0; margin:0}
-ul.plain li{padding:13px 0 13px 26px; border-bottom:1px solid var(--line); color:var(--muted); position:relative}
-ul.plain li:last-child{border-bottom:0}
-ul.plain li::before{content:"\25b8"; position:absolute; left:4px; color:var(--amber)}
-ul.plain strong{color:var(--text); font-weight:600}
+ul.plain{list-style:none; padding:0; margin:44px 0 0}
+ul.plain li{padding:20px 0; border-top:1px solid var(--rule); color:var(--ink-soft);
+  display:grid; grid-template-columns:30px 1fr; gap:16px; align-items:start}
+ul.plain li::before{content:attr(data-n); font-family:var(--mono); font-size:11px;
+  color:var(--shu); padding-top:4px}
+ul.plain strong{color:var(--ink); font-weight:700; font-family:var(--disp)}
 
-footer{border-top:1px solid var(--line); padding:52px 0 68px; color:var(--faint); font-size:14px}
-footer .row{display:flex; gap:24px; flex-wrap:wrap; align-items:center}
-footer a{border:0; color:var(--muted)} footer a:hover{color:var(--amber)}
-.small{font-size:13px; color:var(--faint)}
+footer{margin-top:120px; border-top:1px solid var(--ink); padding:40px 0 76px}
+footer .row{display:flex; gap:26px; flex-wrap:wrap; align-items:baseline;
+  font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase}
+footer a{border:0; color:var(--grey)} footer a:hover{color:var(--shu)}
+footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(--faint);
+            letter-spacing:.3em}
 
-/* motion, and the switch that turns all of it off */
-.rise{opacity:0; transform:translateY(18px)}
-@media (prefers-reduced-motion: reduce){
+.rise{opacity:0; transform:translateY(20px); transition:opacity .9s cubic-bezier(.22,1,.36,1),
+      transform .9s cubic-bezier(.22,1,.36,1)}
+.rise.in{opacity:1; transform:none}
+@media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
-  .rise{opacity:1!important; transform:none!important}
-  #field{display:none}
-  body::after{transform:none!important}
-  *{animation:none!important; transition:none!important}
+  .rise{opacity:1!important; transform:none!important; transition:none}
+  .stroke path{stroke-dashoffset:0; transition:none}
+  .stage.crt::before{animation:none}
+  .eco g.live .flow{animation:none; opacity:.5; stroke-dasharray:none; stroke-dashoffset:0}
 }
 </style>
 </head>
 <body>
-<div class="glow"></div>
-
-<nav>
-  <div class="wrap">
-    <a class="brand" href="#top">portlist<b>.</b></a>
-    <div class="links">
-      <a href="#problem" class="hide-sm">Why</a>
-      <a href="#install">Install</a>
-      <a href="#dashboard" class="hide-sm">Dashboard</a>
-      <a href="#vibe" class="hide-sm">Vibe</a>
-      <a href="https://github.com/Mr-hunt-007/portlist">GitHub</a>
-      <a class="coffee" href="https://buymeacoffee.com/mr.hunt.007">buy me a<span class="long"> coffee</span></a>
-    </div>
+<nav><div class="wrap">
+  <a class="brand" href="#top">portlist<span>.</span></a>
+  <span class="kana jp">観測</span>
+  <div class="links">
+    <a href="#ch1" class="hide-sm">Listening</a>
+    <a href="#ch2" class="hide-sm">Origin</a>
+    <a href="#install">Install</a>
+    <a href="https://github.com/Mr-hunt-007/portlist">GitHub</a>
+    <a href="https://buymeacoffee.com/mr.hunt.007">Coffee</a>
   </div>
-</nav>
+</div></nav>
 
 <a id="top"></a>
-<main>
-<header class="hero">
-  <canvas id="field" aria-hidden="true"></canvas>
+<header>
+  <div class="kanji-mark jp" aria-hidden="true">観測</div>
   <div class="wrap">
-    <p class="eyebrow rise">Terminal program &middot; MIT &middot; no dependencies</p>
-    <h1 class="rise"><span class="b">Every port on this machine,</span>
-      <span class="b">and <em>where it came from</em>.</span></h1>
-    <p class="lede rise">Twelve things are listening. You started three of them today and you
-      cannot name the rest. <code>lsof</code> gives you a PID. portlist gives you the agent
-      session, the project directory, and whether anyone has used it since Tuesday.</p>
-
-    <div class="cta rise">
-      <span class="copy"><span class="p">$</span> curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh
-        <button type="button" data-copy="curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh">copy</button></span>
-      <a class="ghost" href="#install">Other ways to install</a>
+    <p class="meta">Terminal program &nbsp;/&nbsp; MIT &nbsp;/&nbsp; 29 stdlib modules, nothing else</p>
+    <div class="hero-grid">
+      <div>
+        <h1>Your machine,<span class="l2"><em>observed</em>.</span></h1>
+        <p class="kana-sub jp">ポート・オブザーバトリー</p>
+        <p class="lede">Twelve things are listening. You started three of them today and you cannot
+          name the rest. <code>lsof</code> gives you a PID. This gives you the agent session, the
+          project, and whether anyone has touched it since Tuesday.</p>
+      </div>
+      <div class="facts">
+        <dl>
+          <dt>Listening</dt><dd>12<small>services on this host</small></dd>
+          <dt>Off-box</dt><dd>02<small>reachable from the network</small></dd>
+          <dt>Agents</dt><dd>06<small>tools read, never written to</small></dd>
+          <dt>Telemetry</dt><dd>00<small>nothing leaves the machine</small></dd>
+        </dl>
+      </div>
     </div>
-    <p class="badges rise">
-      <span>macOS &middot; Linux &middot; Windows &middot; BSD</span>
-      <span>Python 3.9+</span>
-      <span>No server, no daemon, no telemetry</span>
-    </p>
 
-    <div class="term rise">
-      <div class="bar"><i></i><i></i><i></i><span>portlist</span></div>
-<pre aria-label="portlist services view"><span class="t-vio"> PORTLIST  devbox               13 listening  2 off-box  2 need attention                                                                 O 02:16:30</span>
+    <div class="cta">
+      <span class="cmd"><span class="p">$</span> curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh
+        <button type="button" data-copy="curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh">copy</button></span>
+      <a class="ghost" href="#install">other ways</a>
+    </div>
+
+    <svg class="stroke" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 46 C 180 46, 240 12, 420 12 S 700 50, 900 30 S 1120 8, 1200 16"></path>
+    </svg>
+  </div>
+</header>
+
+<div class="wrap plate">
+  <div class="caption">
+    <b>Plate 01 &nbsp;&mdash;&nbsp; the program itself</b>
+    <span class="meta">press 0-9, V, or use the keys below</span>
+  </div>
+  <button class="crtbtn" id="crt" type="button" aria-pressed="false">CRT</button>
+  <div class="chrome">
+    <div class="stage" id="stage">
+      <div class="screens" id="screens">
+<pre class="screen on" data-view="dashboard" aria-hidden="false"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:00</span>
+ <span class="t-vio">▌</span>0 Dashboard   1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions   8 System   9 Graph
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ <span class="t-dim">┌</span><span class="t-dim">─</span> machine   load 4.87 5.38 5.40 <span class="t-dim">──────────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> exposure <span class="t-dim">──────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> agents <span class="t-dim">────────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> containers <span class="t-dim">──────────────</span><span class="t-dim">┐</span>
+ <span class="t-dim">│</span>    <span class="t-dim">·</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-dim">·</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-ok">◉</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>       <span class="t-dim">│</span> <span class="t-dim">│</span><span class="t-vio"> LISTENING    16         </span><span class="t-dim">│</span> <span class="t-dim">│</span> Claude Code  14         <span class="t-dim">│</span> <span class="t-dim">│</span> ENGINE       docker       <span class="t-dim">│</span>
+ <span class="t-dim">│</span>  <span class="t-dim">·</span>         <span class="t-ok">●</span>     <span class="t-dim">·</span>         <span class="t-ok">●</span>     <span class="t-ok">●</span>         <span class="t-ok">●</span>     <span class="t-dim">│</span> <span class="t-dim">│</span> EXPOSED      2          <span class="t-dim">│</span> <span class="t-dim">│</span> terminal     1          <span class="t-dim">│</span> <span class="t-dim">│</span> STATE        no answer    <span class="t-dim">│</span>
+ <span class="t-dim">│</span> <span class="t-dim">·</span>    49%    <span class="t-ok">●</span>   <span class="t-ok">◉</span>    86%    <span class="t-ok">●</span>   <span class="t-ok">●</span>    98%    <span class="t-ok">●</span>    <span class="t-dim">│</span> <span class="t-dim">│</span> NEEDS WORK   2          <span class="t-dim">│</span> <span class="t-dim">│</span> launchd      1          <span class="t-dim">│</span> <span class="t-dim">│</span> COUNT        unknown      <span class="t-dim">│</span>
+ <span class="t-dim">│</span>  <span class="t-dim">·</span><span class="t-dim">   CPU   </span><span class="t-ok">●</span>     <span class="t-ok">●</span><span class="t-dim">   RAM   </span><span class="t-ok">●</span>     <span class="t-ok">●</span><span class="t-dim">  DISK   </span><span class="t-ok">●</span>     <span class="t-dim">│</span> <span class="t-dim">│</span> UNATTRIBUTED 12         <span class="t-dim">│</span> <span class="t-dim">│</span>                         <span class="t-dim">│</span> <span class="t-dim">│</span>              not zero     <span class="t-dim">│</span>
+ <span class="t-dim">│</span>    <span class="t-dim">·</span>  <span class="t-dim">·</span>  <span class="t-ok">◉</span>         <span class="t-ok">●</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-ok">●</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>       <span class="t-dim">│</span> <span class="t-dim">│</span>                         <span class="t-dim">│</span> <span class="t-dim">│</span>                         <span class="t-dim">│</span> <span class="t-dim">│</span>                           <span class="t-dim">│</span>
+ <span class="t-dim">│</span> ▄▃▂▁  ▁▁▂▃▄▄▃   ▃▅▆▇▆▅▃▁  ▁▂▄   ▁▃▅▇<span class="t-ok">██</span><span class="t-teal">▆▄▂▁ ▁▂</span>    <span class="t-dim">│</span> <span class="t-dim">│</span>    ▁▁▁▁▁▁      ▁▁▁▁▁▁   <span class="t-dim">│</span> <span class="t-dim">│</span> ▆▇<span class="t-ok">█</span><span class="t-teal">▇▆▄▂  ▁▃▅▇</span><span class="t-ok">██</span><span class="t-teal">▆▄▂▁ ▁▂</span>  <span class="t-dim">│</span> <span class="t-dim">│</span> <span class="t-dim">······················</span>    <span class="t-dim">│</span>
+ <span class="t-dim">└</span><span class="t-dim">──────────────────────────────────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">─────────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">─────────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">───────────────────────────</span><span class="t-dim">┘</span>
+  ▂▂▁    ▁▂▂▂▂▂▁▁   ▁▁▂▂▂▂▂▁   ▁▁▂▂▂▂▂▁    ▁▂▂▂▂▂▁▁   ▁▁▂▂▂▂▂▁    ▁▂▂▂▂▂▁▁   ▁▁▂▂▂▂▂▁    ▁▂▂▂▂▂▁▁   ▁▁▂▂▂▂▁▁   ▁▁▂▂▂▂▂▁    ▁▂▂▂▂▂▁▁   ▁▁▂▂
+<span class="t-vio">  LISTENING  16 services  O LIVE                                                                                    h/l pane   tab view</span>
+<span class="t-dim">    PORT    SERVICE               PROJECT           STARTED BY          REACH           RISK             UPTIME   minutes ━━━━▸ weeks   (lo</span>
+  <span class="t-ok">●</span> :7337   shopfront             shopfront         terminal            Localhost only  6 Info           ━━━━━━━━━━━━━                10h
+  <span class="t-ok">●</span> :8000   Python http.server    analytics         Claude Code         Localhost only  12 Info          ━━━━━━━━━━━━━━━━━━━━━━━━━━━  21d
+  <span class="t-ok">●</span> :8078   sink.py               payments          Claude Code         Localhost only  6 Info           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 29d
+  <span class="t-teal">○</span> :8422   store-helper.mjs      data-export       Claude Code         Localhost only  6 Info           ━━━━━━━━━━━━━━━━━━━━         2d
+▸ <span class="t-teal">○</span><span class="t-warn"> :8787   Python http.server    data-export       Claude Code         All interfaces  71 High          ━━━━━━━━━━━━━━━━━━━━━━       6d</span>
+<span class="t-vio">  SELECTED SERVICE                                                               </span><span class="t-dim">│</span><span class="t-vio"> ACTIVITY</span>
+                                                                                 <span class="t-dim">│</span>
+  Python http.server :8787                                                       <span class="t-dim">│</span>
+  ~/Downloads/data-export                                                        <span class="t-dim">│</span><span class="t-dim"> CPU</span>
+                                                                                 <span class="t-dim">│</span> ▄▄▄▄▄▄▄▄▄▄▄▄▄
+<span class="t-vio">  RISK  71 / 100   High                                                          </span><span class="t-dim">│</span><span class="t-dim"> MEMORY</span>
+    +42   Listening on all interfaces (0.0.0.0)                                  <span class="t-dim">│</span> ▇▇▇▇▇▇▇▇▇▇▇▇▇
+    +10   No authentication seen and reachable off-box                           <span class="t-dim">│</span>
+    +10   Static file server exposing its working directory off-box              <span class="t-dim">│</span>
+  <span class="t-ok">●</span> 2 exposed    <span class="t-bad">◆</span> 2 need attention    ⚠ 12 unknown origin    <span class="t-ok">◉</span> 3 agents    firewall on      ▁  ▁▁▂▃▄▄▃▂▁   ▁▂▃▄▄▃▃▂▁
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
+<pre class="screen" data-view="services" aria-hidden="true"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:04</span>
   0 Dashboard  <span class="t-vio">▌</span>1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions   8 System   9 Graph
-<span class="t-dim">─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
 <span class="t-dim"> PORT    SERVICE                 PROJECT           REACHABLE      RISK     STARTED BY</span>
- :7337   portboard               portboard         Localhost only 6 Info   terminal 9h
+ :7337   shopfront               shopfront         Localhost only 6 Info   terminal 10h
  :8000   Python http.server      analytics         Localhost only 12 Info  Claude Code 21d
  :8078   sink.py                 payments          Localhost only 6 Info   Claude Code 29d
  :8422   store-helper.mjs        data-export       Localhost only 6 Info   Claude Code 2d
 <span class="t-warn"> :8787   Python http.server      data-export       All interfaces 71 High  Claude Code 6d</span>
  :8787   FastAPI / Uvicorn       scanner           Localhost only 12 Info  Claude Code 23d
-<span class="t-warn"> :8807   Python http.server      data-export       All interfaces 71 High  Claude Code 2d</span>
+<span class="t-warn"> :8807   Python http.server      data-export       All interfaces 71 High  Claude Code 3d</span>
  :9050   Tor                     /opt/homebrew     Localhost only 12 Info  launchd 24d
- :42065  Bun                     portlist          Localhost only 0 Info   Claude Code 3h
- :48744  Bun                     portboard         Localhost only 0 Info   Claude Code 25h</pre>
+ :42065  Bun                     portlist          Localhost only 0 Info   Claude Code 4h
+ :48744  Bun                     shopfront         Localhost only 0 Info   Claude Code 25h
+ :55302  Bun                     portlist          Localhost only 6 Info   Claude Code 4h
+ :56050  Bun                     ~/Downloads       Localhost only 6 Info   Claude Code 3h
+ :56609  Bun                     scanner           Localhost only 6 Info   Claude Code 25d
+ :57244  Bun                     data-export       Localhost only 6 Info   Claude Code 6d
+ :59195  Bun                     ~/Downloads       Localhost only 0 Info   Claude Code 3h
+ :61535  Bun                     shopfront         Localhost only 6 Info   Claude Code 25h
+
+
+
+
+
+
+
+
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
+<pre class="screen" data-view="exposed" aria-hidden="true"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:07</span>
+  0 Dashboard   1 Services  <span class="t-vio">▌</span>2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions   8 System   9 Graph
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+<span class="t-dim"> PORT    SERVICE                 PROJECT           REACHABLE      RISK     STARTED BY</span>
+<span class="t-warn"> :8787   Python http.server      data-export       All interfaces 71 High  Claude Code 6d</span>
+<span class="t-warn"> :8807   Python http.server      data-export       All interfaces 71 High  Claude Code 3d</span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
+<pre class="screen" data-view="attention" aria-hidden="true"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:09</span>
+  0 Dashboard   1 Services   2 Exposed  <span class="t-vio">▌</span>3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions   8 System   9 Graph
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+<span class="t-dim"> PORT    SERVICE                 PROJECT           REACHABLE      RISK     STARTED BY</span>
+<span class="t-warn"> :8787   Python http.server      data-export       All interfaces 71 High  Claude Code 6d</span>
+<span class="t-warn"> :8807   Python http.server      data-export       All interfaces 71 High  Claude Code 3d</span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
+<pre class="screen" data-view="leftovers" aria-hidden="true"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:12</span>
+  0 Dashboard   1 Services   2 Exposed   3 Attention  <span class="t-vio">▌</span>4 Leftovers   5 Agents   6 Containers   7 Sessions   8 System   9 Graph
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+<span class="t-dim"> PORT    SERVICE                 PROJECT           REACHABLE      RISK     STARTED BY</span>
+ :8000   Python http.server      analytics         Localhost only 12 Info  Claude Code 21d
+<span class="t-warn"> :8787   Python http.server      data-export       All interfaces 71 High  Claude Code 6d</span>
+ :8787   FastAPI / Uvicorn       scanner           Localhost only 12 Info  Claude Code 23d
+<span class="t-warn"> :8807   Python http.server      data-export       All interfaces 71 High  Claude Code 3d</span>
+ :56609  Bun                     scanner           Localhost only 6 Info   Claude Code 25d
+ :57244  Bun                     data-export       Localhost only 6 Info   Claude Code 6d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
+<pre class="screen" data-view="agents" aria-hidden="true"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:15</span>
+  0 Dashboard   1 Services   2 Exposed   3 Attention   4 Leftovers  <span class="t-vio">▌</span>5 Agents   6 Containers   7 Sessions   8 System   9 Graph
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+<span class="t-dim"> PORT    SERVICE                 PROJECT           REACHABLE      RISK     STARTED BY</span>
+ a Claude Code session  -  session has exited  -  14 services
+ :8000   Python http.server      analytics         Localhost only 12 Info  Claude Code 21d
+ :8078   sink.py                 payments          Localhost only 6 Info   Claude Code 29d
+ :8422   store-helper.mjs        data-export       Localhost only 6 Info   Claude Code 2d
+<span class="t-warn"> :8787   Python http.server      data-export       All interfaces 71 High  Claude Code 6d</span>
+ :8787   FastAPI / Uvicorn       scanner           Localhost only 12 Info  Claude Code 23d
+<span class="t-warn"> :8807   Python http.server      data-export       All interfaces 71 High  Claude Code 3d</span>
+ :42065  Bun                     portlist          Localhost only 0 Info   Claude Code 4h
+ :48744  Bun                     shopfront         Localhost only 0 Info   Claude Code 25h
+ :55302  Bun                     portlist          Localhost only 6 Info   Claude Code 4h
+ :56050  Bun                     ~/Downloads       Localhost only 6 Info   Claude Code 3h
+ :56609  Bun                     scanner           Localhost only 6 Info   Claude Code 25d
+ :57244  Bun                     data-export       Localhost only 6 Info   Claude Code 6d
+ :59195  Bun                     ~/Downloads       Localhost only 0 Info   Claude Code 3h
+ :61535  Bun                     shopfront         Localhost only 6 Info   Claude Code 25h
+ a terminal  -  still running  -  1 service
+ :7337   shopfront               shopfront         Localhost only 6 Info   terminal 10h
+ launchd  -  still running  -  1 service
+ :9050   Tor                     /opt/homebrew     Localhost only 12 Info  launchd 24d
+
+
+
+
+
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
+<pre class="screen" data-view="containers" aria-hidden="true"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:18</span>
+  0 Dashboard   1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents  <span class="t-vio">▌</span>6 Containers   7 Sessions   8 System   9 Graph
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+<span class="t-dim"> PORT    SERVICE                 PROJECT           REACHABLE      RISK     STARTED BY</span>
+ Cannot see containers - the daemon did not answer. That is not the same as none.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
+<pre class="screen" data-view="sessions" aria-hidden="true"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:22</span>
+  0 Dashboard   1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers  <span class="t-vio">▌</span>7 Sessions   8 System   9 Graph
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ TOOL     WHAT IT WAS ABOUT                       PROJECT             CONTEXT  LAST USED
+ 4 agent processes running  -  30 transcripts on disk
+     Claude Code      claude max - default claude max 20x
+     Codex            not signed in
+     GitHub Copilot   signed in
+     Gemini           signed in
+ * claude Refactor the billing webhook retries    payments               811k  8s ago       4 here
+ * claude Port the admin table to components      admin-ui               904k  36m ago      4 here
+ * claude Trace the flaky integration test        api                    479k  44m ago      4 here
+ * claude Add a rate limit to the upload route    storefront             307k  44m ago      4 here
+ * claude Write the migration for the new index   scanner                628k  3h ago       4 here
+ * claude Fix the timezone bug in the report      analytics              334k  3h ago       4 here
+   claude Split the worker into two queues        worker                 935k  5h ago
+   claude Make the search endpoint paginate       docs                   193k  8h ago
+   claude Update the deploy script for staging    infra                  196k  25h ago      4 here
+   claude Cache the pricing lookup                checkout               182k  2d ago
+   claude Retry the webhook on 5xx                payments               518k  2d ago       4 here
+   claude Move the cron into the scheduler        admin-ui               371k  2d ago
+   claude Document the auth flow                  api                    287k  2d ago       4 here
+   claude Drop the unused columns                 storefront             240k  3d ago       4 here
+   claude Tidy the error messages                 scanner                 53k  6d ago       4 here
+   claude Rename the config keys                  analytics              686k  6d ago
+   claude Batch the outbound emails               worker                 579k  6d ago       4 here
+   claude Pin the CI image                        docs                    81k  6d ago       4 here
+   copilo Refactor the billing webhook retries   Dinfra                       8d ago       4 here
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
+<pre class="screen" data-view="system" aria-hidden="true"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:25</span>
+  0 Dashboard   1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions  <span class="t-vio">▌</span>8 System   9 Graph
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ <span class="t-dim">┌</span><span class="t-dim">─</span> machine <span class="t-dim">────────────────────────────────────────────────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> pulse <span class="t-dim">───────────────────────────────────────────────────────────</span><span class="t-dim">┐</span>
+ <span class="t-dim">│</span> devbox                                                           <span class="t-dim">│</span> <span class="t-dim">│</span> cpu                                       ▅▅▅▅▅▅▅▅▅▅▅▅▅       60% <span class="t-dim">│</span>
+ <span class="t-dim">│</span> macOS 26.5.2 (arm64)                                             <span class="t-dim">│</span> <span class="t-dim">│</span> mem                                       ▇▇▇▇▇▇▇▇▇▇▇▇▇       85% <span class="t-dim">│</span>
+ <span class="t-dim">│</span> Apple M4 (4P+6E)                                                 <span class="t-dim">│</span> <span class="t-dim">│</span> net                                                   no rate yet <span class="t-dim">│</span>
+ <span class="t-dim">│</span> up 38d 9h   <span class="t-ok">●</span>   548 processes                                    <span class="t-dim">│</span> <span class="t-dim">│</span> one sample a second, 120 kept                                     <span class="t-dim">│</span>
+ <span class="t-dim">└</span><span class="t-dim">──────────────────────────────────────────────────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">───────────────────────────────────────────────────────────────────</span><span class="t-dim">┘</span>
+ <span class="t-dim">┌</span><span class="t-dim">─</span> load <span class="t-dim">─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span><span class="t-dim">┐</span>
+ <span class="t-dim">│</span> cpu       <span class="t-ok">██████████████████</span><span class="t-dim">░░░░░░░░░░░░</span>  60.4% 10 cores   load 6.0  5.6  5.5                                                          <span class="t-dim">│</span>
+ <span class="t-dim">│</span> memory    <span class="t-warn">██████████████████████████</span><span class="t-dim">░░░░</span>  85.0% 14G of 16G   swap 12G of 13G                                                           <span class="t-dim">│</span>
+ <span class="t-dim">│</span> disk /    <span class="t-bad">█████████████████████████████</span><span class="t-dim">░</span>  97.1% 6.7G free of 228G                                                                      <span class="t-dim">│</span>
+ <span class="t-dim">└</span><span class="t-dim">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span><span class="t-dim">┘</span>
+ <span class="t-dim">┌</span><span class="t-dim">─</span> exposure <span class="t-dim">────────────────────────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> security <span class="t-dim">────────────────────────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> network <span class="t-dim">──────────────────────────────────</span><span class="t-dim">┐</span>
+ <span class="t-dim">│</span> 16 listening                              <span class="t-dim">│</span> <span class="t-dim">│</span> firewall on                               <span class="t-dim">│</span> <span class="t-dim">│</span> en0  192.168.0.2  private                  <span class="t-dim">│</span>
+ <span class="t-dim">│</span> 2 reachable off this machine              <span class="t-dim">│</span> <span class="t-dim">│</span> stealth off                               <span class="t-dim">│</span> <span class="t-dim">│</span> 18 interfaces                              <span class="t-dim">│</span>
+ <span class="t-dim">│</span> 0 critical, 2 high                        <span class="t-dim">│</span> <span class="t-dim">│</span> ssh off                                   <span class="t-dim">│</span> <span class="t-dim">│</span>                                            <span class="t-dim">│</span>
+ <span class="t-dim">│</span> 0 AI assets                               <span class="t-dim">│</span> <span class="t-dim">│</span> docker not answering                      <span class="t-dim">│</span> <span class="t-dim">│</span>                                            <span class="t-dim">│</span>
+ <span class="t-dim">└</span><span class="t-dim">───────────────────────────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">───────────────────────────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">────────────────────────────────────────────</span><span class="t-dim">┘</span>
+
+
+
+
+
+
+
+
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ 0-9 view   a animation on   f free port   r rescan   ? keys   q quit                                                       updated 1s ago</pre>
+<pre class="screen" data-view="graph" aria-hidden="true"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                       O 02:35:28</span>
+  0 Dashboard   1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions   8 System  <span class="t-vio">▌</span>9 Graph
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+  WHO STARTED IT, AND WHERE   PROCESS               PORT  AND SERVICE               REACHABLE FROM      CONFIRMED ON
+  started work in <span class="t-dim">─</span>▸  runs <span class="t-dim">─</span>▸              listens <span class="t-dim">─</span>▸
+
+  <span class="t-bad">◆</span> Claude Code               AI agent  <span class="t-dim">·</span>  14 services
+  ├<span class="t-dim">─</span> analytics <span class="t-dim">──────────────</span> Python 6810 <span class="t-dim">─────────</span> :8000   Python http.server <span class="t-dim">────</span> Localhost only
+  ├<span class="t-dim">─</span> data-export       <span class="t-dim">────</span>┬<span class="t-dim">─</span> node 77259 <span class="t-dim">──────────</span> :8422   store-helper.mjs <span class="t-dim">──────</span> Localhost only
+  <span class="t-dim">│</span>                        ├<span class="t-dim">─</span> Python 96798 <span class="t-dim">────────</span> :8787   Python http.server <span class="t-dim">────</span><span class="t-warn"> All interfaces      192.168.0.2</span>
+  <span class="t-dim">│</span>                        ├<span class="t-dim">─</span> Python 65328 <span class="t-dim">────────</span> :8807   Python http.server <span class="t-dim">────</span><span class="t-warn"> All interfaces      192.168.0.2</span>
+  <span class="t-dim">│</span>                        <span class="t-dim">└</span><span class="t-dim">─</span> bun 51963 <span class="t-dim">───────────</span> :57244  Bun <span class="t-dim">───────────────────</span> Localhost only
+  ├<span class="t-dim">─</span> shopfront <span class="t-dim">────────────</span>┬<span class="t-dim">─</span> bun 32016 <span class="t-dim">───────────</span> :48744  Bun <span class="t-dim">───────────────────</span> Localhost only
+  <span class="t-dim">│</span>                        <span class="t-dim">└</span><span class="t-dim">─</span> bun 32549 <span class="t-dim">───────────</span> :61535  Bun <span class="t-dim">───────────────────</span> Localhost only
+  ├<span class="t-dim">─</span> portlist <span class="t-dim">─────────────</span>┬<span class="t-dim">─</span> bun 56281 <span class="t-dim">───────────</span> :42065  Bun <span class="t-dim">───────────────────</span> Localhost only
+  <span class="t-dim">│</span>                        <span class="t-dim">└</span><span class="t-dim">─</span> bun 58055 <span class="t-dim">───────────</span> :55302  Bun <span class="t-dim">───────────────────</span> Localhost only
+  ├<span class="t-dim">─</span> payments   <span class="t-dim">─────────────</span> Python 59352 <span class="t-dim">────────</span> :8078   sink.py <span class="t-dim">───────────────</span> Localhost only
+  ├<span class="t-dim">─</span> scanner  <span class="t-dim">─────────────</span>┬<span class="t-dim">─</span> Python 67222 <span class="t-dim">────────</span> :8787   FastAPI / Uvicorn <span class="t-dim">─────</span> Localhost only
+  <span class="t-dim">│</span>                        <span class="t-dim">└</span><span class="t-dim">─</span> bun 89307 <span class="t-dim">───────────</span> :56609  Bun <span class="t-dim">───────────────────</span> Localhost only
+  <span class="t-dim">└</span><span class="t-dim">─</span> no project <span class="t-dim">───────────</span>┬<span class="t-dim">─</span> bun 59911 <span class="t-dim">───────────</span> :56050  Bun <span class="t-dim">───────────────────</span> Localhost only
+                           <span class="t-dim">└</span><span class="t-dim">─</span> bun 58294 <span class="t-dim">───────────</span> :59195  Bun <span class="t-dim">───────────────────</span> Localhost only
+
+  <span class="t-bad">◇</span> launchd                   service manager  <span class="t-dim">·</span>  1 service
+  <span class="t-dim">└</span><span class="t-dim">─</span> no project <span class="t-dim">─────────────</span> tor 58508 <span class="t-dim">───────────</span> :9050   Tor <span class="t-dim">───────────────────</span> Localhost only
+
+  <span class="t-bad">◇</span> terminal                  terminal  <span class="t-dim">·</span>  1 service
+  <span class="t-dim">└</span><span class="t-dim">─</span> shopfront <span class="t-dim">──────────────</span> Python 9561 <span class="t-dim">─────────</span> :7337   shopfront <span class="t-dim">─────────────</span> Localhost only      1 local link
+
+<span class="t-dim">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+ j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                          updated 1s ago</pre>
+<pre class="screen" data-view="vibe" aria-hidden="true"><span class="t-key">                                                              P O R T L I S T</span>
+
+<span class="t-dim">                           CPU </span><span class="t-warn">██████████</span><span class="t-dim">░░░░░░</span>  61%  MEM <span class="t-warn">██████████████</span><span class="t-dim">░░</span>  85%
+<span class="t-dim">                           DISK </span><span class="t-bad">████████████████</span><span class="t-key">  97%    MACHINE ALIVE</span>
+
+                           <span class="t-teal">○</span><span class="t-warn"> :8787   Python http.server    data-export       OFF-BOX   </span><span class="t-bad">◇</span> HIGH
+                           <span class="t-teal">○</span><span class="t-warn"> :8807   Python http.server    data-export       OFF-BOX   </span><span class="t-bad">◇</span> HIGH
+                           <span class="t-teal">○</span> :8000   Python http.server    analytics         LOCAL
+                           <span class="t-teal">○</span> :8787   FastAPI / Uvicorn     scanner           LOCAL
+                           <span class="t-teal">○</span> :9050   Tor                   /opt/homebrew     LOCAL
+                           <span class="t-ok">◉</span> :7337   shopfront             shopfront         LOCAL
+                           <span class="t-teal">○</span> :8078   sink.py               payments          LOCAL
+                           <span class="t-teal">○</span> :8422   store-helper.mjs      data-export       LOCAL
+                           <span class="t-teal">○</span> :55302  Bun                   portlist          LOCAL
+                           <span class="t-teal">○</span> :56050  Bun                   ~/Downloads       LOCAL
+                           <span class="t-teal">○</span> :56609  Bun                   scanner           LOCAL
+                           <span class="t-teal">○</span> :57244  Bun                   data-export       LOCAL
+
+
+                                  <span class="t-dim">─────────────────────────────────</span><span class="t-key"> HOST </span><span class="t-dim">─────────────────────────────────</span>
+                                        <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>
+                                       <span class="t-teal">○</span>           <span class="t-teal">○</span>           <span class="t-teal">○</span>           <span class="t-teal">○</span>           <span class="t-teal">○</span>           <span class="t-ok">◉</span>
+                                      8787        8807        8000        8787        9050        7337
+
+
+<span class="t-key">                                       16 SERVICES   </span><span class="t-ok">●</span>   3 AGENTS   <span class="t-ok">●</span>   0 CONTAINERS   <span class="t-ok">●</span><span class="t-warn">   2 OFF-BOX</span>
+
+  cockpit   observatory   cinematic                                                                                  02:35:31   Fri 28 Aug
+                                         any key returns   t theme   s speed   n scene   A auto on</pre>
+      </div>
+      <div class="keys" id="keys">
+        <button data-k="0" data-view="dashboard" aria-current="true">0 dashboard</button>
+        <button data-k="1" data-view="services">1 services</button>
+        <button data-k="2" data-view="exposed">2 exposed</button>
+        <button data-k="3" data-view="attention">3 attention</button>
+        <button data-k="4" data-view="leftovers">4 leftovers</button>
+        <button data-k="5" data-view="agents">5 agents</button>
+        <button data-k="6" data-view="containers">6 containers</button>
+        <button data-k="7" data-view="sessions">7 sessions</button>
+        <button data-k="8" data-view="system">8 system</button>
+        <button data-k="9" data-view="graph">9 graph</button>
+        <button data-k="V" data-view="vibe">V vibe</button>
+        <span class="sp"></span>
+        <span class="hint" id="hint">real screens, captured from a running machine</span>
+      </div>
     </div>
   </div>
-</header>
+</div>
 
-<section id="problem">
+<main>
+<section class="chapter" id="ch1">
   <div class="wrap">
-    <p class="kicker rise">What problem does it solve</p>
-    <h2 class="rise">A port list is not the answer. It is the question.</h2>
-    <p class="sub rise"><code>lsof -i</code> answers what is bound to a port. That was the whole
-      question when a machine ran two servers you started by hand. Most of what listens on a
-      developer laptop today was started by something else: an agent session, an editor, a
-      container, or you, on Tuesday, in a directory you have since forgotten.</p>
+    <div class="ch-head rise">
+      <div class="ch-num">01</div>
+      <div class="ch-body">
+        <h2>What is listening?</h2>
+        <p>Every TCP and UDP service, one row each, named from the command and the project rather
+          than from a port number. A row is a service on a port, not a port: two processes can
+          hold the same number with different reach, and collapsing them loses the one that
+          matters.</p>
+      </div>
+      <div class="glyph jp" aria-hidden="true">聴</div>
+    </div>
 
     <table class="vs rise">
       <thead><tr><th>you ask</th><th>lsof says</th><th>portlist says</th></tr></thead>
       <tbody>
-        <tr><td>what is on :8787?</td><td><code>Python, pid 96798</code></td>
+        <tr><td>what is on :8787?</td><td>Python, pid 96798</td>
             <td>a static file server, started by a Claude Code session, in <code>~/code/data-export</code></td></tr>
-        <tr><td>who started it?</td><td>nothing</td>
-            <td>that session, and whether it has since exited</td></tr>
-        <tr><td>can anyone reach it?</td><td>a bind string like <code>0.0.0.0</code></td>
+        <tr><td>who started it?</td><td>nothing</td><td>that session, and whether it has since exited</td></tr>
+        <tr><td>can anyone reach it?</td><td>0.0.0.0, a bind string</td>
             <td>what answered when it connected to this machine's real address</td></tr>
-        <tr><td>is it still needed?</td><td>how long it has been <em>up</em></td>
-            <td>how long it has been <em>unused</em>, measured over time</td></tr>
+        <tr><td>is it still needed?</td><td>how long it has been up</td>
+            <td>how long it has been unused, measured over time</td></tr>
         <tr><td>is it safe to kill?</td><td>nothing</td>
-            <td>what depends on it, what it depends on, and the command to stop it</td></tr>
+            <td>what depends on it, and the command to stop it</td></tr>
       </tbody>
     </table>
-
-    <div class="grid g3" style="margin-top:38px">
-      <div class="card rise"><p class="n">01</p><h3>Address already in use</h3>
-        <p>Something holds :3000 and you did not start it. This morning's agent session, a
-          container, or a dev server from last Tuesday that never died? <kbd>f</kbd> hands you a
-          port that is free now and not spoken for later.</p></div>
-      <div class="card rise"><p class="n">02</p><h3>An agent left the lights on</h3>
-        <p>Sessions exit. Their servers do not, and nothing on the machine remembers whose they
-          were. portlist writes a launch record the first time it sees a service and never
-          rewrites it, so the answer survives both.</p></div>
-      <div class="card rise"><p class="n">03</p><h3>Bound to the world by accident</h3>
-        <p><code>0.0.0.0</code> in a config file is a claim. The only honest answer comes from
-          connecting to this machine's real address and seeing what answers.</p></div>
-    </div>
   </div>
 </section>
 
-<section id="dashboard">
+<section class="chapter" id="ch2">
   <div class="wrap">
-    <p class="kicker rise">The dashboard</p>
-    <h2 class="rise">Everything, on one screen.</h2>
-    <p class="sub rise">Press <kbd>0</kbd>, or just start it: this is where portlist opens.
-      <kbd>Tab</kbd> moves between views in the same order as the number keys,
-      <kbd>h</kbd>/<kbd>l</kbd> between panes. The dials ease round as the readings change, and
-      one travelling wave runs under every card, its amplitude and speed taken from the metric
-      it sits under.</p>
-
-    <div class="term rise">
-      <div class="bar"><i></i><i></i><i></i><span>portlist &middot; dashboard</span></div>
-<pre aria-label="portlist dashboard: cards, the listening table, the selected service and the activity feed"><span class="t-vio"> PORTLIST  devbox               16 listening  2 off-box  2 need attention                                                 O 23:50:58</span>
- <span class="t-vio">▌</span>0 Dashboard   1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions   8 System
-<span class="t-dim">─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
- <span class="t-dim">┌</span><span class="t-dim">─</span> machine   load 3.42 3.61 3.95 <span class="t-dim">──────────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> exposure <span class="t-dim">────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> agents <span class="t-dim">──────────────</span><span class="t-dim">┐</span> <span class="t-dim">┌</span><span class="t-dim">─</span> containers <span class="t-dim">────────────</span><span class="t-dim">┐</span>
- <span class="t-dim">│</span>    <span class="t-dim">·</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-dim">·</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-ok">◉</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>       <span class="t-dim">│</span> <span class="t-dim">│</span><span class="t-vio"> LISTENING    16       </span><span class="t-dim">│</span> <span class="t-dim">│</span> Claude Code  14       <span class="t-dim">│</span> <span class="t-dim">│</span> ENGINE       docker     <span class="t-dim">│</span>
- <span class="t-dim">│</span>  <span class="t-dim">·</span>         <span class="t-ok">●</span>     <span class="t-dim">·</span>         <span class="t-ok">●</span>     <span class="t-ok">●</span>         <span class="t-ok">●</span>     <span class="t-dim">│</span> <span class="t-dim">│</span> EXPOSED      2        <span class="t-dim">│</span> <span class="t-dim">│</span> terminal     1        <span class="t-dim">│</span> <span class="t-dim">│</span> STATE        no answer  <span class="t-dim">│</span>
- <span class="t-dim">│</span> <span class="t-dim">·</span>    34%    <span class="t-ok">◉</span>   <span class="t-ok">◉</span>    85%    <span class="t-ok">●</span>   <span class="t-ok">●</span>    96%    <span class="t-ok">●</span>    <span class="t-dim">│</span> <span class="t-dim">│</span> NEEDS WORK   2        <span class="t-dim">│</span> <span class="t-dim">│</span> launchd      1        <span class="t-dim">│</span> <span class="t-dim">│</span> COUNT        unknown    <span class="t-dim">│</span>
- <span class="t-dim">│</span>  <span class="t-dim">·</span><span class="t-dim">   CPU   </span><span class="t-dim">·</span>     <span class="t-ok">●</span><span class="t-dim">   RAM   </span><span class="t-ok">●</span>     <span class="t-ok">●</span><span class="t-dim">  DISK   </span><span class="t-ok">●</span>     <span class="t-dim">│</span> <span class="t-dim">│</span> UNATTRIBUTED 14       <span class="t-dim">│</span> <span class="t-dim">│</span>                       <span class="t-dim">│</span> <span class="t-dim">│</span>              not zero   <span class="t-dim">│</span>
- <span class="t-dim">│</span>    <span class="t-dim">·</span>  <span class="t-dim">·</span>  <span class="t-dim">·</span>         <span class="t-ok">●</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>         <span class="t-ok">●</span>  <span class="t-ok">●</span>  <span class="t-ok">●</span>       <span class="t-dim">│</span> <span class="t-dim">│</span>                       <span class="t-dim">│</span> <span class="t-dim">│</span>                       <span class="t-dim">│</span> <span class="t-dim">│</span>                         <span class="t-dim">│</span>
- <span class="t-dim">│</span> ▂▁   ▁▁▂▃▃▂▂▁   ▃▅▆▇▆▅▃▁  ▁▃▄   ▁▃▅▇<span class="t-ok">█</span><span class="t-teal">▇▆▄▂  ▁▂</span>    <span class="t-dim">│</span> <span class="t-dim">│</span>    ▁▁▁▁▁▁      ▁▁▁▁▁▁ <span class="t-dim">│</span> <span class="t-dim">│</span> ▆▇<span class="t-ok">█</span><span class="t-teal">▇▆▄▂  ▁▃▅▇</span><span class="t-ok">██</span><span class="t-teal">▆▄▂▁ ▁</span> <span class="t-dim">│</span> <span class="t-dim">│</span> <span class="t-dim">······················</span>  <span class="t-dim">│</span>
- <span class="t-dim">└</span><span class="t-dim">──────────────────────────────────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">───────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">───────────────────────</span><span class="t-dim">┘</span> <span class="t-dim">└</span><span class="t-dim">─────────────────────────</span><span class="t-dim">┘</span>
-       ▁▁▁▁▁▁     ▁▁▁▁▁▁      ▁▁▁▁▁▁     ▁▁▁▁▁▁      ▁▁▁▁▁▁     ▁▁▁▁▁▁      ▁▁▁▁▁      ▁▁▁▁▁▁     ▁▁▁▁▁▁      ▁▁▁▁▁▁     ▁▁▁▁▁▁
-<span class="t-vio">  LISTENING  16 services  O LIVE                                                                              h/l pane   tab view</span>
-<span class="t-dim">    PORT    SERVICE               PROJECT           STARTED BY          REACH           RISK</span>
-  <span class="t-ok">●</span> :7337   Grafana               metrics           terminal            Localhost only  12 Info
-  <span class="t-teal">○</span> :8000   Python http.server    analytics         Claude Code         Localhost only  12 Info
-  <span class="t-teal">○</span> :8078   ?                     payments          Claude Code         Localhost only  7 Info
-  <span class="t-teal">○</span> :8422   ?                     data-export       Claude Code         Localhost only  7 Info
-▸ <span class="t-teal">○</span><span class="t-warn"> :8787   Python http.server    data-export       Claude Code         All interfaces  71 High</span>
-  <span class="t-teal">○</span> :8787   FastAPI / Uvicorn     scanner           Claude Code         Localhost only  12 Info
-  <span class="t-teal">○</span><span class="t-warn"> :8807   Python http.server    data-export       Claude Code         All interfaces  71 High</span>
-  <span class="t-teal">○</span> :9050   Tor                   /opt/homebrew     launchd             Localhost only  12 Info
-  <span class="t-teal">○</span> :14649  Bun                   tokenmax          Claude Code         Localhost only  0 Info
-  <span class="t-teal">○</span> :44596  Bun                   portlist          Claude Code         Localhost only  0 Info
-  <span class="t-teal">○</span> :48744  Bun                   metrics           Claude Code         Localhost only  0 Info
-  <span class="t-teal">○</span> :56609  Bun                   scanner           Claude Code         Localhost only  6 Info
-  <span class="t-teal">○</span> :57155  Bun                   portlist          Claude Code         Localhost only  6 Info
-<span class="t-vio">  SELECTED SERVICE                                                           </span><span class="t-dim">│</span><span class="t-vio"> ACTIVITY</span>
-                                                                             <span class="t-dim">│</span>
-  Python http.server :8787                                                   <span class="t-dim">│</span> 23:47:17 <span class="t-dim">·</span> Bun on :55909 stopped listening
-  ~/Downloads/data-export                                                    <span class="t-dim">│</span> 23:47:17 <span class="t-dim">·</span> Bun on :24695 stopped listening
-                                                                             <span class="t-dim">│</span> 23:36:14 <span class="t-dim">·</span> Bun opened on :63256 (loopback)
-<span class="t-warn">  REACH      All interfaces                                                  </span><span class="t-dim">│</span> 23:36:14 <span class="t-dim">·</span> Bun opened on :14649 (loopback)
-<span class="t-dim">  PID        96798   Python                                                  </span><span class="t-dim">│</span> 23:17:37 <span class="t-dim">·</span> Bun opened on :55909 (loopback)
-<span class="t-dim">  LAST USED  last used 76m ago                                               </span><span class="t-dim">│</span> 23:17:37 <span class="t-dim">·</span> Bun opened on :24695 (loopback)
-                                                                             <span class="t-dim">│</span> 23:07:54 <span class="t-dim">·</span> Python http.server on :39311 stopped listen
-<span class="t-vio">  ORIGIN                                                                     </span><span class="t-dim">│</span>
-    Started by a Claude Code session                                         <span class="t-dim">│</span><span class="t-dim"> CPU</span>
-                                                                             <span class="t-dim">│</span> ▃▃▃▃▃▃▃▃▃▃▃▃▃
-<span class="t-vio">  RISK  71 / 100   High                                                      </span><span class="t-dim">│</span><span class="t-dim"> MEMORY</span>
-    +42   Listening on all interfaces (0.0.0.0)                              <span class="t-dim">│</span> ▇▇▇▇▇▇▇▇▇▇▇▇▇
-    +10   No authentication seen and reachable off-box                       <span class="t-dim">│</span>
-    +10   Static file server exposing its working directory off-box          <span class="t-dim">│</span>
-    +9    Python http.server is a medium-sensitivity service (Static file s  <span class="t-dim">│</span>
-  <span class="t-ok">●</span> 2 exposed    <span class="t-bad">◆</span> 2 need attention    ⚠ 14 unknown origin    <span class="t-ok">◉</span> 3 agents    firewall on         ▁▂▂▃▃▂▂▁   ▁▁▂▃▃▂▂▁
- j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit                    updated 1s ago</pre>
+    <div class="ch-head rise">
+      <div class="ch-num">02</div>
+      <div class="ch-body">
+        <h2>Who started it?</h2>
+        <p>Process ancestry first, environment second, and a launch record last. Your tools create
+          the processes; this explains what they left behind. Six of them are read from the store
+          each already writes, and nothing is installed into any of them.</p>
+      </div>
+      <div class="glyph jp" aria-hidden="true">起</div>
     </div>
 
-    <div class="grid g3" style="margin-top:30px">
-      <div class="card rise"><p class="n">01</p><h3>The score is itemised</h3>
-        <p><code>71 High</code> is never a bare number. Every point that made it is listed
-          underneath, so the score can be argued with rather than believed.</p></div>
-      <div class="card rise"><p class="n">02</p><h3>Unknown origin is counted</h3>
-        <p>Services already listening before portlist first looked get their own number. None of
-          them quietly inherits a repository label from whatever owns the port now.</p></div>
-      <div class="card rise"><p class="n">03</p><h3>"No answer" is not "zero"</h3>
-        <p>When the container engine does not respond, the card says the count is unknown. A
-          silent zero would be the same sentence as "there are none".</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="install">
-  <div class="wrap">
-    <p class="kicker rise">Install</p>
-    <h2 class="rise">No strings attached.</h2>
-    <p class="sub rise">One program, no dependencies, nothing system-wide unless your package
-      manager puts it there. Uninstalling leaves one directory you can delete.</p>
-
-    <div class="tabs rise" role="tablist" aria-label="Install methods">
-      <button role="tab" aria-selected="true" aria-controls="p-curl" id="t-curl">curl</button>
-      <button role="tab" aria-selected="false" aria-controls="p-brew" id="t-brew">Homebrew</button>
-      <button role="tab" aria-selected="false" aria-controls="p-pipx" id="t-pipx">pipx</button>
-      <button role="tab" aria-selected="false" aria-controls="p-src" id="t-src">Source</button>
-    </div>
-
-    <div class="panel on rise" id="p-curl" role="tabpanel" aria-labelledby="t-curl">
-<pre class="sh"><button class="copybtn" type="button" data-copy="curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh">copy</button><span class="c"># into ~/.local, no root, nothing system-wide</span>
-<span class="p">$</span> curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh</pre>
-      <p class="note">Piping a script into a shell deserves suspicion, so
-        <a href="install.sh">read it first</a>: it fetches one tarball and writes to two
-        directories. Remove it with
-        <code>rm -rf ~/.local/lib/portlist ~/.local/bin/portlist</code>.</p>
-    </div>
-
-    <div class="panel rise" id="p-brew" role="tabpanel" aria-labelledby="t-brew">
-<pre class="sh"><button class="copybtn" type="button" data-copy="brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
-brew trust mr-hunt-007/portlist
-brew install portlist">copy</button><span class="c"># macOS and Linux</span>
-<span class="p">$</span> brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
-<span class="p">$</span> brew trust mr-hunt-007/portlist   <span class="c"># asked of every third-party tap</span>
-<span class="p">$</span> brew install portlist</pre>
-      <p class="note">The trust step is not optional: Homebrew refuses to load a formula from a
-        tap it has not been told to trust, and says so rather than installing anything.</p>
-    </div>
-
-    <div class="panel rise" id="p-pipx" role="tabpanel" aria-labelledby="t-pipx">
-<pre class="sh"><button class="copybtn" type="button" data-copy="pipx install git+https://github.com/Mr-hunt-007/portlist">copy</button><span class="c"># anywhere, and the simplest route on Windows</span>
-<span class="p">$</span> pipx install git+https://github.com/Mr-hunt-007/portlist
-<span class="p">$</span> pip  install git+https://github.com/Mr-hunt-007/portlist</pre>
-      <p class="note">An isolated environment per tool, and <code>windows-curses</code> is declared
-        as a dependency there, so Windows needs no extra step. Straight from the repository,
-        because nothing is on PyPI yet: the name <code>portlist</code> there belongs to an
-        unrelated package, so the distribution will be <code>portlist-tui</code> while the command
-        stays <code>portlist</code>.</p>
-    </div>
-
-    <div class="panel rise" id="p-src" role="tabpanel" aria-labelledby="t-src">
-<pre class="sh"><button class="copybtn" type="button" data-copy="git clone https://github.com/Mr-hunt-007/portlist &amp;&amp; cd portlist &amp;&amp; python3 portlist.py">copy</button><span class="c"># no build step, nothing to compile</span>
-<span class="p">$</span> git clone https://github.com/Mr-hunt-007/portlist
-<span class="p">$</span> cd portlist
-<span class="p">$</span> python3 portlist.py</pre>
-      <p class="note">The standard library is the whole dependency list.
-        <code>python3 -m plcore</code> works too.</p>
-    </div>
-  </div>
-</section>
-
-<section id="views">
-  <div class="wrap">
-    <p class="kicker rise">Ten views</p>
-    <h2 class="rise">One scan. Ten questions.</h2>
-    <p class="sub rise">Switching views never rescans and never moves your selection to a
-      different service. Every view is a question asked of the same model.</p>
-    <table class="views rise">
-      <tbody>
-        <tr><td><kbd>0</kbd></td><td>dashboard</td><td>everything at once, and where it opens</td></tr>
-        <tr><td><kbd>1</kbd></td><td>services</td><td>everything listening, with who started it</td></tr>
-        <tr><td><kbd>2</kbd></td><td>exposed</td><td>reachable from beyond this machine, checked by connecting</td></tr>
-        <tr><td><kbd>3</kbd></td><td>attention</td><td>critical, high and medium risk, with the reasons attached</td></tr>
-        <tr><td><kbd>4</kbd></td><td>leftovers</td><td>looks abandoned, with the measurements behind the guess</td></tr>
-        <tr><td><kbd>5</kbd></td><td>agents</td><td>grouped by the agent, editor or terminal that started it</td></tr>
-        <tr><td><kbd>6</kbd></td><td>containers</td><td>by compose project, and the host ports they hold</td></tr>
-        <tr><td><kbd>7</kbd></td><td>sessions</td><td>coding-agent sessions, what they were about, context used</td></tr>
-        <tr><td><kbd>8</kbd></td><td>system</td><td>this machine: load, memory, disks, network, exposure</td></tr>
-        <tr><td><kbd>9</kbd></td><td>graph</td><td>who started what, where it runs, and what it exposes</td></tr>
-      </tbody>
-    </table>
-
-    <div class="term rise" style="margin-top:34px">
-      <div class="bar"><i></i><i></i><i></i><span>portlist &middot; view 8</span></div>
-<pre aria-label="portlist system view"> <span class="t-dim">┌─</span><span class="t-vio"> machine </span><span class="t-dim">──────────────────────────────────┐</span> <span class="t-dim">┌─</span><span class="t-vio"> pulse </span><span class="t-dim">─────────────────────────────────────┐</span>
- <span class="t-dim">│</span> devbox                                     <span class="t-dim">│</span> <span class="t-dim">│</span><span class="t-dim"> cpu                 </span><span class="t-ok">▃▃▃▃▃▃▃▃▃▃▃▃▃</span>       40% <span class="t-dim">│</span>
- <span class="t-dim">│</span> macOS 26.5.2 (arm64)                       <span class="t-dim">│</span> <span class="t-dim">│</span><span class="t-dim"> mem                 </span><span class="t-vio">▇▇▇▇▇▇▇▇▇▇▇▇▇</span>       87% <span class="t-dim">│</span>
- <span class="t-dim">│</span> Apple M4 (4P+6E)                           <span class="t-dim">│</span> <span class="t-dim">│</span><span class="t-dim"> net                             no rate yet </span><span class="t-dim">│</span>
- <span class="t-dim">│</span><span class="t-teal"> up 38d 5h   ●   636 processes              </span><span class="t-dim">│</span> <span class="t-dim">│</span><span class="t-dim"> one sample a second, 120 kept               </span><span class="t-dim">│</span>
- <span class="t-dim">└────────────────────────────────────────────┘</span> <span class="t-dim">└─────────────────────────────────────────────┘</span>
- <span class="t-dim">┌─</span><span class="t-vio"> load </span><span class="t-dim">─────────────────────────────────────────────────────────────────────────────────────┐</span>
- <span class="t-dim">│</span><span class="t-dim"> cpu       </span><span class="t-ok">████████████</span><span class="t-dim">░░░░░░░░░░░░░░░░░░</span><span class="t-vio">  40.3% 10 cores   load 4.0  3.4  3.4              </span><span class="t-dim">│</span>
- <span class="t-dim">│</span><span class="t-dim"> memory    </span><span class="t-warn">██████████████████████████</span><span class="t-dim">░░░░</span>  86.7% 14G of 16G   swap 12G of 13G               <span class="t-dim">│</span>
- <span class="t-dim">│</span><span class="t-dim"> disk /    </span><span class="t-bad">█████████████████████████████</span><span class="t-dim">░</span>  96.2% 8.6G free of 228G                          <span class="t-dim">│</span>
- <span class="t-dim">└────────────────────────────────────────────────────────────────────────────────────────────┘</span>
- <span class="t-dim">┌─</span><span class="t-vio"> exposure </span><span class="t-dim">─────────────────┐</span> <span class="t-dim">┌─</span><span class="t-vio"> security </span><span class="t-dim">─────────────────┐</span> <span class="t-dim">┌─</span><span class="t-vio"> network </span><span class="t-dim">────────────────────┐</span>
- <span class="t-dim">│</span> 14 listening               <span class="t-dim">│</span> <span class="t-dim">│</span> firewall on                <span class="t-dim">│</span> <span class="t-dim">│</span> en0  192.168.0.2  private    <span class="t-dim">│</span>
- <span class="t-dim">│</span> 2 reachable off this machi <span class="t-dim">│</span> <span class="t-dim">│</span> stealth off                <span class="t-dim">│</span> <span class="t-dim">│</span> 18 interfaces                <span class="t-dim">│</span>
- <span class="t-dim">│</span> 0 critical, 2 high         <span class="t-dim">│</span> <span class="t-dim">│</span> ssh off                    <span class="t-dim">│</span> <span class="t-dim">│</span>                              <span class="t-dim">│</span>
- <span class="t-dim">│</span> 0 AI assets                <span class="t-dim">│</span> <span class="t-dim">│</span> docker not answering       <span class="t-dim">│</span> <span class="t-dim">│</span>                              <span class="t-dim">│</span>
- <span class="t-dim">└────────────────────────────┘</span> <span class="t-dim">└────────────────────────────┘</span> <span class="t-dim">└──────────────────────────────┘</span></pre>
-    </div>
-  </div>
-</section>
-
-<section id="vibe">
-  <div class="wrap">
-    <p class="kicker rise">Vibe mode</p>
-    <h2 class="rise">Leave it open on the second monitor.</h2>
-    <p class="sub rise">Press <kbd>V</kbd>, or leave it alone for thirty seconds and it arrives on
-      its own. Five scenes rotate: the cockpit below, the machine and its meters, the network
-      between local services, each agent and what it started, and what has actually happened
-      lately. Any key brings the list straight back.</p>
-
-    <div class="term rise">
-      <div class="bar"><i></i><i></i><i></i><span>portlist &middot; vibe &middot; cockpit</span></div>
-<pre aria-label="portlist vibe mode, the cockpit scene"><span class="t-key">                                          P O R T L I S T</span>
-
-<span class="t-dim">       CPU </span><span class="t-warn">████████</span><span class="t-dim">░░░░░░░░</span>  49%  MEM <span class="t-warn">██████████████</span><span class="t-dim">░░</span>  86%
-<span class="t-dim">       DISK </span><span class="t-bad">███████████████</span><span class="t-dim">░</span><span class="t-key">  96% o  MACHINE ALIVE</span>
-
-       <span class="t-teal">○</span><span class="t-warn"> :8787   Python http.server    data-export       OFF-BOX   </span><span class="t-bad">◇</span> HIGH
-       <span class="t-teal">○</span><span class="t-warn"> :8807   Python http.server    data-export       OFF-BOX   </span><span class="t-bad">◇</span> HIGH
-       <span class="t-ok">◉</span> :7337   Grafana               metrics           LOCAL
-       <span class="t-teal">○</span> :8000   Python http.server    analytics         LOCAL
-       <span class="t-teal">○</span> :8787   FastAPI / Uvicorn     scanner           LOCAL
-       <span class="t-teal">○</span> :9050   Tor                   /opt/homebrew     LOCAL
-       <span class="t-teal">○</span> :8078   ?                     payments          LOCAL
-       <span class="t-teal">○</span> :8422   ?                     data-export       LOCAL
-       <span class="t-teal">○</span> :56609  Bun                   scanner           LOCAL
-       <span class="t-ok">●</span> :57155  Bun                   portlist          LOCAL
-
-
-              <span class="t-dim">─────────────────────────────────</span><span class="t-key"> HOST </span><span class="t-dim">─────────────────────────────────</span>
-                    <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>           <span class="t-dim">│</span>
-                   <span class="t-teal">○</span>           <span class="t-teal">○</span>           <span class="t-ok">◉</span>           <span class="t-teal">○</span>           <span class="t-teal">○</span>           <span class="t-teal">○</span>
-                  8787        8807        7337        8000        8787        9050
-
-
-<span class="t-key">                   14 SERVICES   </span><span class="t-ok">●</span>   3 AGENTS   <span class="t-ok">●</span>   0 CONTAINERS   <span class="t-ok">●</span><span class="t-warn">   2 OFF-BOX</span></pre>
-    </div>
-
-    <div class="grid g2" style="margin-top:28px">
-      <div class="card rise"><h3>Nothing moves unless it was measured</h3>
-        <p>A dot pulses because that service was measured busy inside the last minute. A particle
-          crosses an edge because a loopback connection between those two ports was observed. A
-          service is marked NEW because it really started listening while you were watching, and
-          the first frame marks nothing at all, because everything is new to the screen and none
-          of it is new to the machine.</p></div>
-      <div class="card rise"><h3>Five themes, four speeds</h3>
-        <p>observatory, neon, terminal, aurora, minimal. Static through cinematic.
-          <kbd>t</kbd> and <kbd>s</kbd> cycle them, <kbd>n</kbd> jumps a scene, and the choice is
-          remembered. Turning animation off also stops vibe mode arriving by itself, because
-          asking for a still screen and being given a moving one is not a feature.</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="sessions">
-  <div class="wrap">
-    <p class="kicker rise">View 7</p>
-    <h2 class="rise">The ten agent windows you never closed.</h2>
-    <p class="sub rise">Six tools, each read from the store it already writes. The generated
-      title, the first prompt you typed, the project, and the context each one is carrying, which
-      is the number that decides what to clear.</p>
-    <div class="term rise">
-      <div class="bar"><i></i><i></i><i></i><span>portlist &middot; view 7</span></div>
-<pre aria-label="portlist sessions view"><span class="t-dim">  sessions                     5 running, 60 on disk, 42 stale</span>
-
-<span class="t-dim">     Claude Code      </span>max - default max 20x
-<span class="t-dim">     Codex            not signed in</span>
-<span class="t-dim">     GitHub Copilot   </span>signed in
-<span class="t-dim">     Gemini           </span>signed in
-
- <span class="t-ok">*</span> claude  Refactor the billing webhook retries      payments      <span class="t-warn">621k</span>  2d ago   <span class="t-dim">4 here</span>
- <span class="t-ok">*</span> claude  Port the admin table to server components admin-ui      <span class="t-dim">182k</span>  2d ago   <span class="t-dim">pid 14502</span>
-   copilot Update the HTML export with JSON summary  storefront          <span class="t-dim">8d ago</span>
-   claude  Trace the flaky integration test          api           <span class="t-dim">193k</span>  <span class="t-dim">3h ago</span></pre>
-    </div>
-    <p class="small rise" style="margin-top:16px">Prompts never leave the machine. portlist has no
-      server and no network code, so there is nowhere for them to go.</p>
-  </div>
-</section>
-
-<section id="architecture">
-  <div class="wrap">
-    <p class="kicker rise">Architecture</p>
-    <h2 class="rise">One scan, one model, ten views.</h2>
-    <p class="sub rise">A view is a question asked of the model, never a second trip to the
-      machine. That is why switching views is instant, why the tab counts always agree with the
-      rows underneath, and why a new view costs a filter rather than a collector.</p>
-
-    <figure class="rise">
-      <svg class="arch" viewBox="0 0 980 300" role="img"
-           aria-label="Diagram: the machine is read once into one model, which is stored in the launch ledger and rendered as ten views">
-        <defs>
-          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path>
-          </marker>
-        </defs>
-        <g fill="none" stroke="currentColor" stroke-width="1.2" opacity=".8">
-          <rect x="8" y="52" width="212" height="150" rx="8"></rect>
-          <rect x="384" y="52" width="200" height="150" rx="8"></rect>
-          <rect x="754" y="30" width="218" height="194" rx="8"></rect>
-          <rect x="384" y="240" width="200" height="52" rx="8" stroke-dasharray="4 3"></rect>
-        </g>
-        <g font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor">
-          <text x="14" y="42" opacity=".6">the machine</text>
-          <text x="390" y="42" opacity=".6">one model</text>
-          <text x="760" y="20" opacity=".6">ten views</text>
-          <text x="28" y="82">sockets</text>
-          <text x="28" y="106">processes</text>
-          <text x="28" y="130">containers</text>
-          <text x="28" y="154">git roots</text>
-          <text x="28" y="178">transcripts</text>
-          <text x="404" y="112">a row per service</text>
-          <text x="404" y="134">on a port</text>
-          <text x="404" y="164" opacity=".6">signature, not pid</text>
-          <text x="404" y="268">~/.portlist</text>
-          <text x="404" y="286" opacity=".6">launch ledger, use history</text>
-          <text x="774" y="58">0 dashboard</text><text x="884" y="58">5 agents</text>
-          <text x="774" y="82">1 services</text><text x="884" y="82">6 containers</text>
-          <text x="774" y="106">2 exposed</text><text x="884" y="106">7 sessions</text>
-          <text x="774" y="130">3 attention</text><text x="884" y="130">8 system</text>
-          <text x="774" y="154">4 leftovers</text><text x="884" y="154">9 graph</text>
-          <text x="774" y="190" opacity=".6">a filter or a grouping, never a second scan</text>
-        </g>
-        <g stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)" fill="none">
-          <line x1="222" y1="127" x2="376" y2="127"></line>
-          <line x1="586" y1="127" x2="746" y2="127"></line>
-          <line x1="484" y1="204" x2="484" y2="234"></line>
-        </g>
-        <g font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor" opacity=".7">
-          <text x="252" y="118">read once</text>
-          <text x="618" y="118">filter, group</text>
-          <text x="492" y="224">written once,</text>
-          <text x="492" y="238">never rewritten</text>
-        </g>
+    <div class="eco rise" id="eco">
+      <svg viewBox="0 0 762 420" role="img"
+           aria-label="Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI and VS Code all feed into portlist">
+      <g class="link" style="--tone:#B4472F">
+        <path class="wire" d="M150 92 Q 265 153 381 214"></path>
+        <path class="flow" d="M150 92 Q 265 153 381 214" stroke="#B4472F"></path>
+        <circle class="seal" cx="150" cy="92" r="5"></circle>
+        <text class="lbl" x="150" y="78" text-anchor="start">Claude Code</text>
+      </g>
+      <g class="link" style="--tone:#1F7A66">
+        <path class="wire" d="M612 92 Q 496 153 381 214"></path>
+        <path class="flow" d="M612 92 Q 496 153 381 214" stroke="#1F7A66"></path>
+        <circle class="seal" cx="612" cy="92" r="5"></circle>
+        <text class="lbl" x="612" y="78" text-anchor="end">Codex</text>
+      </g>
+      <g class="link" style="--tone:#2A2724">
+        <path class="wire" d="M86 232 Q 233 223 381 214"></path>
+        <path class="flow" d="M86 232 Q 233 223 381 214" stroke="#2A2724"></path>
+        <circle class="seal" cx="86" cy="232" r="5"></circle>
+        <text class="lbl" x="86" y="218" text-anchor="start">Cursor</text>
+      </g>
+      <g class="link" style="--tone:#4A4740">
+        <path class="wire" d="M676 232 Q 528 223 381 214"></path>
+        <path class="flow" d="M676 232 Q 528 223 381 214" stroke="#4A4740"></path>
+        <circle class="seal" cx="676" cy="232" r="5"></circle>
+        <text class="lbl" x="676" y="218" text-anchor="end">GitHub Copilot</text>
+      </g>
+      <g class="link" style="--tone:#2B5CB8">
+        <path class="wire" d="M232 336 Q 306 275 381 214"></path>
+        <path class="flow" d="M232 336 Q 306 275 381 214" stroke="#2B5CB8"></path>
+        <circle class="seal" cx="232" cy="336" r="5"></circle>
+        <text class="lbl" x="232" y="322" text-anchor="start">Gemini CLI</text>
+      </g>
+      <g class="link" style="--tone:#1F6FB2">
+        <path class="wire" d="M530 336 Q 455 275 381 214"></path>
+        <path class="flow" d="M530 336 Q 455 275 381 214" stroke="#1F6FB2"></path>
+        <circle class="seal" cx="530" cy="336" r="5"></circle>
+        <text class="lbl" x="530" y="322" text-anchor="end">VS Code</text>
+      </g>
+        <circle class="ring" cx="381" cy="214" r="30"></circle>
+        <circle class="hub" cx="381" cy="214" r="30"></circle>
+        <text class="hubname" x="381" y="219" text-anchor="middle">pl</text>
+        <text class="lbl" x="381" y="404" text-anchor="middle">portlist &nbsp;/&nbsp; reads, never writes</text>
       </svg>
-      <figcaption>The ledger is the only thing that persists, and it is matched by signature
-        rather than by pid, which is what lets provenance survive a restart.</figcaption>
-    </figure>
+    </div>
   </div>
 </section>
 
-<section id="honest">
+<section class="chapter" id="ch3">
   <div class="wrap">
-    <p class="kicker rise">What it will not do</p>
-    <h2 class="rise">The restraint is the feature.</h2>
+    <div class="ch-head rise">
+      <div class="ch-num">03</div>
+      <div class="ch-body">
+        <h2>Does it matter?</h2>
+        <p>Reachability checked by connecting to this machine's real address, not by reading a
+          bind string. Risk as a score with every reason attached, so it can be argued with rather
+          than believed. Use measured over time, because a process can be up for a month and
+          touched this morning.</p>
+      </div>
+      <div class="glyph jp" aria-hidden="true">危</div>
+    </div>
+
     <ul class="plain">
-      <li class="rise"><strong>It never stops anything.</strong> The detail pane prints the command
-        and you run it. A tool that both guesses which process is abandoned and can end it will
-        eventually end the wrong one.</li>
-      <li class="rise"><strong>It opens no listening socket.</strong> It connects outward to see
-        what answers, and binds a candidate port for a moment to check it is free. Neither calls
-        <code>listen()</code>, so a tool for watching what is listening never adds to the list.</li>
-      <li class="rise"><strong>It sends nothing anywhere.</strong> No server, no telemetry, no
-        update check. Agent transcripts are read locally and stay there.</li>
-      <li class="rise"><strong>It says "unknown" out loud.</strong> A process that was already
-        running before portlist ever ran has unknown origin, and shows it, rather than inheriting
-        a repository label from whatever owns the port now.</li>
-      <li class="rise"><strong>It measures instead of assuming.</strong> Reachability by
-        connecting, use over time rather than uptime, and a gap in the sparkline where nothing was
-        measured rather than a zero.</li>
+      <li class="rise" data-n="01"><span><strong>It never stops anything.</strong> The detail pane
+        prints the command and you run it. A tool that both guesses which process is abandoned and
+        can end it will eventually end the wrong one.</span></li>
+      <li class="rise" data-n="02"><span><strong>It opens no listening socket.</strong> It connects
+        outward to see what answers, and binds a candidate port for a moment to check it is free.
+        Neither calls <code>listen()</code>.</span></li>
+      <li class="rise" data-n="03"><span><strong>It sends nothing anywhere.</strong> No server, no
+        telemetry, no update check. Agent transcripts are read locally and stay there.</span></li>
+      <li class="rise" data-n="04"><span><strong>It says unknown out loud</strong> rather than
+        letting a stale process inherit a repository label from whatever owns the port now.</span></li>
     </ul>
   </div>
 </section>
 
-<section id="docs">
+<section class="chapter" id="install">
   <div class="wrap">
-    <p class="kicker rise">Documentation</p>
-    <h2 class="rise">Everything, written down.</h2>
-    <div class="grid g3">
-      <div class="card rise"><h3><a href="SETUP.md">Setup</a></h3>
-        <p>Every install route, what each one puts where, and how to remove it.</p></div>
-      <div class="card rise"><h3><a href="USAGE.md">Usage</a></h3>
-        <p>The views, the keys, and what every column actually means.</p></div>
-      <div class="card rise"><h3><a href="FEATURES.md">Features</a></h3>
-        <p>The full list, grouped by the question each one answers.</p></div>
-      <div class="card rise"><h3><a href="ARCHITECTURE.md">Architecture</a></h3>
-        <p>The layers, the launch ledger, and the three states of attribution.</p></div>
-      <div class="card rise"><h3><a href="MOTION.md">Motion</a></h3>
-        <p>The animation language: five primitives, and why each thing moves.</p></div>
-      <div class="card rise"><h3><a href="https://github.com/Mr-hunt-007/portlist/blob/main/CHANGELOG.md">Changelog</a></h3>
-        <p>What changed in each version, including the bugs and what caused them.</p></div>
+    <div class="ch-head rise">
+      <div class="ch-num">04</div>
+      <div class="ch-body">
+        <h2>Install.</h2>
+        <p>One program, no dependencies, nothing system-wide unless your package manager puts it
+          there. Uninstalling leaves one directory you can delete.</p>
+      </div>
+      <div class="glyph jp" aria-hidden="true">入</div>
+    </div>
+
+    <div class="tabs rise" role="tablist" aria-label="Install methods">
+      <button role="tab" aria-selected="true" aria-controls="p-curl" id="t-curl">curl</button>
+      <button role="tab" aria-selected="false" aria-controls="p-brew" id="t-brew">homebrew</button>
+      <button role="tab" aria-selected="false" aria-controls="p-pipx" id="t-pipx">pipx</button>
+      <button role="tab" aria-selected="false" aria-controls="p-src" id="t-src">source</button>
+    </div>
+    <div class="panel on" id="p-curl" role="tabpanel" aria-labelledby="t-curl">
+<pre class="sh"><button class="copybtn" type="button" data-copy="curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh">copy</button><span class="c"># into ~/.local, no root, nothing system-wide</span>
+<span class="p">$</span> curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh</pre>
+      <p class="note">Piping into a shell deserves suspicion, so <a href="install.sh">read it
+        first</a>: one tarball, two directories.</p>
+    </div>
+    <div class="panel" id="p-brew" role="tabpanel" aria-labelledby="t-brew">
+<pre class="sh"><button class="copybtn" type="button" data-copy="brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
+brew trust mr-hunt-007/portlist
+brew install portlist">copy</button><span class="p">$</span> brew tap Mr-hunt-007/portlist https://github.com/Mr-hunt-007/homebrew-portlist
+<span class="p">$</span> brew trust mr-hunt-007/portlist   <span class="c"># asked of every third-party tap</span>
+<span class="p">$</span> brew install portlist</pre>
+      <p class="note">The trust step is not optional: Homebrew refuses a tap it has not been told
+        to trust, and says so rather than installing anything.</p>
+    </div>
+    <div class="panel" id="p-pipx" role="tabpanel" aria-labelledby="t-pipx">
+<pre class="sh"><button class="copybtn" type="button" data-copy="pipx install git+https://github.com/Mr-hunt-007/portlist">copy</button><span class="p">$</span> pipx install git+https://github.com/Mr-hunt-007/portlist
+<span class="p">$</span> pip  install git+https://github.com/Mr-hunt-007/portlist</pre>
+      <p class="note">Straight from the repository: the name <code>portlist</code> on PyPI belongs
+        to an unrelated package, so the distribution will be <code>portlist-tui</code> while the
+        command stays <code>portlist</code>.</p>
+    </div>
+    <div class="panel" id="p-src" role="tabpanel" aria-labelledby="t-src">
+<pre class="sh"><button class="copybtn" type="button" data-copy="git clone https://github.com/Mr-hunt-007/portlist &amp;&amp; cd portlist &amp;&amp; python3 portlist.py">copy</button><span class="p">$</span> git clone https://github.com/Mr-hunt-007/portlist
+<span class="p">$</span> cd portlist &amp;&amp; python3 portlist.py</pre>
+      <p class="note">No build step. The standard library is the whole dependency list.</p>
     </div>
   </div>
 </section>
 </main>
 
-<footer>
-  <div class="wrap">
-    <div class="row">
-      <a href="https://github.com/Mr-hunt-007/portlist">Source</a>
-      <a href="https://github.com/Mr-hunt-007/portlist/issues">Issues</a>
-      <a href="https://github.com/Mr-hunt-007/portlist/releases">Releases</a>
-      <a href="https://github.com/Mr-hunt-007/portlist/blob/main/LICENSE">MIT licence</a>
-      <a class="coffee" href="https://buymeacoffee.com/mr.hunt.007">buy me a<span class="long"> coffee</span></a>
-    </div>
-    <p class="small" style="margin-top:22px">portlist 1.1. Standard library only.
-      Free, and free of strings.</p>
+<footer><div class="wrap">
+  <div class="row">
+    <a href="https://github.com/Mr-hunt-007/portlist">Source</a>
+    <a href="https://github.com/Mr-hunt-007/portlist/issues">Issues</a>
+    <a href="https://github.com/Mr-hunt-007/portlist/releases">Releases</a>
+    <a href="SETUP.md">Setup</a>
+    <a href="USAGE.md">Usage</a>
+    <a href="MOTION.md">Motion</a>
+    <a href="https://github.com/Mr-hunt-007/portlist/blob/main/LICENSE">MIT</a>
+    <a href="https://buymeacoffee.com/mr.hunt.007">Buy me a coffee</a>
   </div>
-</footer>
+  <p class="end jp">観測 &nbsp;&nbsp; portlist 1.1</p>
+</div></footer>
 
-<script src="vendor/gsap.min.js"></script>
-<script src="vendor/ScrollTrigger.min.js"></script>
 <script>
 (function(){
   var still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var scr = document.getElementById("screens"), keys = document.getElementById("keys"),
+      hint = document.getElementById("hint"), stage = document.getElementById("stage"),
+      crt = document.getElementById("crt"), panes = {}, btns = {},
+      current = "dashboard", touched = false, timer = 0;
 
-  /* ---- the field behind the hero -------------------------------------- */
-  /* The same idea the program itself draws: a travelling wave, sparse, made of
-     characters. It carries no reading here - this is a website, not the tool -
-     so it is kept faint and slow enough to read over.                        */
-  var cv = document.getElementById("field");
-  if (cv && !still) {
-    var cx = cv.getContext("2d", { alpha: true });
-    var RAMP = " .:-=+*#", CW = 15, CH = 20, cols = 0, rows = 0, t = 0, raf = 0, on = true;
-    function size(){
-      var r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
-      cv.width = Math.floor(r.width * d); cv.height = Math.floor(r.height * d);
-      cx.setTransform(d, 0, 0, d, 0, 0);
-      cols = Math.ceil(r.width / CW); rows = Math.ceil(r.height / CH);
-      cx.font = "13px IBM Plex Mono, monospace"; cx.textBaseline = "top";
+  scr.querySelectorAll(".screen").forEach(function(p){ panes[p.dataset.view] = p; });
+  keys.querySelectorAll("button").forEach(function(b){ btns[b.dataset.k] = b; });
+
+  function show(view, key){
+    if (!panes[view] || view === current) return;
+    panes[current].classList.remove("on"); panes[current].setAttribute("aria-hidden","true");
+    panes[view].classList.add("on"); panes[view].setAttribute("aria-hidden","false");
+    Object.keys(btns).forEach(function(k){ btns[k].setAttribute("aria-current", String(k===key)); });
+    current = view;
+  }
+  keys.addEventListener("click", function(e){
+    var b = e.target.closest("button[data-view]"); if (!b) return;
+    touched = true; clearInterval(timer);
+    hint.textContent = "keyboard works too: 0-9 and V";
+    show(b.dataset.view, b.dataset.k);
+  });
+  addEventListener("keydown", function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key.length === 1 ? e.key.toUpperCase() : "";
+    var b = btns[k] || btns[e.key]; if (!b) return;
+    touched = true; clearInterval(timer);
+    hint.textContent = "that is the real screen, not a mock";
+    show(b.dataset.view, b.dataset.k);
+  });
+  crt.addEventListener("click", function(){
+    var on = stage.classList.toggle("crt");
+    crt.setAttribute("aria-pressed", String(on));
+    hint.textContent = on ? "phosphor, scanlines and a slow flicker"
+                          : "real screens, captured from a running machine";
+  });
+  if (!still) {
+    var order = ["0","8","9","7","V"], i = 0;
+    timer = setInterval(function(){
+      if (touched){ clearInterval(timer); return; }
+      i = (i + 1) % order.length;
+      show(btns[order[i]].dataset.view, order[i]);
+    }, 3400);
+  }
+
+  var eco = document.getElementById("eco");
+  if (eco) {
+    var links = eco.querySelectorAll("g.link"), li = -1, et = 0;
+    function pulse(){
+      links.forEach(function(g){ g.classList.remove("live"); });
+      li = (li + 1) % links.length; links[li].classList.add("live");
+      eco.classList.remove("hit");
+      setTimeout(function(){ eco.classList.add("hit"); }, 1200);
     }
-    function frame(){
-      raf = 0;
-      var r = cv.getBoundingClientRect();
-      cx.clearRect(0, 0, r.width, r.height);
-      for (var y = 0; y < rows; y++){
-        for (var x = 0; x < cols; x++){
-          var v = Math.sin(x * 0.22 - t) * 0.5 + 0.5;
-          v *= Math.sin(y * 0.35 + t * 0.6) * 0.5 + 0.5;
-          v *= 1 - (y / rows) * 0.55;                  /* fades down the page */
-          var i = Math.floor(v * (RAMP.length - 1) * 1.35);
-          if (i < 3) continue;                          /* sparse: most cells stay empty */
-          var ch = RAMP[Math.min(i, RAMP.length - 1)];
-          cx.fillStyle = i > 5 ? "rgba(232,163,61," + (0.05 + v * 0.16) + ")"
-                               : "rgba(63,167,160," + (0.04 + v * 0.11) + ")";
-          cx.fillText(ch, x * CW, y * CH);
-        }
-      }
-      t += 0.045;
-      if (on) raf = requestAnimationFrame(function(){ setTimeout(frame, 55); });
-    }
-    size(); frame();
-    addEventListener("resize", function(){ size(); }, { passive: true });
-    /* stop drawing the moment it scrolls out of view */
     if (window.IntersectionObserver) {
       new IntersectionObserver(function(es){
-        on = es[0].isIntersecting;
-        if (on && !raf) frame();
-      }, { threshold: 0 }).observe(cv);
-    }
+        if (es[0].isIntersecting){ if (!et){ pulse(); et = setInterval(pulse, 2800); } }
+        else { clearInterval(et); et = 0; }
+      }, { threshold:.25 }).observe(eco);
+    } else pulse();
   }
 
-  /* ---- scroll motion --------------------------------------------------- */
-  if (window.gsap && !still) {
-    gsap.registerPlugin(ScrollTrigger);
-
-    gsap.to(".hero .rise", { opacity: 1, y: 0, duration: .7, stagger: .07, ease: "power2.out" });
-
-    document.querySelectorAll("section").forEach(function(sec){
-      var items = sec.querySelectorAll(".rise");
-      if (!items.length) return;
-      gsap.to(items, {
-        opacity: 1, y: 0, duration: .6, stagger: .06, ease: "power2.out",
-        scrollTrigger: { trigger: sec, start: "top 78%" }
+  if (window.IntersectionObserver) {
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(en){
+        if (en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); }
       });
-    });
-
-    /* the port field drifts a little slower than the page */
-    gsap.to("body", {
-      "--parallax": 1,
-      scrollTrigger: { trigger: document.body, start: "top top", end: "bottom bottom", scrub: .6,
-        onUpdate: function(self){
-          document.body.style.setProperty("--py", (self.progress * -90) + "px");
-        } }
-    });
-    var st = document.createElement("style");
-    st.textContent = "body::after{transform:translateY(var(--py,0px))}";
-    document.head.appendChild(st);
-
-    /* terminal blocks arrive line by line, the way the program paints */
-    document.querySelectorAll(".term pre").forEach(function(pre){
-      gsap.fromTo(pre, { clipPath: "inset(0 0 100% 0)" },
-        { clipPath: "inset(0 0 0% 0)", duration: 1.1, ease: "power2.inOut",
-          scrollTrigger: { trigger: pre, start: "top 85%" } });
-    });
+    }, { threshold:.14 });
+    document.querySelectorAll(".rise, .stroke").forEach(function(el){ io.observe(el); });
   } else {
-    document.querySelectorAll(".rise").forEach(function(el){
-      el.style.opacity = 1; el.style.transform = "none";
-    });
+    document.querySelectorAll(".rise, .stroke").forEach(function(el){ el.classList.add("in"); });
   }
 
-  /* ---- install tabs ---------------------------------------------------- */
   var tabs = document.querySelectorAll('[role="tab"]');
   tabs.forEach(function(tab){
     tab.addEventListener("click", function(){
       tabs.forEach(function(t){
-        t.setAttribute("aria-selected", String(t === tab));
-        document.getElementById(t.getAttribute("aria-controls")).classList.toggle("on", t === tab);
+        t.setAttribute("aria-selected", String(t===tab));
+        document.getElementById(t.getAttribute("aria-controls")).classList.toggle("on", t===tab);
       });
     });
   });
-
-  /* ---- copy buttons ---------------------------------------------------- */
   document.querySelectorAll("[data-copy]").forEach(function(b){
     b.addEventListener("click", function(){
       var text = b.getAttribute("data-copy"), done = function(){
         var was = b.textContent; b.textContent = "copied";
-        setTimeout(function(){ b.textContent = was; }, 1400);
+        setTimeout(function(){ b.textContent = was; }, 1300);
       };
-      if (navigator.clipboard) { navigator.clipboard.writeText(text).then(done, function(){}); }
-      else {
-        var ta = document.createElement("textarea");
-        ta.value = text; document.body.appendChild(ta); ta.select();
-        try { document.execCommand("copy"); done(); } catch (e) {}
-        document.body.removeChild(ta);
-      }
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, function(){});
     });
   });
 })();

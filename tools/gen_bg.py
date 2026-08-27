@@ -100,13 +100,33 @@ def port_field(path, w=1600, h=900):
     return png(path, w, h, px, alpha=True)
 
 
+def paper(path, size=400):
+    """Warm paper grain. Barely there: it should read as a surface, not as noise.
+
+    Two frequencies, because one looks like television static. A coarse fibre
+    laid under a fine speck, both at very low contrast.
+    """
+    rnd = random.Random(21)
+    base = (0xF2, 0xEF, 0xE7)
+    px = [[base for _ in range(size)] for _ in range(size)]
+    for y in range(size):
+        for x in range(size):
+            fibre = math.sin((x * 0.7 + y * 0.3) * 0.35) * 1.4
+            speck = (rnd.random() - 0.5) * 5.0
+            d = fibre + speck
+            px[y][x] = tuple(max(0, min(255, int(c + d))) for c in base)
+    return png(path, size, size, px)
+
+
 def main():
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs = os.path.join(root, "docs")
     a = grid_tile(os.path.join(docs, "bg-grid.png"))
     b = port_field(os.path.join(docs, "bg-ports.png"))
+    c = paper(os.path.join(docs, "bg-paper.png"))
     print("wrote docs/bg-grid.png  (%d bytes)" % a)
     print("wrote docs/bg-ports.png (%d bytes)" % b)
+    print("wrote docs/bg-paper.png (%d bytes)" % c)
 
 
 if __name__ == "__main__":

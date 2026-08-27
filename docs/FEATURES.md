@@ -16,10 +16,10 @@ guessing.
   a busy one moves faster and taller, and something unmeasured draws a flat line
   rather than a wave at zero. It is ornament in shape and a measurement in
   amplitude, and it is never used where a history belongs.
-- **A use trail per row** on wide terminals, in the space that is otherwise
-  dead to the right of the risk column: its amplitude is the share of watched
-  time that service had a connection, so one glance says which of sixteen
-  services anybody actually uses.
+- **A lifetime column** on wide terminals, in the space that is otherwise dead
+  to the right of the risk column: how long each service has been listening, on
+  one log axis shared by every row, so a glance separates the thing that has
+  been up for a month from the one that arrived while you were making coffee.
 - **Live dials.** Three twelve-segment rings for CPU, memory and disk. The ring
   eases round when the reading changes and the leading segment pulses; an
   unmeasured value draws an empty ring instead of resting at zero.

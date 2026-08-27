@@ -125,7 +125,7 @@ Not motion so much as vocabulary. One character, one state.
 | an agent and its ports | flow | the ledger's record of what it started |
 | something started or stopped | ripple, once | the scan diff |
 | the focused pane | scan | where you are |
-| a row's use trail | wave, per row | that service's share of watched time with a connection |
+| a row's lifetime | static bar, per row | how long it has been listening, on one log axis |
 | the whole screen, at rest | breath | nothing at all, gently |
 
 ## The rules by state
@@ -196,17 +196,32 @@ mid-animation frames are ugly: a wave caught mid-sweep is fine, a spinner caught
 between glyphs is not. It is also why breath uses density rather than height -
 a still frame of it reads as texture, not as an interrupted animation.
 
-## The wide-terminal trail
+## The wide-terminal column
 
-Past about 150 columns the space to the right of RISK is dead. Each row takes a
-trail there: amplitude from `busy_samples / samples`, which is the share of the
-time portlist has watched that service during which something was connected, and
-phase offset by port number so the rows do not march in lockstep.
+Past about 150 columns the space to the right of RISK is dead. It carries how
+long each service has been listening, on one log axis shared by every row and
+normalised across the range actually on screen.
 
-It claims nothing new. It is the measurement the leftovers view already reasons
-about, drawn as texture instead of a sentence, and it turns the emptiest part of
-a wide screen into the part that shows you which of sixteen services anybody
-actually uses. A service not yet watched long enough draws dots.
+```
+UPTIME   minutes ━━━━▸ weeks   (log)
+━                                         1h
+━━━━━━━━━━                                7h
+━━━━━━━━━━━━━━━━━━                        23h
+━━━━━━━━━━━━━━━━━━━━━━━━━                 2d
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 29d
+```
+
+Two attempts got this wrong, and both failures are instructive. The first drew a
+per-row wave of measured use: every row rippled at nearly the same amplitude, so
+sixteen rows of near-identical dashes read as noise rather than as data, and it
+was a third connection metric on a screen that already had two. The second used
+a log axis anchored at zero, where an hour already fills half the bar and
+everything from two days to a month lands in the same four cells.
+
+What works is a different question from the rest of the table, on an axis that
+spans what is present: the columns to the left say what a service is and how
+exposed it is, and this says whether it has been up for weeks or arrived while
+you were making coffee. It does not move. Not everything should.
 
 ## Chrome
 

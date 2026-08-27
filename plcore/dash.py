@@ -113,21 +113,59 @@ def _dial(t, y, x, label, pct, frame, key, glow=False):
     return DIAL_W
 
 
-def _use_level(row):
-    """-> 0..1 for how much this service has been used, or None if not known.
+def _age(row):
+    """-> how long this service has been listening, in seconds, or None."""
+    up = row.get("uptime")
+    if up:
+        return up
+    o = row.get("origin") or {}
+    start = o.get("process_started_at") or o.get("started_at")
+    return (time.time() - start) if start else None
 
-    `busy_samples / samples` is the share of the watched time during which
-    something was connected. It is a measurement, which is what lets it drive a
-    trail; a service watched for under an hour returns None and draws flat,
-    because "not watched long enough" is not "idle".
+
+def _age_text(seconds):
+    if seconds is None:
+        return "?"
+    s = int(seconds)
+    if s < 90:
+        return "%ds" % s
+    if s < 5400:
+        return "%dm" % (s // 60)
+    if s < 172800:
+        return "%dh" % (s // 3600)
+    return "%dd" % (s // 86400)
+
+
+def _lifetime(t, y, x, width, seconds, span, picked):
+    """A bar for how long this has been up, on a log axis shared by every row.
+
+    A different question from everything else in the table, which is the point:
+    the columns to the left say what a service is and how exposed it is, and
+    this says whether it has been here for weeks or arrived while you were
+    making coffee. Linear would squash a month and ten minutes into the same
+    two cells, so the axis is logarithmic and the figure is printed beside it
+    rather than left to be read off the bar.
     """
-    act = row.get("activity") or {}
-    if not act.get("known"):
-        return None
-    samples = act.get("samples") or 0
-    if not samples:
-        return None
-    return min(1.0, (act.get("busy_samples") or 0) / float(samples))
+    if width < 10:
+        return
+    label = _age_text(seconds)
+    bar_w = width - 5
+    if seconds is None:
+        t.put(y, x, "\u00b7" * bar_w, C_DIM)
+        t.put(y, x + bar_w + 1, label, C_DIM)
+        return
+    # Normalised across the range actually on screen, not against zero. Anchored
+    # at zero, an hour already fills half the bar and everything from two days to
+    # a month lands in the same four cells, which is the opposite of the point.
+    lo, hi = span
+    here = math.log10(1 + max(0.0, seconds))
+    frac = (here - lo) / (hi - lo) if hi > lo else 1.0
+    fill = max(1, min(bar_w, int(round(frac * bar_w))))
+    tone = (C_SEL if picked else
+            C_GREEN if seconds < 3600 else
+            C_NORM if seconds < 86400 else C_DIM)
+    t.put(y, x, "\u2501" * fill, tone, seconds < 3600)
+    t.put(y, x + bar_w + 1, label, C_SEL if picked else C_DIM)
 
 
 def _card_level(t, title):
@@ -361,9 +399,15 @@ def _listening(t, y, height, w, rows):
         t.put(y, x, label, C_DIM, True)
     hx = (72 if wide else 52) + 33
     if min(46, w - hx - 2) >= 12:
-        t.put(y, hx, "USE   share of watched time with a connection", C_DIM)
+        t.put(y, hx, "UPTIME   minutes", C_DIM, True)
+        t.put(y, hx + 17, "\u2501\u2501\u2501\u2501\u25b8", C_DIM)
+        t.put(y, hx + 23, "weeks   (log)", C_DIM)
     y += 1
 
+    # One axis for every row, so the bars can be compared with each other, and
+    # it spans what is actually here rather than starting at zero.
+    ages = [_age(r) or 0 for r in rows] or [0]
+    span = (math.log10(1 + max(60.0, min(ages))), math.log10(1 + max(60.0, max(ages))))
     body = max(1, height - 2)
     idx = next((i for i, r in enumerate(rows) if r["id"] == t.sel_id), 0)
     if idx < t.top:
@@ -403,19 +447,14 @@ def _listening(t, y, height, w, rows):
         if r["id"] in t.arrived and rx + 28 < w:
             t.put(yy, rx + 28, "NEW" if (t.frame // 4) % 2 else "•  ", C_GREEN, True)
 
-        # On a wide terminal the space after RISK is dead. Give each row its own
-        # trail: the amplitude is the share of watched time that service had a
-        # connection, and the phase is offset by port so the rows do not march
-        # in lockstep. Nothing new is claimed - it is the measurement the
-        # leftovers view already reasons about, drawn as texture.
+        # On a wide terminal the space after RISK is dead. It carries how long
+        # each service has been listening, on one shared log axis: a question
+        # nothing else in the table answers, and one where every row looks
+        # different, which a column of near-identical ripples did not.
         tx = rx + 33
         tw = min(46, w - tx - 2)
         if tw >= 12:
-            use = _use_level(r)
-            _wave(t, yy, tx, tw, use, t.frame + (r.get("port") or 0) % 23,
-                  C_SEL if picked else
-                  (C_DIM if use is None else C_GREEN if use > 0.02 else C_DIM),
-                  speed=0.7, anim=t.anim)
+            _lifetime(t, yy, tx, tw, _age(r), span, picked)
     if t.departed and y + body < len(rows) + y + body:
         gone = len(t.departed)
         t.put(y + body, 2, "· %d service%s stopped listening just now"

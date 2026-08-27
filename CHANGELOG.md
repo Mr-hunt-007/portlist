@@ -21,11 +21,12 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   The load average rides in the machine frame's top rule rather than costing a
   row, and the table below stays unframed, because the structure is worth having
   around the summary and not around the thing you actually read.
-- **A use trail per row** on wide terminals. The space to the right of RISK was
-  dead past about 150 columns; each row now carries a trail whose amplitude is
-  the share of watched time that service had a connection, phase-offset by port
-  so the rows do not march in lockstep. It claims nothing new: it is the
-  measurement the leftovers view already reasons about, drawn as texture.
+- **A lifetime column** on wide terminals, where the space to the right of RISK
+  was dead: how long each service has been listening, on one log axis shared by
+  every row and normalised across the range actually on screen. A per-row wave
+  of measured use was tried first and thrown away - sixteen rows rippling at
+  nearly the same amplitude read as noise, and it was a third connection metric
+  on a screen that already had two.
 - **Ambient waves.** One travelling pattern under every card and across the top
   of the table, with **amplitude and speed taken from the metric**: exposure
   rides on the share reachable off-box, agents on the share an agent started,

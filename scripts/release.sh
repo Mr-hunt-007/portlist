@@ -33,7 +33,11 @@ cat > "$STAGE/portlist.cmd" <<'CMD'
 @echo off
 python "%~dp0portlist.py" %*
 CMD
-(cd "$OUT" && zip -qr "portlist-$VERSION-windows.zip" "portlist-$VERSION")
+# The zip has to be the same bytes every run. cp -R gives every file the time
+# it was copied, so without this the checksum changed on each build and the
+# manifest matched only the zip that happened to be uploaded.
+find "$STAGE" -exec touch -t "$(git log -1 --format=%cd --date=format:%Y%m%d%H%M)" {} +
+(cd "$OUT" && zip -qrX "portlist-$VERSION-windows.zip" "portlist-$VERSION")
 ZIP_SHA=$(shasum -a 256 "$OUT/portlist-$VERSION-windows.zip" | cut -d' ' -f1)
 
 # 2. the source tarball, downloaded from GitHub rather than built here.
@@ -52,10 +56,20 @@ else
 fi
 
 # 3. stamp
+#
+# Everything that names a version has to move together. A checksum stamped
+# beside the PREVIOUS release's URL is the worst of the three states: the
+# download succeeds, the hash does not match, and the installer says so in the
+# words it reserves for a tampered file.
 if [ -n "$TAR_SHA" ]; then
   sed -i.bak -E "s|sha256 \".*\"|sha256 \"$TAR_SHA\"|" packaging/homebrew/portlist.rb
   sed -i.bak -E "s|url \".*\"|url \"https://github.com/Mr-hunt-007/portlist/archive/refs/tags/v$VERSION.tar.gz\"|" packaging/homebrew/portlist.rb
+  # The formula's own test asserts the version it prints, so a formula that
+  # installs 1.2 and tests for 1.1 fails `brew test` on a working install.
+  sed -i.bak -E "s|assert_match \"portlist [0-9.]+\"|assert_match \"portlist $VERSION\"|" packaging/homebrew/portlist.rb
 fi
+sed -i.bak -E "s|^PackageVersion: .*|PackageVersion: \"$VERSION\"|" packaging/winget/*.yaml
+sed -i.bak -E "s|InstallerUrl: .*|InstallerUrl: https://github.com/Mr-hunt-007/portlist/releases/download/v$VERSION/portlist-$VERSION-windows.zip|" packaging/winget/*.installer.yaml
 sed -i.bak -E "s|InstallerSha256: .*|InstallerSha256: $ZIP_SHA|" packaging/winget/*.installer.yaml
 rm -f packaging/homebrew/*.bak packaging/winget/*.bak
 

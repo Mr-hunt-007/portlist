@@ -837,7 +837,7 @@ class Vibe:
             if pct is not None:
                 t.put(y, x + 8 + bar, "%3.0f%%" % pct, self.c("text"), True)
             y += 1
-        load = cpu.get("load") or []
+        load = [v for v in (cpu.get("load") or []) if v is not None]
         if load:
             t.put(y, x, "LOAD", self.c("dim"))
             t.put(y, x + 6, "  ".join("%.2f" % v for v in load[:3]), self.c("text"))

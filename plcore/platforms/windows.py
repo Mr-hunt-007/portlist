@@ -234,7 +234,9 @@ def system():
     return {
         "os": _os_info(), "hostname": h["hostname"], "boot_time": boot,
         "uptime": (time.time() - boot) if boot else None,
-        "cpu": {**cpu, "load": [None, None, None], "usage_pct": None, "load_pct": None},
+        # Windows has no load average, so the list is empty rather than
+        # three Nones: an empty list is falsy and reads as "nothing here".
+        "cpu": {**cpu, "load": [], "usage_pct": None, "load_pct": None},
         "memory": _memory(), "disks": _disks(),
         "network": {**_network_io(), "addresses": h["lan"]},
         "processes": {"count": len(_proc_names())},

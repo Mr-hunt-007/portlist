@@ -78,7 +78,12 @@ if [ -n "$TAR_SHA" ]; then
 fi
 sed -i.bak -E "s|^PackageVersion: .*|PackageVersion: \"$VERSION\"|" packaging/winget/*.yaml
 sed -i.bak -E "s|InstallerUrl: .*|InstallerUrl: https://github.com/Mr-hunt-007/portlist/releases/download/v$VERSION/portlist-$VERSION-windows.zip|" packaging/winget/*.installer.yaml
-sed -i.bak -E "s|InstallerSha256: .*|InstallerSha256: $ZIP_SHA|" packaging/winget/*.installer.yaml
+# winget-pkgs writes this hash in upper case, and every manifest in the
+# repository matches. The schema accepts either, so this is convention rather
+# than a rule, and a submission is easier to review when it looks like its
+# neighbours. Homebrew's stays lower case, which is that tool's convention.
+ZIP_SHA_UPPER=$(printf '%s' "$ZIP_SHA" | tr 'a-f' 'A-F')
+sed -i.bak -E "s|InstallerSha256: .*|InstallerSha256: $ZIP_SHA_UPPER|" packaging/winget/*.installer.yaml
 # The zip's top-level directory is portlist-<version>, so the path winget looks
 # for inside it moves too. Stale here, the download succeeds and the install
 # fails looking for a directory the archive does not contain.

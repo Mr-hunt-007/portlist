@@ -931,9 +931,10 @@ class Tui:
         y += 6 if wide else 7
 
         # ---- load: the three meters that answer "is this machine in trouble"
+        load = [v for v in (cpu.get("load") or []) if v is not None]
         rows = [("cpu", cpu.get("load_pct"),
                  "%d cores   load %s" % (cpu.get("cores") or 0,
-                                         "  ".join("%.1f" % v for v in (cpu.get("load") or [])[:3]))),
+                                         "  ".join("%.1f" % v for v in load[:3]) or "-")),
                 ("memory", mem.get("pct"),
                  ("%s of %s" % (_size(mem.get("used")), _size(mem.get("total"))))
                  + ("   swap %s of %s" % (_size(mem.get("swap_used")),

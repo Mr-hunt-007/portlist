@@ -234,7 +234,7 @@ def _cards(t, y, h, w):
     bar = 10
     for label, pct in readings:
         machine.append((label, pct, "meter"))
-    load = cpu.get("load") or []
+    load = [v for v in (cpu.get("load") or []) if v is not None]
     machine.append(("LOAD", " ".join("%.2f" % v for v in load[:3]) if load else "-", "text"))
 
     unknown = sum(1 for r in t.rows

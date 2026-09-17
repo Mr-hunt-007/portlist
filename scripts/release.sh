@@ -36,7 +36,15 @@ CMD
 # The zip has to be the same bytes every run. cp -R gives every file the time
 # it was copied, so without this the checksum changed on each build and the
 # manifest matched only the zip that happened to be uploaded.
-find "$STAGE" -exec touch -t "$(git log -1 --format=%cd --date=format:%Y%m%d%H%M)" {} +
+#
+# The time comes from the tag, not from HEAD: stamping the checksum into the
+# manifest is itself a commit, so keying off HEAD means the act of recording a
+# hash changes the hash it was recording. Falling back to HEAD before the tag
+# exists is fine - the run that matters is the one after the tag is pushed,
+# because that is the only run that can stamp the formula.
+STAMP_REF="HEAD"
+git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null && STAMP_REF="v$VERSION"
+find "$STAGE" -exec touch -t "$(git log -1 --format=%cd --date=format:%Y%m%d%H%M "$STAMP_REF")" {} +
 (cd "$OUT" && zip -qrX "portlist-$VERSION-windows.zip" "portlist-$VERSION")
 ZIP_SHA=$(shasum -a 256 "$OUT/portlist-$VERSION-windows.zip" | cut -d' ' -f1)
 

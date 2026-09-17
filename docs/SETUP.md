@@ -21,10 +21,19 @@ except `~/.portlist`, which is yours to delete.
 
 ## winget (Windows)
 
-**Not submitted yet.** The manifests are written and validated in
-`packaging/winget/`, but nothing has been sent to `microsoft/winget-pkgs`, so
-`winget install Mr-hunt-007.portlist` will not find anything today. Use pipx
-below, which is the better route on Windows anyway.
+**There is no winget package, and there will not be one.** The manifests in
+`packaging/winget/` are correct and were submitted; winget rejected them, and
+would reject any version of them:
+
+    [Error] InvalidPortableFiletype: The file type of the referenced file is
+    not allowed. (RelativeFilePath)
+
+A portable winget package may point at exactly one kind of file, `.exe`, and
+what ships for Windows is the source plus a `portlist.cmd` shim. Shipping a
+compiled launcher instead would buy the winget listing and nothing else, since
+it would still need Python on PATH, so the manifests stay in the tree as a
+record and `winget install Mr-hunt-007.portlist` finds nothing. Use pipx below,
+which is the better route on Windows anyway.
 
 Windows needs one thing macOS and Linux do not: CPython ships there without
 `curses`, and portlist is a curses program. The winget package installs the
@@ -34,18 +43,18 @@ sentence you would rather not think about, use pipx below, which handles it.
 ## pipx (anywhere)
 
 ```sh
-pipx install git+https://github.com/Mr-hunt-007/portlist
-pip  install git+https://github.com/Mr-hunt-007/portlist
+pipx install portlist-tui
+pip  install portlist-tui
 ```
 
 The simplest route on Windows, because `windows-curses` is declared as a
 dependency there and pipx installs it into the same isolated environment.
 
-Installing straight from the repository rather than from PyPI, because nothing
-has been uploaded there yet. When it is, the distribution will be
-**`portlist-tui`**: the name `portlist` on PyPI belongs to an unrelated package,
-and shipping under it would mean `pip install portlist` quietly fetching
-somebody else's code. The command it installs is `portlist` either way.
+The distribution is **`portlist-tui`**, not `portlist`: that name on PyPI
+belongs to an unrelated package, and shipping under it would mean `pip install
+portlist` quietly fetching somebody else's code. The command it installs is
+`portlist` either way. To install a commit that is not released yet, use
+`pipx install git+https://github.com/Mr-hunt-007/portlist`.
 
 Remove with `pipx uninstall portlist-tui`.
 

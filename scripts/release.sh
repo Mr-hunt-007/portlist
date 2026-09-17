@@ -71,6 +71,10 @@ fi
 sed -i.bak -E "s|^PackageVersion: .*|PackageVersion: \"$VERSION\"|" packaging/winget/*.yaml
 sed -i.bak -E "s|InstallerUrl: .*|InstallerUrl: https://github.com/Mr-hunt-007/portlist/releases/download/v$VERSION/portlist-$VERSION-windows.zip|" packaging/winget/*.installer.yaml
 sed -i.bak -E "s|InstallerSha256: .*|InstallerSha256: $ZIP_SHA|" packaging/winget/*.installer.yaml
+# The zip's top-level directory is portlist-<version>, so the path winget looks
+# for inside it moves too. Stale here, the download succeeds and the install
+# fails looking for a directory the archive does not contain.
+sed -i.bak -E "s|RelativeFilePath: portlist-[0-9.]+|RelativeFilePath: portlist-$VERSION|" packaging/winget/*.installer.yaml
 rm -f packaging/homebrew/*.bak packaging/winget/*.bak
 
 echo

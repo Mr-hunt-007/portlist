@@ -469,7 +469,7 @@ with `--data-dir` or `PORTLIST_DATA`.
 ## Requirements
 
 Python 3.9+ with `curses`, standard on macOS, Linux and BSD. On Windows,
-`pip install windows-curses`, which `pipx install portlist` does for you. No
+`pip install windows-curses`, which `pipx install portlist-tui` does for you. No
 third-party packages on any platform otherwise, ever.
 
 ## Documentation

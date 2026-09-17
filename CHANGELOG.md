@@ -2,7 +2,7 @@
 
 Dates are the day the work landed. Versions follow [semver](https://semver.org/).
 
-## Unreleased
+## 1.2 - 2026-09-17
 
 ### Added
 
@@ -50,6 +50,15 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   `zlib` and `struct`, so the wheel gains a picture and no dependency.
 
 ### Fixed
+
+- **Windows no longer crashes on startup.** The dashboard died on its first
+  draw with `TypeError: must be real number, not NoneType`. Windows has no load
+  average and the platform said so with three `None`s, but a three-element list
+  is truthy, so every guard that asks "is there a load reading" passed and the
+  formatting walked into a `None`. The platform now reports an empty list, and
+  the dashboard, the system view and vibe mode each drop what a platform cannot
+  measure, so a reading that does not exist cannot take a screen down from
+  either end.
 
 - **`A` toggles what it reads as.** It said auto and toggled whether vibe mode
   drifted in after thirty idle seconds, while the scene changing by itself was

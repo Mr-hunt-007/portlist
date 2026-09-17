@@ -8,6 +8,10 @@ dist/
 # local tooling state, not part of the project (it holds a session token)
 .gstack/
 
+# another tool's cache of this tree: file sizes, mtimes and token counts. It is
+# regenerated on demand and is stale the moment anyone else checks the repo out.
+.tokenmax/
+
 # the full-size plate; docs/plate-observatory.png is generated from it
 docs/plate-observatory-source.png
 docs/plate-terminal-source.png

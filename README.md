@@ -102,11 +102,12 @@ git clone https://github.com/Mr-hunt-007/portlist && cd portlist && python3 port
 
 Then run `portlist`.
 
-<sub>Not yet published: `pip install portlist-tui` (the artifacts are built and
-pass `twine check`, but nothing has been uploaded) and `winget install` (the
-manifests are in `packaging/winget/`, not submitted). The name `portlist` on
-PyPI belongs to an unrelated package, which is why the distribution is
-`portlist-tui` while the command stays `portlist`.</sub>
+<sub>`winget install` is not available and is not coming: winget accepts only
+`.exe` for a portable package, and what ships for Windows is the source plus a
+`.cmd` shim, so the manifests in `packaging/winget/` cannot pass validation. Use
+pipx there. The name `portlist` on PyPI belongs to an unrelated package, which
+is why the distribution is `portlist-tui` while the command stays
+`portlist`.</sub>
 
 ## The dashboard
 

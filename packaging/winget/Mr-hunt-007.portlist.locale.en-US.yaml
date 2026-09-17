@@ -19,7 +19,7 @@ Description: |-
 
   Windows note: CPython on Windows ships without curses. This package installs
   the source and a shim, so it needs Python 3.9 or newer on PATH plus the
-  windows-curses wheel (pip install windows-curses). "pipx install portlist"
+  windows-curses wheel (pip install windows-curses). "pipx install portlist-tui"
   installs both in one step and is the simpler route.
 Moniker: portlist
 Tags:

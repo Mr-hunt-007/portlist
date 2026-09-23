@@ -68,7 +68,7 @@ button{font:inherit;color:inherit}
   border:1px solid rgba(120,170,200,.2);box-shadow:0 24px 60px rgba(0,0,0,.5);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 #attn.open #attnList{display:block;animation:pl-drop .16s ease-out}
 .tabs{display:flex;gap:4px;padding:8px 8px 0}
-.tab{flex:1;padding:6px 8px;border-radius:7px;border:1px solid transparent;background:none;font-size:12px;color:var(--muted);cursor:pointer}
+.tab{flex:1 1 auto;white-space:nowrap;padding:6px 6px;border-radius:7px;border:1px solid transparent;background:none;font-size:12px;color:var(--muted);cursor:pointer}
 .tab[aria-selected="true"]{background:rgba(120,170,200,.1);border-color:var(--line);color:var(--ink)}
 .row{display:flex;gap:10px;align-items:flex-start;width:100%;padding:10px 14px;border:0;border-bottom:1px solid var(--line2);
   background:none;text-align:left;cursor:pointer;font-size:12.5px;line-height:1.45;color:#cfe0ea}
@@ -154,6 +154,8 @@ body.screen #machine{display:block;opacity:.8}
 .sw::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#9fb6c6;transition:transform .15s}
 .opt[aria-checked="true"] .sw{background:rgba(240,162,75,.7)} .opt[aria-checked="true"] .sw::after{transform:translateX(13px);background:#fff}
 .seg{display:flex;gap:4px;margin:4px 16px 8px}
+#machine .mm{margin-top:3px;font-family:var(--mono);font-size:10.5px;color:#6fe3a4}
+#machine .mm[data-k="busy"]{color:#ffcf6a} #machine .mm[data-k="pressure"]{color:#ff7a5e}
 #machine .mc{margin-top:6px;font-family:var(--mono);font-size:10.5px;color:#84a8bf}
 .popnote{margin:2px 16px 10px;font-size:11.5px;line-height:1.45;color:#7f9aac}
 .simgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 16px 6px}
@@ -230,6 +232,10 @@ body.screen #welcome{display:none}
 .card .bulb{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ffcf6a;box-shadow:0 0 8px #ffcf6a;margin-left:4px;vertical-align:middle}
 @keyframes pl-card{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:none}}
 .toast{padding:9px 15px;border-radius:10px;background:rgba(12,26,40,.94);border:1px solid;font-size:13px;box-shadow:0 14px 40px rgba(0,0,0,.45);animation:pl-drop .22s ease-out;max-width:min(560px,90vw)}
+#story{position:absolute;top:64px;left:50%;transform:translate(-50%,-8px);max-width:min(620px,calc(100vw - 32px));padding:10px 16px;border-radius:12px;background:rgba(40,30,14,.94);border:1px solid rgba(255,217,168,.45);color:#ffe9c8;opacity:0;pointer-events:none;transition:opacity .5s,transform .5s;text-align:center;z-index:12}
+#story.on{opacity:1;transform:translate(-50%,0)}
+#story b{display:block;font-size:13.5px;letter-spacing:.02em;margin-bottom:2px}
+#story span{font-size:12.5px;color:#f1d3ad}
 #caption{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);max-width:min(900px,86vw);text-align:center;display:none;pointer-events:none}
 #caption .who{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--amber)}
 #caption .what{margin-top:6px;font-size:clamp(16px,1.6vw,24px);line-height:1.35;color:#eef6fb;text-shadow:0 2px 18px rgba(0,0,0,.8)}
@@ -297,6 +303,7 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.8} body.idle .pills{opaci
         <button class="tab" role="tab" data-tab="attn" aria-selected="true">Needs a look</button>
         <button class="tab" role="tab" data-tab="pets" aria-selected="false">Pets</button>
         <button class="tab" role="tab" data-tab="hist" aria-selected="false">Timeline</button>
+        <button class="tab" role="tab" data-tab="today" aria-selected="false">Today</button>
       </div>
       <div id="attnBody"></div>
     </div>
@@ -312,6 +319,7 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.8} body.idle .pills{opaci
   <div id="log" aria-live="polite"></div>
   <section id="machine" aria-label="This machine"></section>
   <div id="toasts" aria-live="assertive"></div>
+  <div id="story" role="status"><b></b><span></span></div>
   <div id="caption"><div class="who" id="capWho"></div><div class="what" id="capWhat"></div></div>
 
   <div id="search" role="dialog" aria-label="Find a service">
@@ -328,6 +336,7 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.8} body.idle .pills{opaci
       <button class="tool" type="button" id="bPast" title="Replay: the harbour at an earlier time (P)" aria-pressed="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.8"/><path d="M8 4.8V8l2.4 1.6"/><path d="M1.6 5.2 2.6 2.4 4.6 4.4"/></svg><span class="l">Replay</span></button>
       <button class="tool" type="button" id="bFit" title="Whole harbour (0)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg><span class="l">Fit</span></button>
       <button class="tool" type="button" id="bLegend" title="What everything means (?)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6"/><path d="M6.3 6.2a1.8 1.8 0 1 1 2.4 1.7c-.5.2-.7.6-.7 1.1v.5"/><circle cx="8" cy="11.6" r=".5" fill="currentColor"/></svg><span class="l">Legend</span></button>
+      <button class="tool" type="button" id="bGhost" title="Compare with an hour ago (C)" aria-pressed="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.8" y="3" width="7.4" height="7.4" rx="1.4" stroke-dasharray="2 1.6"/><rect x="6.8" y="5.6" width="7.4" height="7.4" rx="1.4"/></svg><span class="l">Compare</span></button>
       <button class="tool" type="button" id="bPlay" title="Play: drama and the sandbox (G)" aria-expanded="false" aria-pressed="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.6" y="4.4" width="12.8" height="7.6" rx="3.8"/><path d="M4.6 7v2.4M3.4 8.2h2.4"/><circle cx="10.6" cy="7.4" r=".6" fill="currentColor"/><circle cx="12" cy="9" r=".6" fill="currentColor"/></svg><span class="l">Play</span></button>
       <button class="tool" type="button" id="bShare" title="Save a picture of the harbour (K)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.8" y="4" width="12.4" height="9" rx="1.6"/><circle cx="8" cy="8.5" r="2.4"/><path d="M5.5 4l1-1.8h3L10.5 4"/></svg><span class="l">Picture</span></button>
       <button class="tool" type="button" id="bFull" title="Full screen (F)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg><span class="l">Full screen</span></button>
@@ -973,6 +982,7 @@ function onEvents(evs, quiet) {
     if (quiet) continue;
     const sub = ev.subject || '';
     if (ev.trigger === 'SERVICE_STARTED') sfx('start'); else if (ev.trigger === 'SERVICE_STOPPED') sfx('stop');
+    storyFeed(ev);
     if (ev.trigger === 'SERVICE_STARTED') {
       const b = buildingById(sub.slice(8));
       if (b && b.build !== undefined && !b.truck) sendTruck(b);
@@ -1063,7 +1073,8 @@ function step(dt) {
     }
     if (s.shape === 'mast' && act && Math.random() < dt * 0.9) W.rings.push({ b, life: 0, max: 2.4 });
   }
-  W.smoke = W.smoke.filter(p => { p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.r += dt * 6; return p.life < p.max; });
+  const wind = 1 + (W.wind || 0.2) * 2.2;
+  W.smoke = W.smoke.filter(p => { p.life += dt; p.x += p.vx * dt * wind; p.y += p.vy * dt; p.r += dt * 6; return p.life < p.max; });
   W.sparks = W.sparks.filter(p => { p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 60 * dt; return p.life < p.max; });
   W.rings = W.rings.filter(r => (r.life += dt) < r.max);
   stepGulls(dt);
@@ -1072,6 +1083,8 @@ function step(dt) {
   stepBoats(dt);
   stepCars(dt);
   stepVisitors(dt);
+  stepMood(dt);
+  stepMemory(dt);
   stepTrain(dt);
   stepBulker(dt);
   stepVessels(dt);
@@ -1445,6 +1458,8 @@ function draw() {
   drawSky(night);
   drawWater(night);
   drawGround(night);
+  drawPipes(night);
+  drawGhosts(night);
   const items = [];
   for (const b of W.buildings.values()) items.push({ z: b.gx + b.gy + 3, f: () => drawBuilding(b, night) });
   if (W.cfg.ruins) for (const r of W.ruins) { const p = g.slot(r.slot); items.push({ z: p.gx + p.gy, f: () => drawRuin(r, p, night) }); }
@@ -1820,7 +1835,9 @@ function drawWater(night) {
     ctx.beginPath(); ctx.moveTo(x - len / 2, y); ctx.quadraticCurveTo(x, y - 1.2 - depth * 2.5, x + len / 2, y); ctx.stroke();
   }
   // whitecaps that form and break
-  for (let i = 0; i < 70; i++) {
+  // as many as the harbour's mood makes: few on a calm day, many under pressure
+  const caps = Math.round(24 + 90 * (W.wind == null ? 0.2 : W.wind));
+  for (let i = 0; i < caps; i++) {
     const cx = -30 + hash('cap' + i) * (g.W + 40), cy = -46 + hash('cy' + i) * 44;
     const life = (T * 0.35 + hash('cl' + i) * 7) % 7;
     if (life > 1.4) continue;
@@ -2558,6 +2575,14 @@ function drawParkedCar(c, night) {
   const hit = drawCarBody(c.pos[0], c.pos[1], axis, sign, c.col, W.snap ? daylight() : 0, { moving, lit: moving });
   const lg = appLogo((c.e && c.e.apps || [])[0]);
   if (lg && cam.zoom > 0.8) { const [rx, ry] = iso(c.pos[0], c.pos[1], 12.4); logoChip(lg, rx, ry, 3.6); }
+  // one host carrying many connections says so: a count on the roof
+  const n = c.e && c.e.count || 0;
+  if (n >= 4 && cam.zoom > 0.6) {
+    const [bx, by] = iso(c.pos[0], c.pos[1], 20), t = '×' + n;
+    ctx.font = '700 8px ' + MONO; const w = ctx.measureText(t).width + 8;
+    ctx.fillStyle = 'rgba(10,19,29,.9)'; ctx.beginPath(); ctx.roundRect(bx - w / 2, by - 6, w, 11, 5); ctx.fill();
+    ctx.fillStyle = '#ffd9a8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, bx, by); ctx.textBaseline = 'alphabetic';
+  }
   HITS.push({ kind: 'car', ref: c, poly: hit });
   c._wx = c.pos[0]; c._wy = c.pos[1];
 }
@@ -3119,13 +3144,16 @@ function renderMachine() {
       (spark ? '<canvas data-k="' + k + '" width="148" height="32"></canvas>' : '<i class="bar"><i></i></i>') +
       '<span class="mv"></span><span class="ms"></span></div>';
     el.innerHTML = '<button class="mh" type="button"><b></b><span></span><i class="m1"></i></button><div class="mb"><div class="ml"></div>' +
-      row('cpu', 1) + row('mem', 1) + row('disk', 0) + row('net', 1) + '<div class="mc"></div></div>';
+      row('cpu', 1) + row('mem', 1) + row('disk', 0) + row('net', 1) + '<div class="mc"></div><div class="mm"></div></div>';
     el.querySelector('.mh').onclick = () => { W.cfg.machineMin = !W.cfg.machineMin; saveCfg(); renderMachine(); };
   }
   const set = (sel, v) => { const n = el.querySelector(sel); if (n && n.textContent !== v) n.textContent = v; };
   set('.mh b', s.name || '');
   // the network view's four counts, one line
   const k = s.sockets;
+  const md = W.mood || harbourMood();
+  set('.mm', 'harbour: ' + (md.k === 'pressure' ? 'under pressure' : md.k) + (md.why ? ' · ' + md.why : ''));
+  { const n = el.querySelector('.mm'); if (n) n.dataset.k = md.k; }
   set('.mc', k ? k.listening + ' listening · ' + k.inbound + ' in · ' + k.outbound + ' out · ' + k.public + ' to public IPs' : '');
   set('.m1', 'cpu ' + (s.load_pct == null ? '?' : Math.round(s.load_pct) + '%') + ' · mem ' + (s.mem_pct == null ? '?' : Math.round(s.mem_pct) + '%') + ' · disk ' + (s.disk_pct == null ? '?' : Math.round(s.disk_pct) + '%') + ' · ' + hms());
   set('.mh span', [s.os, s.model ? s.model + (s.pcores ? ' (' + s.pcores + 'P+' + s.ecores + 'E)' : '') : null].filter(Boolean).join(' · '));
@@ -3367,6 +3395,19 @@ function drawBuilding(b, night) {
   HITS.push({ kind: 'building', ref: b, poly: [iso(b.gx, b.gy, top), iso(b.gx + b.w, b.gy, top), iso(b.gx + b.w, b.gy, 0), iso(b.gx + b.w, b.gy + b.d, 0), iso(b.gx, b.gy + b.d, 0), iso(b.gx, b.gy + b.d, top)] });
   if (!['lighthouse', 'tower', 'mast', 'onion', 'dome'].includes(sh)) windows(b, H, lit, flick, sh === 'warehouse' ? 2 : 3, 11, sh === 'warehouse' ? 0.6 : 0.12, 0.87);
   else if (sh === 'dome' || sh === 'onion') windows(b, H - (sh === 'onion' ? 14 : 0), lit, flick, 2, 8, 0.25, 0.8);
+  // weathering: a building that has stood for days shows it, less so one in daily use
+  {
+    const since = (typeof s.first_seen === 'number' ? s.first_seen : null) || (s.memory && s.memory.since);
+    const days = since ? (Date.now() / 1000 - since) / 86400 : 0;
+    const wear = clamp((days - 1) / 6, 0, 1) * (s.activity === 'busy' || s.activity === 'active' ? 0.35 : 1);
+    if (wear > 0.05 && f && H > 16 && !['lighthouse', 'onion', 'dome'].includes(sh)) for (let k = 0; k < 6; k++) {
+      const u = 0.08 + hash(b.key + 'st' + k) * 0.84, L = 8 + hash(b.key + 'sl' + k) * 16, face = k % 2;
+      const top = face ? iso(b.gx + b.w, b.gy + u * b.d, H - 1) : iso(b.gx + u * b.w, b.gy + b.d, H - 1);
+      const g = ctx.createLinearGradient(top[0], top[1], top[0], top[1] + L);
+      g.addColorStop(0, 'rgba(40,30,20,' + (0.28 * wear).toFixed(3) + ')'); g.addColorStop(1, 'rgba(40,30,20,0)');
+      ctx.fillStyle = g; ctx.fillRect(top[0] - 1, top[1], 2 + hash(b.key + 'sw' + k) * 2, L);
+    }
+  }
   // door: shut when the verified path was refused
   const doorCol = s.exposure === 'unreachable' || s.failure === 'failed' ? 'rgba(80,40,38,.95)' : dusty ? 'rgba(24,21,18,.95)' : 'rgba(38,31,25,.95)';
   if (!['lighthouse', 'tower', 'mast', 'onion'].includes(sh)) {
@@ -3511,7 +3552,10 @@ function drawSigns() {
   const cands = [];
   // labels keep clear of the tool bar and the inspector unless they are the one you are looking at
   const insp = document.body.classList.contains('inspecting') && VW > 760;
-  const add = (c) => { if (c.x > -80 && c.x < VW + 80 && c.y > -40 && c.y < VH + 60 && (c.pri >= 100 || (c.y < VH - 70 && c.y > 96 && !(insp && c.x > VW - 360)))) cands.push(c); };
+  // and out from under the open list at the top left
+  const dr = $('#attn').classList.contains('open') ? $('#attnList').getBoundingClientRect() : null;
+  const under = c => dr && c.x > dr.left - 60 && c.x < dr.right + 60 && c.y > dr.top - 30 && c.y < dr.bottom + 30;
+  const add = (c) => { if (c.x > -80 && c.x < VW + 80 && c.y > -40 && c.y < VH + 60 && (c.pri >= 100 || (c.y < VH - 70 && c.y > 96 && !(insp && c.x > VW - 360) && !under(c)))) cands.push(c); };
   for (const b of W.buildings.values()) {
     const s = b.s; if (!s) continue;
     if (W.highlight && !W.highlight.has(s.key)) continue;
@@ -3532,6 +3576,7 @@ function drawSigns() {
     if (s.origin === 'unknown' || s.origin === 'ambiguous') marks.push('?');
     if (s.conflict && s.conflict.length) marks.push('⚔');
     if (b.mark && W.t - b.markAt < 30) marks.push(b.mark === 'flap' ? '≋' : '↻');
+    if (W.ghost && W.ghost.fresh.has(s.key)) marks.push('✦');
     const st = signState(s);
     add({ ref: b, x, y: y - (1 - pop) * 10, pop, sel, hov, label: ':' + s.port, dot: st.c, ring: st.ring, exposed: s.exposure === 'reachable',
       chips: [logoOf(s)].concat(badgesOf(s)).filter(Boolean).slice(0, 3), marks,
@@ -3623,7 +3668,7 @@ function drawSigns() {
     for (const k of chips) { logoChip(k, mx + 7, cy, 6.8); mx += 16; }
     for (const m of marks) {
       if (m === 'bulb') { ctx.fillStyle = '#ffcf6a'; ctx.beginPath(); ctx.arc(mx + 4, cy - 1.5, 3.3, 0, 6.3); ctx.fill(); ctx.fillRect(mx + 2.5, cy + 1.2, 3, 2.6); }
-      else { ctx.fillStyle = m === '?' ? '#a9b2d6' : m === '⚔' ? '#ffb07a' : '#7fb2ff'; ctx.font = '700 12px ' + SANS; ctx.fillText(m, mx, cy + 0.5); ctx.font = '600 ' + fs + 'px ' + MONO; }
+      else { ctx.fillStyle = m === '?' ? '#a9b2d6' : m === '⚔' ? '#ffb07a' : m === '✦' ? '#bcd6ff' : '#7fb2ff'; ctx.font = '700 12px ' + SANS; ctx.fillText(m, mx, cy + 0.5); ctx.font = '600 ' + fs + 'px ' + MONO; }
       mx += 13;
     }
     ctx.textBaseline = 'alphabetic'; ctx.globalAlpha = 1;
@@ -4094,6 +4139,19 @@ function drawHover() {
   ctx.fillStyle = '#84a8bf'; ctx.font = '400 10.5px ' + MONO; ctx.fillText(sub, bx + 11, by + 32);
   ctx.restore();
 }
+// who started what, as a short family: each service, what it runs on, what it
+// leans on, and whether it is still here
+function familyTree(ids) {
+  const out = [];
+  for (const id of ids) {
+    const x = (W.snap.services || []).find(s => s.id === (id && id.id || id));
+    if (!x) { out.push('└ ' + (id && id.id || id) + ': gone'); continue; }
+    const deps = (x.depends_on || []).map(d => W.snap.services.find(s => s.id === d)).filter(Boolean);
+    out.push('├ :' + x.port + ' ' + x.name + (x.container ? ' in ' + x.container : '') + ', ' + (ACT[x.activity] || ACT.idle).label + (x.exposure === 'reachable' ? ', reachable from outside' : ''));
+    for (const d of deps) out.push('│   └ leans on :' + d.port + ' ' + d.name);
+  }
+  return out.length ? out : ['nothing listening'];
+}
 function hoverText(h) {
   const r = h.ref;
   switch (h.kind) {
@@ -4218,7 +4276,7 @@ function describe(h) {
       logos: appLogo(sv.owner_name) ? [[appLogo(sv.owner_name), 'agent']] : [],
       tags: [tag('exited', '#2a1c05', '#ffcf6a'), soft(mine.length + ' service' + (mine.length === 1 ? '' : 's') + ' still running')],
       meta: mine.map(x => [':' + x.port, x.name + ' · ' + (x.project || '') + ' · ' + x.activity_why]),
-      sections: [['WHAT YOU SEE', ['This agent started these services and has since exited. Its robot waits by the door, powered down, and the bulb on each sign stays lit for as long as they keep running.']]],
+      sections: [['WHAT IT STARTED, AND WHAT REMAINS', familyTree(mine.map(x => x.id))], ['WHAT YOU SEE', ['This agent started these services and has since exited. Its robot waits by the door, powered down, and the bulb on each sign stays lit for as long as they keep running.']]],
       cmds: [], tui: 'portlist, then 5 for agents' };
   }
   if (h.kind === 'cleaner') {
@@ -4281,7 +4339,7 @@ function describe(h) {
       tags: [r.stage === 'leave' ? solid('left the harbour', '#8a7a68') : solid('on site', '#6fe3a4'), soft(w.class), w.one_session ? soft('one run') : soft('tool, maybe several runs')],
       meta: [['started', w.ports.map(p => ':' + p).join('  ') || 'nothing listening'], ['projects', w.projects.join(', ') || 'none'], ['pid', w.pid == null ? '?' : String(w.pid)],
         ['stdio MCP', String(w.mcp)], ['session', w.session || 'not matched to one transcript']],
-      sections: [['HOW THIS IS KNOWN', [w.evidence || '']]].concat(w.note ? [['NOTE', [w.note]]] : []), cmds: []
+      sections: [['WHAT IT STARTED', familyTree(w.services || [])], ['HOW THIS IS KNOWN', [w.evidence || '']]].concat(w.note ? [['NOTE', [w.note]]] : []), cmds: []
     };
   }
   if (h.kind === 'session') {
@@ -4424,6 +4482,8 @@ function renderDrawer() {
     const ps = W.snap.pets || [];
     body.innerHTML = ps.map((p, i) => '<button class="row" type="button" data-i="' + i + '"><i style="background:' + p.coat + '"></i><span><b>' + esc(p.name) + '</b>, ' + esc(p.role) + ': ' + esc(p.meaning) + '<small>' + esc(p.trigger) + ' · ' + esc(p.emotion) + '</small></span></button>').join('');
     body.querySelectorAll('.row').forEach(b => b.onclick = () => { const p = W.pets.get(ps[+b.dataset.i].name); if (p) { focusOn(p.pos[0], p.pos[1] - 1, 1.4); openInspector({ kind: 'pet', ref: p }); } });
+  } else if (tabNow === 'today') {
+    renderToday(body);
   } else {
     const items = W.log.map(l => ({ ts: l.ts, text: l.text, col: l.col, src: l.src })).concat((W.snap.history || []).map(h => ({ ts: h.ts, text: h.text, col: h.type === 'opened' ? '#6fe3a4' : '#8a7a68', src: 'history' })));
     const seen = new Set(), rows = items.sort((a, b) => b.ts - a.ts).filter(x => { const k = x.text + '|' + Math.round(x.ts); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 60);
@@ -4586,6 +4646,10 @@ function renderLegend() {
     ['🌧', 'Rain', 'The CPU has stayed above 80%. It clears once it is back below 65%.'],
     ['🚧', 'Tape on the deck', 'Memory is 85% full or more.'],
     ['🔊', 'Sound (M)', 'Off until you turn it on. The water, a chime when a service starts, a clonk when one stops, a thud when a container is set down. Made in the page, no files.'],
+    ['〰', 'Pipes', 'A service that depends on another is joined to it by a conduit along the roads. It flows while both are in use.'],
+    ['🌬', 'The harbour\'s mood', 'Calm, busy or under pressure, from the machine\'s own figures. Wind, whitecaps and smoke follow it; the machine panel says why.'],
+    ['📖', 'Stories', 'When a few events in a row mean one thing (an agent arrived and started a server, a stack came up, something keeps restarting), a card says so once.'],
+    ['✦', 'Compare (C)', 'The harbour beside itself an hour ago: a star on what is new, a ghost where something has gone.'],
     ['🎣', 'Boats at the anchorage', 'Outbound connections that are not web: a fishing boat for push (a line held open), the mail boat for mail, a ferry for chat, a launch for AI, tugs for databases and queues, a tender for naming. Web traffic stays cars.'],
     ['⛴', 'Coal carrier', 'Comes when the coal bunker is half full: towed in by tugs, tied up at the jetty, loaded by the excavator, towed out. Tugs, the pilot boat, the radar and the reflections follow the ships; they mean nothing of their own.'],
     ['⏹', 'Stopping (Play)', 'Off until you switch it on, and off again on reload. Each stop asks first and sends SIGTERM, only if a fresh scan shows that process still on that port.'],
@@ -4715,6 +4779,7 @@ document.addEventListener('keydown', e => {
   else if (k === 'm' || k === 'M') { W.cfg.sound = !W.cfg.sound; saveCfg(); renderLayers(); audioSync(); toast('Sound ' + (W.cfg.sound ? 'on' : 'off'), '#7fb2ff'); }
   else if (k === 'k' || k === 'K') snapshot();
   else if (k === 'g' || k === 'G') togglePlay();
+  else if (k === 'c' || k === 'C') toggleGhost();
 });
 function toggleDrawer(on, keep) { const el = $('#attn'); on = on == null ? !el.classList.contains('open') : on; el.classList.toggle('open', on); $('#attnBtn').setAttribute('aria-expanded', on); if (on) renderDrawer(); if (!keep) { W.cfg.drawer = on; saveCfg(); } }
 function toggleLayers(on) { const el = $('#layers'); on = on == null ? !el.classList.contains('on') : on; el.classList.toggle('on', on); $('#bLayers').setAttribute('aria-expanded', on); if (on) renderLayers(); }
@@ -4733,6 +4798,7 @@ $('#bLegend').onclick = () => toggleLegend();
 $('#bFull').onclick = fullscreen;
 $('#bShare').onclick = () => snapshot();
 $('#bPlay').onclick = () => togglePlay();
+$('#bGhost').onclick = () => toggleGhost();
 $('#oDrama').onclick = () => { W.cfg.drama = !W.cfg.drama; saveCfg(); renderPlay(); renderPills(); };
 document.querySelectorAll('#play [data-sim]').forEach(b => b.onclick = () => simulate(b.dataset.sim));
 $('#simBack').onclick = sandboxOff;
@@ -5439,6 +5505,176 @@ function escortItems(items, night) {
     ctx.strokeStyle = hex('#dfe5ea', '#6a7278', night); ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(cx - Math.cos(a) * 11, cy - Math.sin(a) * 4); ctx.lineTo(cx + Math.cos(a) * 11, cy + Math.sin(a) * 4); ctx.stroke();
     if (night > 0.3) { ctx.fillStyle = 'rgba(255,80,70,' + (0.5 + 0.5 * Math.sin(W.t * 3)) + ')'; ctx.beginPath(); ctx.arc(cx, cy - 4, 1.6, 0, 6.3); ctx.fill(); }
   } });
+}
+
+// ------------------------------------------------------------------ the harbour's mood
+// One state for the whole place, from the machine's own figures: calm, busy or
+// under pressure. Wind, water, smoke and gulls all follow it together, so the
+// scene reads as one thing. Every input is in the machine panel.
+function harbourMood() {
+  const s = W.snap && W.snap.ship; if (!s) return { k: 'calm', why: '' };
+  const cpu = s.load_pct || 0, mem = s.mem_pct || 0, disk = s.disk_pct || 0, net = (s.net_rx || 0) + (s.net_tx || 0);
+  const out = (s.sockets || {}).outbound || 0, act = (W.snap.stats || {}).active || 0;
+  if (cpu >= 80 || mem >= 85 || disk >= 92) return { k: 'pressure', why: cpu >= 80 ? 'CPU ' + Math.round(cpu) + '%' : mem >= 85 ? 'memory ' + Math.round(mem) + '%' : 'disk ' + Math.round(disk) + '%' };
+  if (cpu >= 40 || net >= 200 * 1024 || out >= 20 || act >= 4) return { k: 'busy', why: cpu >= 40 ? 'CPU ' + Math.round(cpu) + '%' : net >= 200 * 1024 ? fmtBytes(net) + '/s on the network' : out >= 20 ? out + ' outbound connections' : act + ' services in use' };
+  return { k: 'calm', why: 'low load, little traffic' };
+}
+function stepMood(dt) {
+  const m = W.past ? { k: 'calm' } : harbourMood();
+  W.mood = m;
+  const want = m.k === 'pressure' ? 1 : m.k === 'busy' ? 0.55 : 0.18;
+  W.wind = lerp(W.wind == null ? want : W.wind, want, Math.min(1, dt * 0.3));
+}
+
+// ------------------------------------------------------------------ pipes between services
+// A service that depends on another is joined to it by a conduit laid along the
+// roads, door to door, from the scan's own dependency list. It carries a flow
+// while both ends are in use and lies quiet otherwise. Loopback traffic between
+// them still drives as carts; the pipe is the standing relationship.
+function drawPipes(night) {
+  if (!W.cfg.lines || !W.snap) return;
+  const g = W.geo, T = REDUCED ? 0 : W.t, seen = new Set();
+  for (const b of W.buildings.values()) {
+    const s = b.s; if (!s || b.leaving) continue;
+    for (const id of s.depends_on || []) {
+      const o = buildingById(id); if (!o || o === b || !o.s) continue;
+      const key = [b.key, o.key].sort().join('|'); if (seen.has(key)) continue; seen.add(key);
+      const a = g.door(b), c = g.door(o), live = ['busy', 'active'].includes(s.activity) && ['busy', 'active'].includes(o.s.activity);
+      const dim = W.highlight && !(W.highlight.has(s.key) || W.highlight.has(o.s.key));
+      // along the lane in front of the first door, then across on the connector road
+      const mid = [c[0], a[1]], pts = [a, mid, c].map(p => iso(p[0] + 0.25, p[1] + 0.25, 0.4));
+      ctx.save(); ctx.globalAlpha = dim ? 0.2 : 1;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.strokeStyle = hex('#566069', '#2c3238', night); ctx.lineWidth = 3.6;
+      ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); ctx.lineTo(pts[1][0], pts[1][1]); ctx.lineTo(pts[2][0], pts[2][1]); ctx.stroke();
+      ctx.strokeStyle = live ? 'rgba(111,227,190,.85)' : 'rgba(150,165,178,.35)'; ctx.lineWidth = 1.4;
+      if (live) { ctx.setLineDash([3, 6]); ctx.lineDashOffset = -T * 18; }
+      ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); ctx.lineTo(pts[1][0], pts[1][1]); ctx.lineTo(pts[2][0], pts[2][1]); ctx.stroke();
+      ctx.setLineDash([]);
+      for (const p of [pts[0], pts[2]]) { ctx.fillStyle = hex('#8a949c', '#3a4148', night); ctx.beginPath(); ctx.ellipse(p[0], p[1], 3.2, 1.8, 0, 0, 6.3); ctx.fill(); }   // valve boxes
+      ctx.restore();
+    }
+  }
+}
+
+// ------------------------------------------------------------------ what the harbour remembers
+// The pets remember what the recorded history says: a service that has started
+// several times today, one that has been reachable from outside before, one that
+// went away and came back. Every line is a count from the history.
+function stepMemory(dt) {
+  if (!W.snap || W.past || W.sandbox || !W.cfg.pets) return;
+  W.memAt = W.memAt == null ? W.t + 25 : W.memAt;
+  if (W.t < W.memAt) return;
+  W.memAt = W.t + 40;
+  W.said = W.said || new Set();
+  const pet = role => [...W.pets.values()].find(p => p.role === role);
+  const lines = [];
+  for (const s of W.snap.services) {
+    const m = s.memory; if (!m || s.system) continue;
+    if (m.opens_today >= 3) lines.push(['mechanic', 'rest:' + s.key + ':' + m.opens_today, ':' + s.port + ' has started ' + m.opens_today + ' times today.']);
+    // the current opening is in the record too, so two means it has happened before
+    if (s.exposure === 'reachable' && m.exposed_before >= 2) lines.push(['guard', 'exp:' + s.key + ':' + m.exposed_before, 'Not the first time :' + s.port + ' has been open to the network: ' + m.exposed_before + ' times on record.']);
+    if (m.stops_today >= 1 && m.opens_today >= 1) lines.push(['inspector', 'back:' + s.key + ':' + m.stops_today, ':' + s.port + ' went away today and came back.']);
+    if (m.since && Date.now() / 1000 - m.since > 86400 * 3 && s.activity === 'long_idle') lines.push(['janitor', 'old:' + s.key, ':' + s.port + ' has been here ' + dur(Date.now() / 1000 - m.since) + ' and nobody uses it.']);
+  }
+  const next = lines.find(l => !W.said.has(l[1]) && pet(l[0]));
+  if (!next) return;
+  W.said.add(next[1]);
+  const p = pet(next[0]);
+  W.chat.push({ who: p.name, line: next[2], from: W.t, until: W.t + 5.5 });
+  pushLog(p.name + ' remembers: ' + next[2], '#a9b2d6', Date.now() / 1000, 'memory');
+}
+
+// ------------------------------------------------------------------ stories
+// A few events in a row can mean one thing. When a known chain completes, the
+// harbour says so once, in a line of plain words, and the events stay in the log.
+const STORY_WINDOW = 180;
+function storyFeed(ev) {
+  if (!ev || W.sandbox) return;
+  const now = Date.now() / 1000;
+  W.recentEv = (W.recentEv || []).filter(e => now - e.at < STORY_WINDOW);
+  W.recentEv.push({ at: now, ev });
+  const R = W.recentEv, t = ev.trigger, sub = ev.subject || '', id = sub.slice(8);
+  const svc = id && W.snap ? W.snap.services.find(s => s.id === id) : null;
+  let story = null;
+  if (t === 'SERVICE_STARTED' && svc && svc.owner_ai && R.some(e => e.ev.trigger === 'AGENT_STARTED' && now - e.at < STORY_WINDOW))
+    story = ['A development session came alive', (svc.owner_name || 'An agent') + ' arrived and started :' + svc.port + ' ' + svc.name + '.'];
+  else if (t === 'AGENT_EXITED_SERVICE_REMAINS')
+    story = ['The developer left, the server stayed', (ev.evidence && ev.evidence.owner || 'The agent') + ' exited. :' + (ev.evidence && ev.evidence.port) + ' is still running with nobody behind it.'];
+  else if (t === 'CONTAINER_STARTED' && R.filter(e => e.ev.trigger === 'CONTAINER_STARTED' && now - e.at < 30).length === 3)
+    story = ['A stack came up', 'Three containers started within half a minute: a compose project, most likely. Each is in the yard.'];
+  else if (t === 'SERVICE_EXTERNALLY_REACHABLE' && svc && R.some(e => e.ev.trigger === 'SERVICE_STARTED' && e.ev.subject === sub && now - e.at < 300))
+    story = ['Open from the start', ':' + svc.port + ' ' + svc.name + ' started and was reachable from outside within minutes.'];
+  else if (t === 'SERVICE_RESTARTED' && R.filter(e => e.ev.trigger === 'SERVICE_RESTARTED' && e.ev.subject === sub).length === 3)
+    story = ['Something keeps restarting', (svc ? ':' + svc.port + ' ' + svc.name : 'A service') + ' restarted three times in three minutes.'];
+  else if (t === 'SERVICE_STOPPED' && R.filter(e => e.ev.trigger === 'SERVICE_STOPPED' && now - e.at < 20).length === 4)
+    story = ['Closing time', 'Four services stopped within twenty seconds: something shut a project down.'];
+  if (story) tellStory(story[0], story[1]);
+}
+function tellStory(title, line) {
+  const el = $('#story'); if (!el) return;
+  el.querySelector('b').textContent = title; el.querySelector('span').textContent = line;
+  el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+  clearTimeout(W.storyT); W.storyT = setTimeout(() => el.classList.remove('on'), 9000);
+  pushLog('Story: ' + title + '. ' + line, '#ffd9a8', Date.now() / 1000, 'story');
+  (W.stories = W.stories || []).unshift({ ts: Date.now() / 1000, title, line });
+}
+
+// ------------------------------------------------------------------ an hour ago
+// Compare: the harbour as it stood an hour ago, from the recorded history.
+// What is new since then gets a star on its sign; what has gone since then
+// stands as a ghost on a free lot. Off again with the same button.
+async function toggleGhost(on) {
+  on = on == null ? !W.ghost : on;
+  if (!on) { W.ghost = null; renderGhostBtn(); return; }
+  try {
+    const at = Date.now() / 1000 - 3600;
+    const r = await fetch(API + '?at=' + at, { headers: { [HEADER]: TOKEN }, cache: 'no-store' });
+    const d = await r.json();
+    const then = (d.services || []).filter(s => !s.system), now = (W.snap.services || []).filter(s => !s.system);
+    const k = s => s.port + '|' + s.name;
+    const thenK = new Set(then.map(k)), nowK = new Set(now.map(k));
+    W.ghost = { at, fresh: new Set(now.filter(s => !thenK.has(k(s))).map(s => s.key)), gone: then.filter(s => !nowK.has(k(s))).slice(0, 6) };
+    toast('Compared with an hour ago: ' + W.ghost.fresh.size + ' new, ' + W.ghost.gone.length + ' gone', '#7fb2ff');
+  } catch (e) { toast('Could not read an hour ago', '#ff6a5e'); W.ghost = null; }
+  renderGhostBtn();
+}
+function renderGhostBtn() { const b = $('#bGhost'); if (b) b.setAttribute('aria-pressed', !!W.ghost); }
+function drawGhosts(night) {
+  if (!W.ghost || !W.geo) return;
+  const g = W.geo, used = new Set([...W.buildings.values()].map(b => b.slot).concat(W.ruins.map(r => r.slot)));
+  let i = 0;
+  for (const s of W.ghost.gone) {
+    while (used.has(i)) i++;
+    if (i >= g.cols * g.rows) break;
+    const p = g.slot(i); used.add(i);
+    ctx.save(); ctx.globalAlpha = 0.45; ctx.setLineDash([4, 4]);
+    const f = [iso(p.gx + 0.2, p.gy + 0.2, 0.5), iso(p.gx + 2.3, p.gy + 0.2, 0.5), iso(p.gx + 2.3, p.gy + 2.3, 0.5), iso(p.gx + 0.2, p.gy + 2.3, 0.5)];
+    poly(f, 'rgba(160,190,230,.08)', 'rgba(170,200,235,.7)', 1.2);
+    const t = [iso(p.gx + 0.2, p.gy + 0.2, 40), iso(p.gx + 2.3, p.gy + 0.2, 40), iso(p.gx + 2.3, p.gy + 2.3, 40), iso(p.gx + 0.2, p.gy + 2.3, 40)];
+    poly(t, null, 'rgba(170,200,235,.45)', 1);
+    for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(f[k][0], f[k][1]); ctx.lineTo(t[k][0], t[k][1]); ctx.stroke(); }
+    ctx.setLineDash([]); ctx.globalAlpha = 0.85;
+    const [x, y] = iso(p.gx + 1.25, p.gy + 1.25, 48); ctx.font = '600 9px ' + MONO; ctx.textAlign = 'center'; ctx.fillStyle = '#bcd6ff';
+    ctx.fillText(':' + s.port + ' ' + String(s.name).slice(0, 18), x, y); ctx.font = '500 7.5px ' + MONO; ctx.fillStyle = '#8fa9c8'; ctx.fillText('here an hour ago', x, y + 11);
+    ctx.restore();
+  }
+}
+
+// ------------------------------------------------------------------ today
+// The day so far, from the recorded opens and closes and the stories told.
+async function renderToday(body) {
+  body.innerHTML = '<div class="empty">Reading today\'s history…</div>';
+  let tl = [];
+  try { const r = await fetch(API + '?timeline=1', { headers: { [HEADER]: TOKEN }, cache: 'no-store' }); tl = (await r.json()).timeline || []; } catch (e) { }
+  const mid = new Date(); mid.setHours(0, 0, 0, 0); const t0 = mid.getTime() / 1000;
+  const rows = tl.filter(e => e.ts >= t0).map(e => ({ ts: e.ts, text: e.text, col: e.type === 'opened' ? '#6fe3a4' : '#8a7a68' }))
+    .concat((W.stories || []).filter(s => s.ts >= t0).map(s => ({ ts: s.ts, text: s.title + ': ' + s.line, col: '#ffd9a8' })))
+    .sort((a, b) => a.ts - b.ts);
+  if (tabNow !== 'today') return;
+  const opened = rows.filter(r => r.col === '#6fe3a4').length, closed = rows.filter(r => r.col === '#8a7a68').length;
+  body.innerHTML = '<div class="empty" style="text-align:left">Since midnight: ' + opened + ' opened, ' + closed + ' closed' + ((W.stories || []).length ? ', ' + W.stories.length + ' stories' : '') + '.</div>' +
+    (rows.length ? rows.slice(-120).map(r => '<div class="row"><i style="background:' + r.col + '"></i><span><small style="margin:0 0 2px">' + hms(r.ts) + '</small>' + esc(r.text) + '</span></div>').join('') : '<div class="empty">Nothing recorded today yet.</div>');
 }
 
 // ------------------------------------------------------------------ sound

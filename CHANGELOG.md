@@ -6,6 +6,14 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **Harbour: relationships, mood, memory and stories.** Services that depend on
+  each other are joined by pipes that flow while both are in use. One mood for
+  the whole harbour (calm, busy, under pressure) drives wind, whitecaps and
+  smoke, and the machine panel says why. Pets remember what the history
+  records: restarts today, earlier exposure, a service that came back. Chains
+  of events are told once as stories. `C` compares with an hour ago (new gets a
+  star, gone a ghost); a Today tab tells the day; an agent's inspector shows
+  its family; buildings weather with age; a busy host carries a count.
 - **Harbour: engineered details.** The coal train is a proper consist: a long
   diesel at each end and hopper wagons on two-axle bogies, backing out behind
   its rear engine. Robots walk on legs and swing their arms.

@@ -318,3 +318,20 @@ def test_fleet_harbours_skip_this_machine_and_keep_the_quiet_ones():
     out = world.fleet_harbours(hosts, "mybox")
     assert [h["id"] for h in out] == ["db-1", "web-1"]         # online first; loopback and this machine left out
     assert out[1]["status"] == "gone" and out[1]["address"] == "10.0.0.5"
+
+
+def test_memory_counts_only_what_the_history_records():
+    import time
+    lt = time.localtime(NOW)
+    midnight = time.mktime((lt.tm_year, lt.tm_mon, lt.tm_mday, 0, 0, 0, 0, 0, -1))
+    hist = [
+        {"ts": midnight + 60, "type": "opened", "port": 3000, "exposure": "loopback"},
+        {"ts": midnight + 120, "type": "closed", "port": 3000},
+        {"ts": midnight + 180, "type": "opened", "port": 3000, "exposure": "all"},
+        {"ts": midnight - 86400 * 3, "type": "opened", "port": 3000, "exposure": "all"},   # three days ago
+        {"ts": midnight + 90, "type": "opened", "port": 9999},                               # not listening now
+        {"ts": midnight + 95, "type": "risk_band", "port": 3000},                            # not an open or close
+    ]
+    mem = world.memory_of([{"port": 3000}, {"port": 5432}], hist, now=max(NOW, midnight + 200))
+    assert mem[3000] == {"opens_today": 2, "stops_today": 1, "exposed_before": 2, "since": midnight - 86400 * 3}
+    assert 5432 not in mem and 9999 not in mem           # nothing recorded is not zero, it is absent

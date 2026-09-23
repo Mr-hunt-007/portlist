@@ -375,6 +375,33 @@ def vessel_kind(ports):
     return "car"
 
 
+def memory_of(services, history, now=None):
+    """-> {port: counts} from the recorded opens and closes: how often each port
+    opened and closed since local midnight, how many earlier opens were bound
+    beyond loopback, and when it was first recorded. Counts only; the pets say
+    them, they never guess them."""
+    now = now or time.time()
+    lt = time.localtime(now)
+    midnight = time.mktime((lt.tm_year, lt.tm_mon, lt.tm_mday, 0, 0, 0, 0, 0, -1))
+    ports = {s.get("port") for s in services}
+    out = {}
+    for h in history or []:
+        p = h.get("port")
+        if p not in ports or h.get("type") not in ("opened", "closed"):
+            continue
+        m = out.setdefault(p, {"opens_today": 0, "stops_today": 0, "exposed_before": 0, "since": None})
+        ts = h.get("ts") or 0
+        if h["type"] == "opened":
+            m["since"] = ts if m["since"] is None else min(m["since"], ts)
+            if ts >= midnight:
+                m["opens_today"] += 1
+            if (h.get("exposure") or "loopback") not in ("loopback", "local"):
+                m["exposed_before"] += 1
+        elif ts >= midnight:
+            m["stops_today"] += 1
+    return out
+
+
 def traffic_endpoints(endpoints, limit=24):
     """-> outbound connections other than SSH, one per remote host: the cars
     in the lot. Same grouping the dashboard's network view shows."""
@@ -652,6 +679,9 @@ def build(rows, host=None, groups=None, containers=None, sessions=None,
         "stats": _stats(main, workers, yard),
     }
     snap["conditions"] = conditions(snap)
+    mem = memory_of(snap["services"], history, now)
+    for s in snap["services"]:
+        s["memory"] = mem.get(s.get("port"))
     return snap
 
 
@@ -1202,7 +1232,7 @@ def collect(force=False):
     except Exception:
         si = {}
     try:
-        hist = history.recent(120)
+        hist = history.recent(600)
     except Exception:
         hist = []
     try:

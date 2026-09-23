@@ -54,6 +54,10 @@ itself.
 | Meter on a wall | The agent that started this service has exited and it still runs; the disc turns as fast as the service is used |
 | Hazard stripes | In front of a building whose port another process also holds |
 | Door lamp | Warm while the service answers, guttering when long idle, out when it does not answer |
+| Pipes along the roads | A service that depends on another, from the scan's own dependency list, joined to it door to door by a conduit. It carries a flow while both are in use and lies quiet otherwise. Loopback traffic between them still drives as carts |
+| The harbour's mood | One state for the whole place from the machine's figures: calm, busy (CPU from 40%, 200 KB/s on the network, 20 outbound connections or 4 services in use) or under pressure (CPU 80%, memory 85%, disk 92%). The wind, the whitecaps and the drift of the smoke follow it together, and the machine panel says which and why |
+| Weathering | A building that has stood for days streaks down its walls, less so one in daily use: how long it has been there, from the recorded history |
+| A count on a car's roof | One remote host carrying four or more connections |
 | Sky and sea | The sun and moon follow the real clock and the moon shows tonight's real phase, with its light on the water. Stars, clouds, the distant town, buoys, whitecaps, surf and gulls are scenery and mean nothing; the gulls glide, beat their wings now and then and cast a shadow on the water. Street lamps come on after dark |
 
 ## The pets
@@ -216,6 +220,32 @@ never the server itself or pid 0/1. A process that ignores it is offered
 `kill -9`. A server that serves this page with its own stop endpoint routes
 the request through that, with its own checks.
 
+## Memory, stories, comparison and today
+
+**The pets remember** what the recorded opens and closes say, one line at a time
+and never the same line twice: Rivet on a service that has started three or
+more times today, Kelp on one that has been open to the network before, Bosun
+on one that went away today and came back, Pilot on one that has stood for days
+unused. Every line is a count from the history (`memory` on each service in
+`/api/world`).
+
+**Stories.** A few events in a row can mean one thing, and the harbour says so
+once, in a card at the top and in the log: an agent arriving and starting a
+service ("a development session came alive"), an agent leaving with its server
+still running, three containers within half a minute, a service reachable from
+outside minutes after it started, three restarts in three minutes, four services
+stopping within twenty seconds. Never in the sandbox.
+
+**Compare** (`C`, or the button) sets the harbour beside itself an hour ago:
+what is new since then carries a star on its sign, what has gone stands as a
+ghost outline on a free lot. The same button turns it off.
+
+**Today**, a tab in the list, tells the day so far from the recorded opens and
+closes and the stories told, with counts at the top.
+
+**Families.** An agent's inspector, running or exited, lists what it started, each
+service's state, and what each one leans on.
+
 ## Spotlight, sound and pictures
 
 Whatever you click stays lit and the rest of the harbour steps back a little,
@@ -238,7 +268,7 @@ outbound, and to public IPs.
 
 `F` full screen, `S` ambient mode (tour + captions, chrome fades), `T` tour,
 `/` find, `P` replay, `?` legend, `A` what needs a look, `L` light (the clock, day, dusk,
-night), `M` sound, `K` picture, `G` play, `0` whole harbour, `+` `-` zoom, `Esc` close.
+night), `M` sound, `K` picture, `G` play, `C` compare with an hour ago, `0` whole harbour, `+` `-` zoom, `Esc` close.
 
 ## How it is built
 

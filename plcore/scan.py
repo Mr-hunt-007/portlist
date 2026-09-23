@@ -290,8 +290,7 @@ def _scan_now(force=False):
         # What each of these could reach if it were taken. Exposure says who can
         # get in; this says what is behind the door.
         stdio_pids = [pid for pid, p_ in procs.items()
-                      if any(re.search(pat, p_.get("cmdline") or "")
-                             for pat in mcp_mod.STDIO_PATTERNS)]
+                      if mcp_mod.mentions_stdio(p_.get("cmdline") or "")]
         dirs_for_stdio = collect.cwds(stdio_pids) if stdio_pids else {}
 
         try:

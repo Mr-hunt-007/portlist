@@ -1,0 +1,29 @@
+name: Living harbour
+
+# Serves the harbour page on a scripted machine and checks it in headless
+# Chromium: vehicles never overlap, jump or leave the road; boats stay in open
+# water; the world matches the model; every inspector opens; no console errors.
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ "plcore/world*.py", "plcore/data/world.html", "tools/worldcheck/**", ".github/workflows/world.yml" ]
+  pull_request:
+    branches: [ "main" ]
+    paths: [ "plcore/world*.py", "plcore/data/world.html", "tools/worldcheck/**", ".github/workflows/world.yml" ]
+
+jobs:
+  harbour:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    - name: Install Playwright
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install playwright
+        python -m playwright install --with-deps chromium
+    - name: Check the harbour
+      run: python tools/worldcheck/run.py

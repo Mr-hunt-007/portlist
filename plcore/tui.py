@@ -1262,6 +1262,20 @@ class Tui:
         except Exception:
             self.status = "could not open a browser - " + url
 
+    def open_world(self):
+        """The living harbour, served from this process, in a browser window.
+
+        One loopback server per session, started on first use and gone when
+        the terminal quits. Full screen where a Chromium-family browser exists.
+        """
+        try:
+            from . import worldserve
+            url = worldserve.ensure_background()
+            how = worldserve.open_browser(url, fullscreen=True)
+            self.status = "harbour: " + how
+        except Exception as e:
+            self.status = "could not open the harbour: %s" % e
+
     def read_modified(self):
         """-> a (key, mods) pair for a CSI-u or modifyOtherKeys sequence, or None.
 
@@ -1387,6 +1401,9 @@ class Tui:
             return True
         if ch == ord("V"):
             self.enter_vibe()
+            return True
+        if ch == ord("W") and not self.typing:
+            self.open_world()
             return True
         if self.overlay:
             self.overlay = None

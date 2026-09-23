@@ -6,6 +6,19 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **Harbour: a port that works like one, boats by kind, and stopping.**
+  Outbound connections that are not web go by sea as the vessel their port
+  says: fishing boats for push, the mail boat, a ferry for chat, a launch for
+  AI, tugs for databases and queues, a tender for naming. A half-full coal
+  bunker brings a bulk carrier, towed in by two tugs with a pilot boat, tied up
+  to the jetty and loaded by an excavator, sitting lower as it fills. Radar on
+  the office, lights reflected at night. **Stopping from the harbour**: off by
+  default and every reload, switched on in Play; each stop is confirmed and
+  goes through `POST /api/world/stop` (key, same origin, fresh-scan check,
+  SIGTERM, `kill -9` offered if ignored). The list at the top left is a clear
+  button and starts open on wide screens; ambient mode has a visible Exit; the
+  machine panel shows listening, inbound, outbound and public counts. The
+  first-visit card no longer comes back after a quick dismiss.
 - **Harbour: a coal train, CPU smoke, and Play.** A coal train is the data the
   machine is receiving: it runs in over a trestle south of the harbour while
   downloads flow, tips its wagons at the staithe and backs out the way it came

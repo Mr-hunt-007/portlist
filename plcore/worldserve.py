@@ -10,12 +10,18 @@ Security, briefly, because a local web server is a door:
   that rebinds its own DNS name to 127.0.0.1 cannot read the world;
 - the page needs the per-run key in its URL and the API needs it in a header,
   so another local user who finds the port finds nothing;
-- it is read-only. There is no endpoint that changes anything.
+- it reads, with one exception: POST /api/world/stop sends SIGTERM (or
+  SIGKILL when forced) to a process. The page offers it only once stopping is
+  switched on in its Play panel and the person has confirmed. The server then
+  also needs the key, a same-origin Origin, and a fresh scan showing that pid
+  listening on that port right now. Never this server or its parent, never pid 0 or 1.
 """
 import http.server
 import os
+import json
 import secrets
 import shutil
+import signal
 import socketserver
 import subprocess
 import sys
@@ -114,7 +120,58 @@ def make_handler(token, port_ref, keep_fresh=True):
                 return self._send(200, world.dumps(doc), "application/json")
             return self._send(404, "not here")
 
+        def do_POST(self):
+            try:
+                self._post()
+            except Exception as e:
+                try:
+                    self.close_connection = True
+                    self._send(500, "world error: %s" % type(e).__name__)
+                except Exception:
+                    pass
+
+        def _post(self):
+            if not self._host_ok():
+                return self._send(421, "wrong host")
+            if urllib.parse.urlparse(self.path).path != "/api/world/stop":
+                return self._send(404, "not here")
+            if not secrets.compare_digest(self.headers.get(HEADER, ""), token):
+                return self._send(403, "missing or wrong key")
+            port = port_ref[0]
+            if (self.headers.get("Origin") or "").lower() not in ("http://127.0.0.1:%d" % port, "http://localhost:%d" % port):
+                return self._send(403, "cross-origin request refused")
+            try:
+                n = int(self.headers.get("Content-Length") or 0)
+                body = json.loads(self.rfile.read(min(n, 4096)) or b"{}")
+                pid, sport = int(body.get("pid")), int(body.get("port"))
+            except (ValueError, TypeError, AttributeError):
+                return self._send(400, '{"error": "pid and port must be numbers"}', "application/json")
+            if body.get("confirmed") is not True:
+                return self._send(400, '{"error": "confirmation required"}', "application/json")
+            code, text = stop_process(pid, sport, bool(body.get("force")))
+            return self._send(code, text, "application/json")
+
     return Handler
+
+
+def stop_process(pid, port, force=False):
+    """Signal a process, but only one a fresh scan shows listening on `port`
+    right now. -> (http status, json text)."""
+    from . import scan
+    if pid in (0, 1) or pid in (os.getpid(), os.getppid()):
+        return 400, json.dumps({"error": "refusing to signal that process"})
+    rows, _ = scan.scan(force=True)
+    row = next((r for r in rows if r.get("pid") == pid and r.get("port") == port), None)
+    if not row:
+        return 409, json.dumps({"error": "pid %d is not listening on :%d any more" % (pid, port)})
+    try:
+        os.kill(pid, signal.SIGKILL if force else signal.SIGTERM)
+    except ProcessLookupError:
+        return 410, json.dumps({"error": "process already gone"})
+    except PermissionError:
+        return 403, json.dumps({"error": "not permitted: the process belongs to another user"})
+    return 200, json.dumps({"ok": True, "signalled": pid, "signal": "SIGKILL" if force else "SIGTERM",
+                            "service": row.get("service") or row.get("cmd")})
 
 
 def serve(port=0, keep_fresh=True):

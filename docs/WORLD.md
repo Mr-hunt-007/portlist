@@ -15,6 +15,9 @@ itself.
 | Logos | On the wall, the service's own mark (Redis, MongoDB, PostgreSQL, nginx, Docker, Grafana...). On the sign, chips for what it runs on and what it was built with: the runtime (Python, Node, Bun, Deno...) is read from the process, the framework (React, Next.js, Vue, Svelte, Angular, FastAPI, Django, Flask...) from the project's own package.json, requirements.txt or pyproject.toml. Nothing is inferred from a port. Marks from Simple Icons (CC0) |
 | The dot on its sign | Green in use, amber idle, brown long idle, blue still measuring |
 | Smoke | Only from a service seen in use (or using CPU). Its density follows the service's own CPU when the scan has it: a light puff at a few percent, thick dark plumes near a whole core. Fewer samples than needed is "still measuring", never "idle" |
+| Boats at the anchorage | Outbound connections that are not web traffic, as the vessel their port says they are: push (held open, waiting) is a fishing boat with a line out, mail the mail boat, chat a ferry, AI a fast launch, databases, caches and queues tugs, name and directory services a tender. They sail in off the causeway when the first connection opens and out when the last closes. Web traffic stays cars |
+| Coal carrier and excavator | When the coal bunker is half full, a bulk carrier is towed in, ties up to the jetty, and an excavator loads it bucket by bucket; it sits lower as it fills and is towed out full or once the bunker is empty |
+| Tugs, pilot boat, mooring lines, radar, reflections | How a real port works, following the ship they serve: two tugs bring every big ship in and out, a pilot boat meets the collier, a ship at the jetty is tied up. The radar on the harbour master's office and lights reflected on the water at night are scenery |
 | Coal train | Data this machine is receiving. While the network brings data in, a train runs in over the trestle south of the harbour, tips its wagons into the staithe bunker and backs out the way it came, tail lamp leading. One wagon at about 100 KB/s, up to six. Nothing coming in, no train |
 | Dust, weeds, a cobweb | Long idle, or it looks left over, with the reasons in the panel |
 | Roof beacon | Risk as scored. Amber medium, red high and critical |
@@ -179,7 +182,9 @@ time.
 
 ## Play: drama and the sandbox
 
-`G`, or the Play button, opens a panel with two things, both off by default.
+`G`, or the Play button, opens a panel, everything in it off by default. **Game
+mode** at the top is one switch for the full show: it turns on drama and sound
+together, and off returns to the calm harbour. Stopping is never part of it.
 
 **Drama** tells real events with more theatre. An agent that exits leaves its
 toolbox at the door, and some while later the inspector cat comes to say "Boss
@@ -200,9 +205,15 @@ simulated line in the log says "(simulated)", the status chip reads "sandbox",
 a banner says so, and a picture taken then is stamped SIM. Back to live
 restores the real harbour.
 
-**Settle it.** A shared port's inspector has one button per process. In the
-sandbox it stops the simulated one; live, it copies `kill <pid>` for you to run
-in a terminal. The page never signals a process itself.
+**Stopping.** A shared port's inspector has one "Settle it" button per
+process. In the sandbox it stops the simulated one. Live, it copies `kill <pid>`
+unless **Allow stopping from the harbour** is switched on in Play (off again on
+every page load). Then each service's inspector has a Stop button: it asks
+first, and `POST /api/world/stop` sends SIGTERM, only with the page key, a
+same-origin request, and a fresh scan showing that pid still on that port;
+never the server itself or pid 0/1. A process that ignores it is offered
+`kill -9`. A server that serves this page with its own stop endpoint routes
+the request through that, with its own checks.
 
 ## Spotlight, sound and pictures
 
@@ -213,6 +224,14 @@ a thud when a container is set down. It is made in the page with WebAudio, no
 files, and a burst of starts is one chime. `K`, or the camera button, saves a
 PNG of the harbour with a strip of its counts, for sharing: host names,
 addresses and the pets' chat are left out, and nothing is uploaded.
+
+## Getting around
+
+The list at the top left (what needs a look, the pets, the timeline) starts open
+on a wide screen and remembers how you left it. Ambient mode (`S`) hides the
+controls; move the mouse and an **Exit ambient mode** button appears top right.
+The machine panel ends with the network view's four counts: listening, inbound,
+outbound, and to public IPs.
 
 ## Keys
 

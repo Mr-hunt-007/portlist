@@ -358,6 +358,23 @@ def ssh_destinations(endpoints, fleet=(), can_inventory=False):
     return [d for d in sea_destinations(endpoints, fleet, can_inventory) if d["kind"] == "ssh"]
 
 
+# What an outbound connection is, from the port portlist recognised, never guessed.
+# The harbour draws web traffic as cars on the causeway and the rest at sea.
+VESSEL_OF = {"web": "car", "mail": "mailboat", "push": "fishing", "chat": "ferry",
+             "ai": "launch", "queue": "tug", "cache": "tug", "database": "tug",
+             "directory": "tender", "naming": "tender", "container": "tug"}
+
+
+def vessel_kind(ports):
+    """-> car, mailboat, fishing, ferry, launch, tug or tender. The first
+    recognised port decides; nothing recognised stays a car, as before."""
+    for p in ports:
+        v = VESSEL_OF.get(p.get("kind") or "")
+        if v:
+            return v
+    return "car"
+
+
 def traffic_endpoints(endpoints, limit=24):
     """-> outbound connections other than SSH, one per remote host: the cars
     in the lot. Same grouping the dashboard's network view shows."""
@@ -373,6 +390,7 @@ def traffic_endpoints(endpoints, limit=24):
         out.append({"key": e.get("address"), "address": e.get("address"), "alias": e.get("alias"),
                     "apps": procs[:3], "services": (e.get("services") or [])[:2],
                     "ports": [p.get("port") for p in e.get("ports") or []][:3],
+                    "kind": vessel_kind(e.get("ports") or []),
                     "scope": e.get("scope"), "count": e.get("count") or 1})
     return out[:limit]
 
@@ -578,6 +596,13 @@ def build(rows, host=None, groups=None, containers=None, sessions=None,
         "disk_free": root.get("free"), "disk_total": root.get("total"),
         "processes": (si.get("processes") or {}).get("count"),
         "net_rx": _net(si, "rx_rate"), "net_tx": _net(si, "tx_rate"),
+        # the network view's four counts, from the same connection list
+        "sockets": {
+            "listening": len(rows or []),
+            "inbound": sum(1 for c in conns or [] if c.get("direction") == "inbound"),
+            "outbound": sum(1 for c in conns or [] if c.get("direction") == "outbound"),
+            "public": sum(1 for c in conns or [] if c.get("direction") == "outbound" and c.get("scope") == "public"),
+        } if conns is not None else None,
     }
 
     gate = {

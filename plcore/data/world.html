@@ -55,6 +55,13 @@ button{font:inherit;color:inherit}
 #attnBtn{display:inline-flex;align-items:center;gap:9px;padding:7px 12px;border-radius:9px;background:var(--pill);
   border:1px solid var(--line);font-size:12.5px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 #attnBtn b{font-family:var(--mono);font-weight:600;color:var(--amber2)}
+#attnBtn{padding:8px 12px 8px 11px;background:rgba(12,24,36,.88);border-color:rgba(127,178,255,.3);color:#e3eef6}
+#attnBtn:hover{border-color:var(--amber)}
+#attnBtn svg{width:15px;height:15px;color:#9fc0d2;flex:none}
+#attnBtn .al{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;text-align:left}
+#attnBtn .al small{font-size:10.5px;color:#7f9aac}
+.brand a.back{margin-left:6px;padding:4px 9px;border-radius:7px;border:1px solid var(--line);font-size:11.5px;color:#9fc0d2;text-decoration:none}
+.brand a.back:hover{border-color:var(--amber);color:var(--amber2)}
 #attnBtn .car{color:var(--muted);font-size:10px;transition:transform .15s}
 #attn.open #attnBtn .car{transform:rotate(90deg)}
 #attnList{display:none;margin-top:8px;max-height:min(56vh,520px);overflow:auto;border-radius:12px;background:var(--panel);
@@ -147,6 +154,7 @@ body.screen #machine{display:block;opacity:.8}
 .sw::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#9fb6c6;transition:transform .15s}
 .opt[aria-checked="true"] .sw{background:rgba(240,162,75,.7)} .opt[aria-checked="true"] .sw::after{transform:translateX(13px);background:#fff}
 .seg{display:flex;gap:4px;margin:4px 16px 8px}
+#machine .mc{margin-top:6px;font-family:var(--mono);font-size:10.5px;color:#84a8bf}
 .popnote{margin:2px 16px 10px;font-size:11.5px;line-height:1.45;color:#7f9aac}
 .simgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 16px 6px}
 .simgrid button,.simback,.act{padding:8px 6px;border-radius:8px;border:1px solid var(--line);background:rgba(120,170,200,.06);font-size:12px;color:#cfe0ea;cursor:pointer}
@@ -243,9 +251,12 @@ body.screen #welcome{display:none}
 /* ambient screen mode */
 body.hinted .hint,body.inspecting .hint,body.screen .hint,body.screen #log,body.screen .tools,body.screen #attn,body.screen #log{display:none}
 body.screen #caption{display:block}
+#exitScreen{display:none;position:absolute;top:18px;right:20px;z-index:30;padding:8px 14px;border-radius:9px;border:1px solid rgba(240,162,75,.55);background:rgba(10,19,29,.92);color:#ffd9a8;font-size:12.5px;cursor:pointer;transition:opacity .4s}
+#exitScreen kbd{margin-left:6px;padding:1px 6px;border-radius:4px;border:1px solid rgba(255,217,168,.4);font-family:var(--mono);font-size:10.5px}
+body.screen #exitScreen{display:block} body.screen.bare #exitScreen{opacity:0;pointer-events:none}
 body.bare .shade-top,body.bare .brand,body.bare .pills{opacity:0;transition:opacity .6s}
 .pills,#attn,#ctl,.brand{transition:opacity .8s ease}
-body.idle .tools{opacity:.28} body.idle #attn{opacity:.45} body.idle .pills{opacity:.8}
+body.idle .tools{opacity:.28} body.idle #attn{opacity:.8} body.idle .pills{opacity:.8}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 @media (max-width:760px){
   .brand{left:16px;top:14px} .brand .w2{display:none} .live{display:none}
@@ -268,17 +279,19 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.45} body.idle .pills{opac
   <canvas id="world" aria-label="The harbour: every listening service on this machine drawn as a building" role="img"></canvas>
   <div class="shade-top"></div>
   <div id="banner" role="status"></div>
+  <button type="button" id="exitScreen">Exit ambient mode <kbd>S</kbd></button>
 
   <div class="brand">
     <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0e2c42"/><circle cx="16" cy="13" r="8" fill="none" stroke="#f0a24b" stroke-width="2.6"/><circle cx="16" cy="10" r="1.7" fill="#ffd9a8"/><circle cx="16" cy="16" r="1.7" fill="#ffd9a8"/><path d="M4 26c3-2.4 5-2.4 8 0s5 2.4 8 0 5-2.4 8 0" fill="none" stroke="#6fb3d6" stroke-width="2.2" stroke-linecap="round"/></svg>
     <div class="wm"><span class="w1">PORTLIST</span><span class="w2">HARBOUR</span></div>
     <span class="live wait" id="live" role="status"><i></i><span id="liveT">connecting</span></span>
+    <a class="back" id="backDash" href="/" hidden title="Back to the dashboard">&#8249; Dashboard</a>
   </div>
 
   <div class="pills" id="pills" role="toolbar" aria-label="Highlight by state"></div>
 
   <div id="attn">
-    <button id="attnBtn" type="button" aria-expanded="false" aria-controls="attnList"><span class="car">&#9654;</span><span id="attnLabel">Reading the harbour</span></button>
+    <button id="attnBtn" type="button" aria-expanded="false" aria-controls="attnList" title="Open the list: what needs a look, the pets, the timeline (A)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><circle cx="2.6" cy="4" r=".9" fill="currentColor"/><circle cx="2.6" cy="8" r=".9" fill="currentColor"/><circle cx="2.6" cy="12" r=".9" fill="currentColor"/></svg><span class="al"><span id="attnLabel">Reading the harbour</span><small>pets · timeline</small></span><span class="car">&#9654;</span></button>
     <div id="attnList">
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" data-tab="attn" aria-selected="true">Needs a look</button>
@@ -331,6 +344,9 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.45} body.idle .pills{opac
   </div>
 
   <div class="pop" id="play" role="dialog" aria-label="Play">
+    <h3>GAME MODE</h3>
+    <button class="opt" type="button" id="oGame" role="switch" aria-checked="false">Everything on: drama and sound <span class="sw"></span></button>
+    <p class="popnote">One switch for the full show. Off returns to the calm harbour. Stopping stays its own switch below.</p>
     <h3>DRAMA</h3>
     <button class="opt" type="button" id="oDrama" role="switch" aria-checked="false">Tell real events with more theatre <span class="sw"></span></button>
     <p class="popnote">Robots drop their tools, a cat comes to look, sirens, brawls, lightning, a calm score. Still only real events; the figures at the fence and the tugs are dramatisation.</p>
@@ -343,6 +359,9 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.45} body.idle .pills{opac
     </div>
     <button type="button" class="simback" id="simBack" hidden>Back to live</button>
     <p class="popnote">Starts from your harbour as it is. Nothing on the machine is touched.</p>
+    <h3>STOPPING</h3>
+    <button class="opt" type="button" id="oStop" role="switch" aria-checked="false">Allow stopping from the harbour <span class="sw"></span></button>
+    <p class="popnote">Adds a Stop button to each service's panel. Every stop asks first, then sends SIGTERM to that process, and only if a fresh scan shows it still on that port. Off again every time the page loads.</p>
   </div>
 
   <section id="insp" aria-live="polite"></section>
@@ -596,7 +615,7 @@ const W = {
   smoke: [], sparks: [], gulls: [], rings: [], log: [], toasts: [],
   gate: { boom: 0, moving: false }, cranes: [],
   t: 0, highlight: null, hlLabel: '', sel: null, hovered: null, chat: [], chatAt: 0,
-  offline: false, lastOk: 0, firstFrame: true,
+  offline: false, lastOk: 0, firstFrame: true, allowStop: false, stopped: {}, vessels: new Map(), firstVessels: true,
   cfg: Object.assign({ light: 'auto', labels: true, pets: true, lines: true, traffic: true, ruins: true, tour: false, screen: false, sound: false, drama: false }, store.get('cfg', {}))
 };
 const cam = { x: 0, y: 0, zoom: 1, tx: null, ty: null, tz: null, userAt: 0 };
@@ -734,7 +753,7 @@ function sync(doc) {
     for (const e of [...W.workers.values(), ...W.pets.values()]) e.path = null;
     W.trucks = []; W.carriers = []; W.visitors = []; W.carts = [];
     // a new layout moves the road and the car park: re-seat, never leave anything floating
-    W.cars = new Map(); W.firstCars = true;
+    W.cars = new Map(); W.firstCars = true; W.vessels = new Map(); W.firstVessels = true;
     if (W.fork) { W.fork = null; } if (W.cleaner) { W.cleaner = null; }
     for (const b of W.boats.values()) b._route = null;
     if (!first) fit(true);
@@ -839,7 +858,7 @@ function sync(doc) {
 
   if (first && doc.chatter) W.chatAt = W.t + 6;
   syncBoats(doc);
-  if (W.geo) { syncCars(doc); syncVisitors(doc); }
+  if (W.geo) { syncCars(doc); syncVessels(doc); syncVisitors(doc); }
   W.snap = doc;
   W.firstFrame = false;
   traffic();
@@ -1050,6 +1069,8 @@ function step(dt) {
   stepCars(dt);
   stepVisitors(dt);
   stepTrain(dt);
+  stepBulker(dt);
+  stepVessels(dt);
   stepDrama(dt);
   if (W.snap && W.snap.chatter && W.snap.chatter.length && W.t > W.chatAt) startChat();
   W.chat = W.chat.filter(c => W.t < c.until);
@@ -1437,6 +1458,9 @@ function draw() {
   furnitureItems(items, night);
   for (const b of leftBehind()) { const d = W.geo.door(b); items.push({ z: d[0] + d[1] - 1, f: () => drama() ? drawToolbox(b, night) : drawDormantBot(b, night) }); }
   railItems(items, night);
+  bulkItems(items, night);
+  escortItems(items, night);
+  for (const v of W.vessels.values()) items.push({ z: v.pos[0] + v.pos[1], f: () => drawVessel(v, night) });
   if (drama()) {
     // one brawl per port, in front of the first building holding it
     const seen = new Set();
@@ -1956,6 +1980,7 @@ function drawHeadland(night) {
     rg.addColorStop(0, 'rgba(255,240,190,' + (0.9 * K).toFixed(2) + ')'); rg.addColorStop(1, 'rgba(255,240,190,0)');
     ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(lx, ly, 40, 0, 6.3); ctx.fill();
   }
+  if (K > 0.01 && night > 0.3) { const [wx, wy] = iso(x0 + 1.4, y0 + 2.2, 0); reflect(wx, wy + 8, '255,236,170', 0.9 * K); }
   if (K > 0.01 && L.state !== 'guiding') { const rg = ctx.createRadialGradient(lx, ly, 2, lx, ly, 26); rg.addColorStop(0, 'rgba(255,236,170,' + (0.55 * K).toFixed(2) + ')'); rg.addColorStop(1, 'rgba(255,236,170,0)'); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(lx, ly, 26, 0, 6.3); ctx.fill(); }
   box(x0 + 0.05, y0 + 0.05, 0.8, 0.8, zt + 18, hex(dark('#2c3640'), '#ffecaa', K), { z0: zt + 3, top: dark('#3c4249') });
   box(x0 - 0.02, y0 - 0.02, 0.94, 0.94, zt + 22, dark('#b0473d'), { z0: zt + 18 });
@@ -2412,7 +2437,7 @@ function lotGeo() {
 }
 function carColour(e) { const pal = ['#c9784a', '#4d7fa8', '#5aa08a', '#b0473d', '#c9a24a', '#8a70c8', '#d9d2c3', '#3f86b8']; return pal[Math.floor(hash((e.apps || [''])[0]) * pal.length)]; }
 function syncCars(doc) {
-  const L = lotGeo(), list = (doc.traffic || []).slice(0, L.cap), seen = new Set(), used = new Set();
+  const L = lotGeo(), list = (doc.traffic || []).filter(isCar).slice(0, L.cap), seen = new Set(), used = new Set();
   // a bay stays taken until the car that was in it has actually left
   for (const c of W.cars.values()) used.add(c.slot);
   for (const e of list) {
@@ -3005,7 +3030,7 @@ function scrubTo(v) {
       const r = await fetch(API + '?at=' + at, { headers: { [HEADER]: TOKEN }, cache: 'no-store' });
       const doc = await r.json();
       // the past has no traffic, sessions or recent rubble: clear what belongs to now
-      if (!W.past) { W.cars = new Map(); W.firstCars = true; W.ruins = []; W.trucks = []; W.visitors = []; W.carts = []; }
+      if (!W.past) { W.cars = new Map(); W.firstCars = true; W.vessels = new Map(); W.firstVessels = true; W.ruins = []; W.trucks = []; W.visitors = []; W.carts = []; }
       W.past = doc.past; sync(doc);
       $('#live').className = 'live wait'; $('#liveT').textContent = 'replay'; renderPills(); renderDrawerLabel(); renderA11y();
       const b = $('#banner'); b.classList.add('on', 'past');
@@ -3015,7 +3040,7 @@ function scrubTo(v) {
 }
 function goLive() {
   if (!W.past) return;
-  W.past = null; $('#banner').classList.remove('on', 'past'); W.cars = new Map(); W.firstCars = true; W.ruins = [];
+  W.past = null; $('#banner').classList.remove('on', 'past'); W.cars = new Map(); W.firstCars = true; W.vessels = new Map(); W.firstVessels = true; W.ruins = [];
   const sl = $('#scrubRange'); if (sl.max) sl.value = sl.max; $('#scrubWhen').textContent = 'now';
   poll();
 }
@@ -3036,6 +3061,7 @@ function a11yItems() {
   for (const bt of W.boats.values()) if (!bt.leaving) out.push({ key: 'isl:' + bt.key, text: (bt.o.kind === 'db' ? bt.o.service : 'SSH') + ' session to ' + bt.o.target, h: { kind: 'boat', ref: bt } });
   for (const f of W.snap.fleet || []) out.push({ key: 'fl:' + f.id, text: 'Other machine ' + f.name + ', ' + (f.status === 'online' ? 'reporting' : 'last heard ' + ago(f.age)), h: { kind: 'fleet', ref: f } });
   for (const k of W.crates.values()) if (k.c && !k.leaving) out.push({ key: 'ct:' + k.name, text: 'Container ' + k.name + ', ' + (k.c.running ? 'running' : k.c.state), h: { kind: 'container', ref: k } });
+  for (const v of W.vessels.values()) if (v.e && v.stage !== 'out') out.push({ key: 'car:' + v.key, text: 'Outbound ' + (VESSEL[v.e.kind] || {}).label + ' to ' + (v.e.alias || v.e.address) + ' from ' + (v.e.apps || []).join(', '), h: { kind: 'car', ref: v } });
   for (const c of W.cars.values()) if (c.e && c.stage !== 'leaving') out.push({ key: 'car:' + c.key, text: 'Outbound to ' + (c.e.alias || c.e.address) + ' from ' + (c.e.apps || []).join(', '), h: { kind: 'car', ref: c } });
   out.push({ key: 'ship', text: 'This machine: ' + W.snap.ship.name, h: { kind: 'ship', ref: null } });
   out.push({ key: 'office', text: 'Coding sessions', h: { kind: 'office', ref: null } });
@@ -3072,11 +3098,14 @@ function renderMachine() {
       (spark ? '<canvas data-k="' + k + '" width="148" height="32"></canvas>' : '<i class="bar"><i></i></i>') +
       '<span class="mv"></span><span class="ms"></span></div>';
     el.innerHTML = '<button class="mh" type="button"><b></b><span></span><i class="m1"></i></button><div class="mb"><div class="ml"></div>' +
-      row('cpu', 1) + row('mem', 1) + row('disk', 0) + row('net', 1) + '</div>';
+      row('cpu', 1) + row('mem', 1) + row('disk', 0) + row('net', 1) + '<div class="mc"></div></div>';
     el.querySelector('.mh').onclick = () => { W.cfg.machineMin = !W.cfg.machineMin; saveCfg(); renderMachine(); };
   }
   const set = (sel, v) => { const n = el.querySelector(sel); if (n && n.textContent !== v) n.textContent = v; };
   set('.mh b', s.name || '');
+  // the network view's four counts, one line
+  const k = s.sockets;
+  set('.mc', k ? k.listening + ' listening · ' + k.inbound + ' in · ' + k.outbound + ' out · ' + k.public + ' to public IPs' : '');
   set('.m1', 'cpu ' + (s.load_pct == null ? '?' : Math.round(s.load_pct) + '%') + ' · mem ' + (s.mem_pct == null ? '?' : Math.round(s.mem_pct) + '%') + ' · disk ' + (s.disk_pct == null ? '?' : Math.round(s.disk_pct) + '%') + ' · ' + hms());
   set('.mh span', [s.os, s.model ? s.model + (s.pcores ? ' (' + s.pcores + 'P+' + s.ecores + 'E)' : '') : null].filter(Boolean).join(' · '));
   set('.ml', hms() + ' · up ' + dur(s.uptime) + (s.processes ? ' · ' + s.processes + ' processes' : '') + (s.self && s.self.rss ? ' · scanner ' + fmtBytes(s.self.rss) : ''));
@@ -3515,6 +3544,13 @@ function drawSigns() {
     if (c._wx == null) continue;
     const [x, y] = toScreen(...iso(c._wx, c._wy, 18));
     add({ kind: 'car', ref: c, x, y, pop: 1, hov, sel, small: true, label: W.capture ? (c.e.apps[0] || '?') : (c.e.apps[0] || '?') + ' · ' + (c.e.services[0] || c.e.ports[0] || ''), dot: c.col, exposed: false, chips: [appLogo(c.e.apps[0])].filter(Boolean), marks: [], pri: hov || sel ? 100 : 6 });
+  }
+  for (const v of W.vessels.values()) {
+    if (v._wx == null || !v.e) continue;
+    const hov = W.hovered && W.hovered.ref === v, sel = W.sel && W.sel.ref === v;
+    if (!(hov || sel) && lvl < 2) continue;
+    const [x, y] = toScreen(...iso(v._wx, v._wy, 24));
+    add({ kind: 'car', ref: v, x, y, pop: 1, hov, sel, small: true, label: W.capture ? (v.e.apps[0] || '?') : (v.e.apps[0] || '?') + ' · ' + (v.e.services[0] || v.e.ports[0] || ''), dot: '#7fb2ff', exposed: false, chips: [appLogo(v.e.apps[0])].filter(Boolean), marks: [], pri: hov || sel ? 100 : 6 });
   }
   for (const bt of W.boats.values()) {
     if (bt._ix == null) continue;
@@ -4049,6 +4085,8 @@ function hoverText(h) {
     case 'visitor': return ['Outside visitor', 'a real connection from beyond this machine'];
     case 'cart': return ['Local traffic', 'a loopback connection between two services'];
     case 'yard': return ['Container yard', r.engine ? r.engine + ' did not answer' : 'no container engine'];
+    case 'bulker': return ['Coal carrier', Math.round(r.load * 100) + '% loaded · ' + (r.stage === 'load' ? 'loading' : r.stage === 'in' ? 'arriving' : 'sailing')];
+    case 'digger': return ['Excavator', r.phase === 'idle' ? 'parked' : 'loading the carrier'];
     case 'train': return ['Coal train', r.n + ' wagon' + (r.n > 1 ? 's' : '') + ' · ' + (r.stage === 'in' ? 'arriving' : r.stage === 'tip' ? 'unloading' : 'backing out') + ' · ' + fmtBytes(r.rx) + '/s down'];
     case 'disk': return ['Disk ' + Math.round(W.snap.ship.disk_pct) + '% full', 'the yard is crowded because the disk is'];
   }
@@ -4098,8 +4136,7 @@ function describe(h) {
         .concat(s.reasons.length ? [['RISK, AS SCORED', s.reasons]] : []).concat(s.leftover_why.length ? [['WHY IT LOOKS LEFT OVER', s.leftover_why]] : []),
       cmds: ['lsof -nP -iTCP:' + s.port + ' -sTCP:LISTEN'].concat(s.pid != null ? ['kill ' + s.pid] : []),
       // a shared port: one button per side. The sandbox acts it out; live, the page hands you the command
-      acts: s.conflict.length ? [s].concat(s.conflict.map(id => W.snap.services.find(x => x.id === id)).filter(Boolean)).filter(x => x.pid != null)
-        .map(x => ({ pid: x.pid, port: x.port, label: (W.sandbox ? 'Settle it: stop ' : 'Settle it: copy kill for ') + x.name + ' (pid ' + x.pid + (x.bind ? ', ' + x.bind : '') + ')' })) : [],
+      acts: actsFor(s),
       link: s.local_url && s.health !== 'nodata' && /^https?:/.test(s.url || '') ? s.local_url : /^https?:/.test(s.url || '') && s.health !== 'nodata' ? s.url : null,
       tui: s.exposure === 'reachable' ? 'portlist, then 2 for exposed' : s.leftover ? 'portlist, then 4 for leftovers' : s.risk_band === 'High' || s.risk_band === 'Critical' ? 'portlist, then 3 for attention' : 'portlist, then 1 for services'
     };
@@ -4156,10 +4193,10 @@ function describe(h) {
   }
   if (h.kind === 'car') {
     const e = r.e;
-    return { kind: 'OUTBOUND CONNECTION', accent: r.col, title: e.alias || e.address,
+    return { kind: VESSEL[e.kind] ? 'OUTBOUND · ' + VESSEL[e.kind].label.toUpperCase() : 'OUTBOUND CONNECTION', accent: r.col || '#7fb2ff', title: e.alias || e.address,
       logos: (e.apps || []).map(a => [appLogo(a), a]).filter(x => x[0]), tags: [soft((e.services || []).join(', ') || 'TCP'), soft(e.scope || 'network'), r.stage === 'leaving' ? soft('closed') : solid('open', '#6fe3a4')],
       meta: [['remote', e.address], ['ports', (e.ports || []).join(', ') || '?'], ['talking to it', (e.apps || []).join(', ') || '?'], ['connections', String(e.count)]],
-      sections: [['WHAT YOU SEE', ['A car in the lot outside the gate is a machine your apps are talking to right now. It drove in over the causeway when the first connection opened and drives out when the last one closes. The same list as the dashboard\'s network view.']]], cmds: [] };
+      sections: [['WHAT YOU SEE', [VESSEL[e.kind] ? 'A ' + VESSEL[e.kind].label + ' at the anchorage off the causeway is a machine your apps are talking to right now over ' + ((e.services || [])[0] || 'a recognised port') + '. Web traffic comes by car; ' + { fishing: 'push connections are held open, waiting, so they are fishing boats with a line out', mailboat: 'mail comes by the mail boat', ferry: 'chat is the ferry', launch: 'AI services are the fast launch', tug: 'databases, caches and queues are tugs', tender: 'name and directory services are the tender' }[e.kind] + '. It sailed in when the first connection opened and sails out when the last one closes.' : 'A car in the lot outside the gate is a machine your apps are talking to right now. It drove in over the causeway when the first connection opened and drives out when the last one closes. The same list as the dashboard\'s network view.']]], cmds: [] };
   }
   if (h.kind === 'visitor-ssh') {
     const o = r.o;
@@ -4214,6 +4251,16 @@ function describe(h) {
     return { kind: 'CODING SESSION', accent: '#7fb2ff', title: r.title || 'untitled', tags: [solid('live', '#6fe3a4'), soft(r.tool)],
       meta: [['project', r.project || '?'], ['context', r.context ? Math.round(r.context / 1000) + 'k tokens' : '?'], ['last active', r.last_active ? hms(r.last_active) : '?']],
       sections: [['WHY IT IS IN THE OFFICE', ['This session is running, and it has nothing listening, so it waits in the harbour master\'s office rather than on a lot. Titles only: prompts never leave the transcript.']]], cmds: [] };
+  }
+  if (h.kind === 'bulker') {
+    return { kind: 'COAL CARRIER', accent: '#e3c45a', title: r.stage === 'in' ? 'Coming in to berth' : r.stage === 'load' ? 'Loading at the staithe' : 'Sailing, ' + Math.round(r.load * 100) + '% loaded',
+      tags: [soft(Math.round(r.load * 100) + '% loaded')], meta: [['bunker', Math.round((W.coal || 0) * 100) + '% full']],
+      sections: [['WHAT YOU SEE', ['When the coal bunker is half full, this carrier comes in, the excavator loads it bucket by bucket, and it sits lower in the water as it fills. Full, or once the bunker is empty, it sails on. The coal is the data this machine has received; the carrier keeps the bunker from overflowing.']]], cmds: [] };
+  }
+  if (h.kind === 'digger') {
+    return { kind: 'EXCAVATOR', accent: '#e0a13f', title: r.phase === 'idle' ? 'Parked on the jetty' : 'Loading the carrier',
+      tags: [soft(r.phase)], meta: [['bunker', Math.round((W.coal || 0) * 100) + '% full']],
+      sections: [['WHAT YOU SEE', ['Digs coal out of the staithe bunker and swings it into the carrier\'s holds, one bucket at a time. With no ship in, it waits at the end of the jetty.']]], cmds: [] };
   }
   if (h.kind === 'train') {
     const rx = W.snap.ship.net_rx;
@@ -4282,7 +4329,7 @@ function openInspector(h) {
     d.tags.map(t => '<span class="tag" style="color:' + t.fg + ';background:' + t.bg + ';border-color:' + t.bd + '">' + esc(t.label) + '</span>').join('') + '</div></div>' +
     (d.meta.length ? '<div class="meta">' + d.meta.map(([k, v]) => '<div class="kv"><span>' + esc(k) + '</span><span>' + esc(v) + '</span></div>').join('') + '</div>' : '') +
     d.sections.filter(s => s[1].some(Boolean)).map(([h4, items]) => '<div class="note"><h4>' + esc(h4) + '</h4>' + (items.length > 1 ? '<ul>' + items.map(i => '<li>' + esc(i) + '</li>').join('') + '</ul>' : '<p>' + esc(items[0]) + '</p>') + '</div>').join('') +
-    (d.acts && d.acts.length ? '<div class="acts">' + d.acts.map(a => '<button class="act" type="button" data-pid="' + a.pid + '" data-port="' + a.port + '">' + esc(a.label) + '</button>').join('') + '</div>' : '') +
+    (d.acts && d.acts.length ? '<div class="acts">' + d.acts.map(a => '<button class="act" type="button" data-pid="' + a.pid + '" data-port="' + a.port + '" data-force="' + (a.force ? 1 : 0) + '">' + esc(a.label) + '</button>').join('') + '</div>' : '') +
     (d.cmds.length ? '<div class="cmds">' + d.cmds.map(c => '<button class="cmd" type="button" data-cmd="' + esc(c) + '"><code>' + esc(c) + '</code><span>COPY</span></button>').join('') + '</div>' : '') +
     (d.link ? '<a class="link" href="' + esc(d.link) + '" target="_blank" rel="noopener noreferrer">Open ' + esc(d.link) + '</a>' : '') +
     (d.tui ? '<div class="link" style="color:#63859a">In the terminal: ' + esc(d.tui) + '</div>' : '');
@@ -4291,7 +4338,7 @@ function openInspector(h) {
   el.classList.add('on'); document.body.classList.add('inspecting'); el.scrollTop = keep;
   if (!same && h.ref && h.ref.gx != null && h.kind !== 'lighthouse') { cam.userAt = performance.now(); focusOn(h.ref.gx + 1.2, h.ref.gy + 1.4, Math.max(cam.zoom, 1.05)); if (VW > 760) cam.tx += 170 / cam.tz; }
   el.querySelector('.x').onclick = closeInspector;
-  el.querySelectorAll('.act').forEach(b => b.onclick = () => settle(+b.dataset.pid, +b.dataset.port));
+  el.querySelectorAll('.act').forEach(b => b.onclick = () => W.allowStop && !W.sandbox ? stopLive(+b.dataset.pid, +b.dataset.port, b.dataset.force === '1') : settle(+b.dataset.pid, +b.dataset.port));
   el.querySelectorAll('.cmd').forEach(b => b.onclick = () => {
     const cmd = b.dataset.cmd, done = () => { b.querySelector('span').textContent = 'COPIED'; setTimeout(() => b.querySelector('span').textContent = 'COPY', 1600); };
     if (navigator.clipboard) navigator.clipboard.writeText(cmd).then(done, done); else done();
@@ -4502,6 +4549,9 @@ function renderLegend() {
     ['🌧', 'Rain', 'The CPU has stayed above 80%. It clears once it is back below 65%.'],
     ['🚧', 'Tape on the deck', 'Memory is 85% full or more.'],
     ['🔊', 'Sound (M)', 'Off until you turn it on. The water, a chime when a service starts, a clonk when one stops, a thud when a container is set down. Made in the page, no files.'],
+    ['🎣', 'Boats at the anchorage', 'Outbound connections that are not web: a fishing boat for push (a line held open), the mail boat for mail, a ferry for chat, a launch for AI, tugs for databases and queues, a tender for naming. Web traffic stays cars.'],
+    ['⛴', 'Coal carrier', 'Comes when the coal bunker is half full: towed in by tugs, tied up at the jetty, loaded by the excavator, towed out. Tugs, the pilot boat, the radar and the reflections follow the ships; they mean nothing of their own.'],
+    ['⏹', 'Stopping (Play)', 'Off until you switch it on, and off again on reload. Each stop asks first and sends SIGTERM, only if a fresh scan shows that process still on that port.'],
     ['🚂', 'Coal train', 'Data this machine is receiving. It runs in over the trestle while the network brings data in, tips its wagons at the staithe and backs out. One wagon at about 100 KB/s, up to six.'],
     ['🏭', 'Chimney smoke', 'Follows the service\'s own CPU when the scan has it: a light puff at a few percent, thick dark plumes near a whole core.'],
     ['🎭', 'Drama (G)', 'Off by default. Real events told with more theatre: a robot drops its tools and a cat comes to look, a siren and brawls, lightning in the rain, wobbling stacks, a calm score. The figures at the fence and the tugs are dramatisation, not measurements.'],
@@ -4524,7 +4574,7 @@ function renderLayers() {
   $('#bTour').setAttribute('aria-pressed', !!W.cfg.tour);
 }
 function saveCfg() { store.set('cfg', W.cfg); }
-function setScreen(on) { W.cfg.screen = on; if (on) W.cfg.tour = true; document.body.classList.toggle('screen', on); saveCfg(); renderLayers(); if (on) { tourAt = 0; caption('THE WHOLE HARBOUR', W.snap ? harbourLine() : ''); } }
+function setScreen(on) { W.cfg.screen = on; if (on) W.cfg.tour = true; else { W.cfg.tour = false; caption('', ''); } document.body.classList.toggle('screen', on); saveCfg(); renderLayers(); if (on) { tourAt = 0; caption('THE WHOLE HARBOUR', W.snap ? harbourLine() : ''); toast('Ambient mode. To leave: S, or move the mouse and press Exit (top right)', '#7fb2ff'); } }
 function setTour(on) { W.cfg.tour = on; tourAt = 0; saveCfg(); renderLayers(); if (!on) caption('', ''); }
 function fullscreen() {
   const d = document;
@@ -4629,9 +4679,11 @@ document.addEventListener('keydown', e => {
   else if (k === 'k' || k === 'K') snapshot();
   else if (k === 'g' || k === 'G') togglePlay();
 });
-function toggleDrawer(on) { const el = $('#attn'); on = on == null ? !el.classList.contains('open') : on; el.classList.toggle('open', on); $('#attnBtn').setAttribute('aria-expanded', on); if (on) renderDrawer(); }
+function toggleDrawer(on, keep) { const el = $('#attn'); on = on == null ? !el.classList.contains('open') : on; el.classList.toggle('open', on); $('#attnBtn').setAttribute('aria-expanded', on); if (on) renderDrawer(); if (!keep) { W.cfg.drawer = on; saveCfg(); } }
 function toggleLayers(on) { const el = $('#layers'); on = on == null ? !el.classList.contains('on') : on; el.classList.toggle('on', on); $('#bLayers').setAttribute('aria-expanded', on); if (on) renderLayers(); }
 $('#attnBtn').onclick = () => toggleDrawer();
+// the list starts open on a wide screen, and after that as you last left it
+if (W.cfg.drawer == null ? innerWidth >= 1100 : W.cfg.drawer) setTimeout(() => { if (W.snap) toggleDrawer(true, true); else W.openDrawer = true; }, 0);
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => { tabNow = t.dataset.tab; document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t)); renderDrawer(); });
 $('#bSearch').onclick = () => openSearch(!$('#search').classList.contains('on'));
 $('#bLayers').onclick = () => toggleLayers();
@@ -4647,7 +4699,10 @@ $('#bPlay').onclick = () => togglePlay();
 $('#oDrama').onclick = () => { W.cfg.drama = !W.cfg.drama; saveCfg(); renderPlay(); renderPills(); };
 document.querySelectorAll('#play [data-sim]').forEach(b => b.onclick = () => simulate(b.dataset.sim));
 $('#simBack').onclick = sandboxOff;
+$('#oGame').onclick = () => { const on = !(W.cfg.drama && W.cfg.sound); W.cfg.drama = on; W.cfg.sound = on; saveCfg(); audioSync(); renderPlay(); renderPills(); renderLayers(); toast(on ? 'Game mode: drama and sound on' : 'Game mode off: the calm harbour', '#7fb2ff'); };
+$('#oStop').onclick = () => { W.allowStop = !W.allowStop; renderPlay(); refreshInspector(); toast(W.allowStop ? 'Stopping from the harbour is on until this page reloads' : 'Stopping from the harbour is off', W.allowStop ? '#ffcf6a' : '#7fb2ff'); };
 $('#oScreen').onclick = () => setScreen(!W.cfg.screen);
+$('#exitScreen').onclick = () => { setScreen(false); wake(); };
 $('#q').addEventListener('input', runSearch);
 $('#legend').addEventListener('click', e => { if (e.target.id === 'legend') toggleLegend(false); });
 
@@ -4947,17 +5002,327 @@ function settle(pid, port) {
     renderPills(); renderDrawerLabel(); closeInspector();
     return;
   }
+  if (W.allowStop) { const a = actsFor(W.snap.services.find(x => x.pid === pid && x.port === port) || { conflict: [] }).find(x => x.pid === pid); return stopLive(pid, port, a && a.force); }
   const cmd = 'kill ' + pid;
   const done = () => toast('Copied "' + cmd + '". Run it in a terminal: this page never stops anything itself', '#ffcf6a');
   if (navigator.clipboard) navigator.clipboard.writeText(cmd).then(done, done); else done();
 }
+// what the inspector offers to stop: each side of a shared port, or with stopping
+// switched on, the service itself. A process that ignored SIGTERM is offered kill -9.
+function actsFor(s) {
+  const sides = [s].concat((s.conflict || []).map(id => W.snap.services.find(x => x.id === id)).filter(Boolean)).filter(x => x.pid != null);
+  if (!sides.length || s.system && !s.conflict.length) return [];
+  const live = W.allowStop && !W.sandbox, list = s.conflict.length ? sides : live ? [s] : [];
+  return list.map(x => {
+    const stuck = live && W.stopped[x.pid] && Date.now() - W.stopped[x.pid] > 5000;
+    const verb = stuck ? 'Still running: force it (kill -9) ' : s.conflict.length ? (W.sandbox ? 'Settle it: stop ' : live ? 'Settle it: stop ' : 'Settle it: copy kill for ') : 'Stop ';
+    return { pid: x.pid, port: x.port, force: !!stuck, label: verb + x.name + ' :' + x.port + ' (pid ' + x.pid + (x.bind ? ', ' + x.bind : '') + ')' };
+  });
+}
+async function stopLive(pid, port, force) {
+  const s = W.snap.services.find(x => x.pid === pid && x.port === port);
+  const what = (s ? s.name + ' ' : '') + ':' + port + ' (pid ' + pid + ')';
+  if (!confirm((force ? 'Force-stop ' : 'Stop ') + what + '?\n\nThis sends ' + (force ? 'SIGKILL (kill -9): it cannot clean up.' : 'SIGTERM: it may take a moment to shut down.'))) return;
+  try {
+    const r = await fetch('/api/world/stop', { method: 'POST', headers: { [HEADER]: TOKEN, 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, port, confirmed: true, force: !!force }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { toast('Not stopped: ' + (j.error || 'the server answered ' + r.status), '#ff6a5e'); return; }
+    W.stopped[pid] = Date.now();
+    toast((force ? 'SIGKILL' : 'SIGTERM') + ' sent to ' + what, '#6fe3a4');
+    setTimeout(poll, 800); setTimeout(() => { poll(); refreshInspector(); }, 5600);
+  } catch (e) { toast('Not stopped: ' + (e.message || e), '#ff6a5e'); }
+}
 function renderPlay() {
   const el = $('#play'); if (!el) return;
   el.querySelector('#oDrama').setAttribute('aria-checked', !!W.cfg.drama);
+  el.querySelector('#oGame').setAttribute('aria-checked', !!(W.cfg.drama && W.cfg.sound));
+  el.querySelector('#oStop').setAttribute('aria-checked', !!W.allowStop);
   el.querySelector('#simBack').hidden = !W.sandbox;
   $('#bPlay').setAttribute('aria-pressed', !!(W.cfg.drama || W.sandbox));
 }
 function togglePlay(on) { const el = $('#play'); on = on == null ? !el.classList.contains('on') : on; el.classList.toggle('on', on); $('#bPlay').setAttribute('aria-expanded', on); if (on) { toggleLayers(false); renderPlay(); } }
+
+// ------------------------------------------------------------------ outbound at sea
+// Web traffic drives to the car park. Everything else portlist recognised goes
+// by sea, to an anchorage off the causeway, as the kind of vessel its port
+// says it is: push connections (held open, waiting) are fishing boats with a
+// line out, mail is the mail boat, chat a ferry, AI a fast launch, databases,
+// caches and queues are tugs, name and directory services a small tender.
+// The kind comes from the port, never a guess; unrecognised stays a car.
+const VESSEL = {
+  fishing: { hull: '#2f5f8a', deck: '#d9d2c2', cabin: '#e9e4da', len: 1.15, label: 'fishing boat' },
+  mailboat: { hull: '#b8342c', deck: '#e9e4da', cabin: '#f2efe6', len: 1.2, label: 'mail boat' },
+  ferry: { hull: '#20364a', deck: '#eef1f4', cabin: '#f4f6f8', len: 1.7, label: 'ferry' },
+  launch: { hull: '#5b4b9a', deck: '#d8d2f0', cabin: '#1d2230', len: 1.25, label: 'launch' },
+  tug: { hull: '#c8622a', deck: '#2c3136', cabin: '#e9e4da', len: 1.1, label: 'tug' },
+  tender: { hull: '#7a848c', deck: '#c6ccd1', cabin: null, len: 0.8, label: 'tender' },
+};
+function isCar(e) { return !e.kind || e.kind === 'car' || !VESSEL[e.kind]; }
+function mooring(i) {
+  const g = W.geo, [h0] = hwyEdges();
+  return [g.W + 4.2 + (i % 5) * 3.1, h0 - 4.6 - Math.floor(i / 5) * 2.6];
+}
+function syncVessels(doc) {
+  const list = (doc.traffic || []).filter(e => !isCar(e)).slice(0, 15), seen = new Set(), used = new Set();
+  W.vessels = W.vessels || new Map();
+  for (const v of W.vessels.values()) used.add(v.slot);
+  for (const e of list) {
+    seen.add(e.key);
+    let v = W.vessels.get(e.key);
+    if (!v) {
+      let i = 0; while (used.has(i)) i++; used.add(i);
+      const m = mooring(i), lane = m[1] + 1.3;
+      v = { key: e.key, slot: i, phase: hash(e.key) * 6, pace: 1.1 + hash('p' + e.key) * 0.5 };
+      if (W.firstVessels) { v.pos = m.slice(); v.stage = 'moored'; v.head = [-1, 0]; }
+      else { v.pos = [W.geo.W + 40, lane]; v.stage = 'in'; v.path = [[m[0], lane], m]; v.leg = 0; v.head = [-1, 0]; }
+      W.vessels.set(e.key, v);
+    }
+    v.e = e;
+  }
+  for (const v of W.vessels.values()) if (!seen.has(v.key) && v.stage !== 'out') {
+    const m = mooring(v.slot), lane = m[1] + 1.3;
+    v.stage = 'out'; v.path = [[m[0], lane], [W.geo.W + 42, lane]]; v.leg = 0;
+  }
+  W.firstVessels = false;
+}
+function stepVessels(dt) {
+  if (!W.vessels) return;
+  for (const [k, v] of W.vessels) {
+    if (!v.path || v.leg >= v.path.length) { if (v.stage === 'out') W.vessels.delete(k); else v.stage = 'moored'; continue; }
+    const tgt = v.path[v.leg], dx = tgt[0] - v.pos[0], dy = tgt[1] - v.pos[1], d = Math.hypot(dx, dy);
+    // eases in to a stop at each turn, like anything that floats
+    const vmax = Math.min(v.pace, 0.25 + d * 0.9);
+    v.v = Math.min(vmax, (v.v || 0) + dt * 0.6);
+    if (d < 0.03) { v.pos = tgt.slice(); v.leg++; v.v = Math.min(v.v, 0.3); continue; }
+    const s = Math.min(d, v.v * dt); v.pos[0] += dx / d * s; v.pos[1] += dy / d * s;
+    v.head = [lerp(v.head[0], dx / d, Math.min(1, dt * 3)), lerp(v.head[1], dy / d, Math.min(1, dt * 3))];
+  }
+}
+function drawVessel(v, night) {
+  const e = v.e || {}, K = VESSEL[e.kind] || VESSEL.tender, T = REDUCED ? 0 : W.t;
+  const dark = c => hex(c, shade(c, -66), night * 0.7), [x, y] = v.pos, bob = Math.sin(T * 1.3 + v.phase) * 1.2 + (W.tide || 0) * 0.5;
+  const a = fogAt(x); if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a; ctx.translate(0, bob);
+  const hl = Math.hypot(v.head[0], v.head[1]) || 1, fx = v.head[0] / hl, fy = v.head[1] / hl, L = K.len;
+  const R = (lx, ly) => [x - fy * lx - fx * ly, y + fx * lx - fy * ly];
+  const prism = (pts, z0, z1, col, top) => {
+    for (let k = 0; k < pts.length; k++) {
+      const p0 = pts[k], p1 = pts[(k + 1) % pts.length], nx = p1[1] - p0[1], ny = -(p1[0] - p0[0]);
+      if (nx + ny <= 0) continue;
+      poly([iso(p0[0], p0[1], z1), iso(p1[0], p1[1], z1), iso(p1[0], p1[1], z0), iso(p0[0], p0[1], z0)], shade(col, nx > ny ? -34 : -14));
+    }
+    poly(pts.map(p => iso(p[0], p[1], z1)), top || shade(col, 16));
+  };
+  if (v.stage !== 'moored' && !REDUCED) for (let k = 1; k < 7; k++) {
+    const p = iso(x + fx * (L * 0.6 + k * 0.3), y + fy * (L * 0.6 + k * 0.3), 0);
+    ctx.fillStyle = 'rgba(235,248,255,' + (0.28 * (1 - k / 7)).toFixed(2) + ')'; ctx.fillRect(p[0] - 2, p[1], 4, 1.1);
+  }
+  const W2 = e.kind === 'ferry' ? 0.42 : e.kind === 'tender' ? 0.26 : 0.32;
+  const hull = [[0, -L * 0.62], [W2, -L * 0.25], [W2, L * 0.5], [-W2, L * 0.5], [-W2, -L * 0.25]].map(p => R(p[0], p[1]));
+  prism(hull, 0, 4, dark(K.hull), dark(K.deck));
+  if (K.cabin) {
+    const cab = e.kind === 'ferry' ? [[0.32, -0.35], [0.32, 0.4], [-0.32, 0.4], [-0.32, -0.35]] : e.kind === 'tug' ? [[0.2, -0.3], [0.2, 0.1], [-0.2, 0.1], [-0.2, -0.3]] : [[0.18, 0.0], [0.18, 0.38], [-0.18, 0.38], [-0.18, 0.0]];
+    const cp = cab.map(p => R(p[0], p[1]));
+    prism(cp, 4, e.kind === 'ferry' ? 11 : 10, dark(K.cabin));
+    if (e.kind === 'ferry') prism(cab.map(p => R(p[0] * 0.8, p[1] * 0.8)), 11, 16, dark('#dfe5ea'));
+    const g0 = R(cab[0][0], cab[0][1]), g1 = R(cab[3][0], cab[3][1]);
+    poly([iso(g0[0], g0[1], 9), iso(g1[0], g1[1], 9), iso(g1[0], g1[1], 6.5), iso(g0[0], g0[1], 6.5)], 'rgba(255,214,140,' + (0.35 + night * 0.5) + ')');
+  }
+  if (e.kind === 'tug') { const f = R(0, 0.3), [sx, sy] = iso(f[0], f[1], 14); ctx.fillStyle = dark('#23282c'); ctx.fillRect(sx - 2.5, sy - 6, 5, 8); ctx.fillStyle = '#c8622a'; ctx.fillRect(sx - 2.5, sy - 3, 5, 1.6); }
+  if (e.kind === 'fishing') {
+    // an outrigger with the line down: a connection held open, waiting
+    const m = R(0.05, 0.3), [mx, my] = iso(m[0], m[1], 4), [tx, ty] = iso(m[0] + 0.9 * fy + 0.3, m[1] - 0.9 * fx + 0.3, 22);
+    ctx.strokeStyle = dark('#8a6a4a'); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(tx, ty); ctx.stroke();
+    const sway = Math.sin(T * 0.9 + v.phase) * 2;
+    ctx.strokeStyle = 'rgba(230,236,240,.55)'; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.quadraticCurveTo(tx + 6 + sway, ty + 14, tx + 8 + sway, ty + 26); ctx.stroke();
+    ctx.fillStyle = '#ff7a5e'; ctx.beginPath(); ctx.arc(tx + 8 + sway, ty + 26, 1.5, 0, 6.3); ctx.fill();
+  }
+  if (e.kind === 'mailboat') { const f = R(0, 0.2), [sx, sy] = iso(f[0], f[1], 16); ctx.fillStyle = '#ffd24a'; ctx.fillRect(sx - 4, sy - 3, 8, 5.5); ctx.strokeStyle = '#b8342c'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(sx - 4, sy - 3); ctx.lineTo(sx, sy); ctx.lineTo(sx + 4, sy - 3); ctx.stroke(); }
+  if (e.kind === 'launch') { const f = R(0, 0.45), [sx, sy] = iso(f[0], f[1], 6); ctx.fillStyle = 'rgba(190,160,255,' + (0.5 + 0.4 * Math.sin(T * 3 + v.phase)) + ')'; ctx.beginPath(); ctx.arc(sx, sy, 1.6, 0, 6.3); ctx.fill(); }
+  // a riding light at night, and the app's mark on the cabin roof
+  const top = R(0, 0.2), [lx, ly] = iso(top[0], top[1], e.kind === 'ferry' ? 18 : 12);
+  if (night > 0.3) { ctx.fillStyle = 'rgba(255,240,200,.9)'; ctx.beginPath(); ctx.arc(lx, ly - 2, 1.4, 0, 6.3); ctx.fill(); }
+  if (night > 0.3) reflect(...iso(x, y, 0), '255,236,190', 0.5);
+  if (v.escort) { ctx.restore(); return; }
+  const lg = appLogo((e.apps || [])[0]); if (lg && cam.zoom > 0.8) logoChip(lg, lx + 8, ly - 4, 4.2);
+  ctx.restore();
+  const [a1, b1] = iso(x - 0.8, y - 0.8, 20), [a2, b2] = iso(x + 0.8, y + 0.8, 0);
+  HITS.push({ kind: 'car', ref: v, poly: [[a1 - 12, b1 - 6], [a2 + 12, b1 - 6], [a2 + 12, b2 + 6], [a1 - 12, b2 + 6]] });
+  v._wx = x; v._wy = y;
+}
+
+// ------------------------------------------------------------------ the coal carrier
+// The bunker does not keep what the trains bring. When it is half full a bulk
+// carrier comes in and berths south of the staithe, an excavator on the jetty
+// digs the coal out and swings it into the holds, and the ship sits lower in
+// the water as it fills. Full, or the bunker empty, it sails on east.
+const BULK_LEN = 10.4;
+function bulkY() { return trainY() + 3.25; }
+function stepBulker(dt) {
+  if (!W.geo) return;
+  const g = W.geo, berthX = STAITHE_X, far = g.W + 44;
+  let s = W.bulker;
+  if (!s) {
+    if ((W.coal || 0) >= 0.5 && !W.past) W.bulker = s = { x: -34, v: 1.8, stage: 'in', load: 0 };
+  } else if (s.stage === 'in') {
+    const d = berthX - s.x, vmax = Math.min(1.8, Math.sqrt(2 * 0.35 * Math.max(0, d)) + 0.03);
+    s.v = Math.min(vmax, s.v + dt * 0.3); s.x += s.v * dt;
+    if (d < 0.01) { s.x = berthX; s.v = 0; s.stage = 'load'; sfx('horn'); }
+  } else if (s.stage === 'load') {
+    if (s.load >= 1 || (W.coal || 0) <= 0.02) { s.stage = 'out'; s.wait = 2; }
+  } else if (s.stage === 'out') {
+    if ((s.wait -= dt) > 0) return;
+    s.v = Math.min(1.8, s.v + dt * 0.25); s.x += s.v * dt;
+    if (s.x > far) { W.bulker = null; }
+  }
+  stepDigger(dt);
+}
+function stepDigger(dt) {
+  // one bucket at a time: dig in the bunker, lift, swing out over a hold, open, swing back
+  const d = W.digger = W.digger || { x: STAITHE_X + 9.6, tx: STAITHE_X + 9.6, swing: 0, reach: 0.3, phase: 'idle', t: 0, full: 0 };
+  const s = W.bulker, working = s && s.stage === 'load' && (W.coal || 0) > 0.02;
+  const mv = (cur, tgt, rate) => { const q = tgt - cur; return Math.abs(q) <= rate * dt ? tgt : cur + Math.sign(q) * rate * dt; };
+  if (!working) { d.phase = 'idle'; d.tx = STAITHE_X + 9.6; d.swing = mv(d.swing, 0, 0.8); d.reach = mv(d.reach, 0.3, 0.6); d.x = mv(d.x, d.tx, 0.6); return; }
+  if (d.phase === 'idle') { d.phase = 'move'; d.tx = STAITHE_X + 0.8 + ((W.digN = (W.digN || 0) + 1) % 8) * 1.2; }
+  if (d.phase === 'move') { d.x = mv(d.x, d.tx, 0.6); d.swing = mv(d.swing, 0, 0.8); if (d.x === d.tx) d.phase = 'dig'; }
+  else if (d.phase === 'dig') { d.reach = mv(d.reach, 1, 0.7); if (d.reach === 1) { d.full = 1; d.phase = 'lift'; } }
+  else if (d.phase === 'lift') { d.reach = mv(d.reach, 0.35, 0.8); if (d.reach === 0.35) d.phase = 'swing'; }
+  else if (d.phase === 'swing') { d.swing = mv(d.swing, 1, 0.55); if (d.swing === 1) { d.phase = 'dump'; d.t = 0.8; } }
+  else if (d.phase === 'dump') {
+    if (d.full) {
+      d.full = 0; const take = Math.min(W.coal, 0.12); W.coal -= take; s.load = Math.min(1, s.load + take);
+      if (!REDUCED) for (let k = 0; k < 14; k++) { const [px, py] = iso(d.x + (Math.random() - 0.5) * 0.4, bulkY() - 0.4, 22); W.sparks.push({ x: px, y: py, vx: (Math.random() - 0.5) * 12, vy: 12 + Math.random() * 8, life: 0, max: 0.6, col: '26,24,22' }); }
+      sfx('thud');
+    }
+    if ((d.t -= dt) <= 0) d.phase = 'back';
+  } else if (d.phase === 'back') { d.swing = mv(d.swing, 0, 0.55); if (d.swing === 0) d.phase = 'move'; d.tx = STAITHE_X + 0.8 + ((W.digN = (W.digN || 0) + 1) % 8) * 1.2; }
+}
+function bulkItems(items, night) {
+  if (!W.geo) return;
+  const K = W.geo.W + 44 + trainY() + 10;
+  items.push({ z: K + 205, f: () => drawJetty(night) });
+  items.push({ z: K + 250, f: () => drawDigger(night) });
+  if (W.bulker) items.push({ z: K + 300, f: () => drawBulker(night) });
+}
+function drawJetty(night) {
+  const Y = trainY(), dark = v => hex(v, shade(v, -60), night * 0.75), x0 = STAITHE_X - 0.2, L = 10.8;
+  for (let x = x0 + 0.4; x < x0 + L; x += 2.6) box(x, Y + 1.55, 0.25, 0.7, 4, dark('#5b5148'), { z0: -16 });
+  box(x0, Y + 1.4, L, 1.0, 5, dark('#6d6258'), { z0: 3.6 });
+  for (let x = x0 + 0.3; x < x0 + L; x += 1.4) { const [bx, by] = iso(x, Y + 2.4, 5); ctx.fillStyle = dark('#2c3136'); ctx.fillRect(bx - 1.5, by - 5, 3, 5); }   // bollards
+  for (let x = x0 + 0.9; x < x0 + L; x += 1.4) { const [fx, fy] = iso(x, Y + 2.42, 3.4); ctx.fillStyle = '#15181b'; ctx.beginPath(); ctx.ellipse(fx, fy, 3.2, 2.6, 0, 0, 6.3); ctx.fill(); }   // fenders
+}
+function drawDigger(night) {
+  const d = W.digger; if (!d) return;
+  const Y = trainY(), jy = Y + 1.9, dark = v => hex(v, shade(v, -60), night * 0.72), T = REDUCED ? 0 : W.t;
+  // tracks and the turning body
+  box(d.x - 0.45, jy - 0.32, 0.9, 0.64, 8, dark('#2c3136'), { z0: 5 });
+  for (let k = 0; k < 5; k++) { const [tx, ty] = iso(d.x - 0.4 + k * 0.2, jy + 0.32, 6.5); ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(tx - 1, ty - 1, 2, 2); }
+  box(d.x - 0.35, jy - 0.28, 0.7, 0.56, 16, dark('#e0a13f'), { z0: 8 });
+  box(d.x - 0.35, jy - 0.28, 0.32, 0.56, 24, dark('#e0a13f'), { z0: 16, top: dark('#c98a2e') });
+  const [wx, wy] = iso(d.x - 0.35, jy, 22); ctx.fillStyle = 'rgba(160,210,240,' + (0.35 + night * 0.3) + ')'; ctx.fillRect(wx - 1, wy - 4, 5, 5);
+  // the arm, in screen space: from the body towards the bunker (north) or out over the ship (south)
+  const [px, py] = iso(d.x + 0.1, jy, 18);
+  const tgtY = lerp(Y + 0.9, bulkY() - 0.4, d.swing), [ex, ey] = iso(d.x + 0.1, tgtY, 0);
+  const boomUp = 30 + 10 * (1 - d.reach);
+  const kx = lerp(px, ex, 0.55), ky = Math.min(py, ey) - boomUp;
+  const bx = ex, by = ey - lerp(34, 6, d.reach) - (d.swing > 0.5 ? 22 : 0);
+  ctx.strokeStyle = dark('#e0a13f'); ctx.lineWidth = 3.2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(kx, ky); ctx.stroke();
+  ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(kx, ky); ctx.lineTo(bx, by); ctx.stroke();
+  ctx.fillStyle = dark('#3a3f45'); ctx.beginPath(); ctx.moveTo(bx - 4, by - 2); ctx.lineTo(bx + 4, by - 2); ctx.lineTo(bx + 3, by + 4); ctx.lineTo(bx - 3, by + 4); ctx.closePath(); ctx.fill();
+  if (d.full) { ctx.fillStyle = '#1c1a19'; ctx.beginPath(); ctx.ellipse(bx, by - 2, 4, 2, 0, 0, 6.3); ctx.fill(); }
+  if (d.phase !== 'idle' && !REDUCED && Math.random() < 0.05) { const [sx, sy] = iso(d.x - 0.2, jy - 0.1, 26); W.smoke.push({ x: sx, y: sy, vx: 4, vy: -12, r: 2, life: 0, max: 1.4, soot: true }); }
+  const [h1x, h1y] = iso(d.x - 0.5, jy - 0.4, 30), [h2x, h2y] = iso(d.x + 0.5, jy + 0.4, 0);
+  HITS.push({ kind: 'digger', ref: d, poly: [[h1x - 10, h1y - 20], [h2x + 10, h1y - 20], [h2x + 10, h2y + 4], [h1x - 10, h2y + 4]] });
+}
+function drawBulker(night) {
+  const s = W.bulker, Y = bulkY(), x0 = s.x, x1 = s.x + BULK_LEN, w = 1.5, y0 = Y - w / 2, y1 = Y + w / 2;
+  const dark = v => hex(v, shade(v, -66), night * 0.7), T = REDUCED ? 0 : W.t;
+  const a = fogAt(x0); if (a <= 0) return;
+  // loaded, it sits deeper: the freeboard shrinks as the holds fill
+  const draft = 6 * s.load, top = 16 - draft, bob = Math.sin(T * 0.5) * 1.2 + (W.tide || 0) * 0.5;
+  ctx.save(); ctx.globalAlpha = a; ctx.translate(0, bob);
+  if (s.stage !== 'load' && !REDUCED) for (let k = 1; k < 10; k++) { const p = iso(x0 - k * 0.5, Y + (k % 2 ? 0.5 : -0.5) * k * 0.08, 0); ctx.fillStyle = 'rgba(235,248,255,' + (0.25 * (1 - k / 10)).toFixed(2) + ')'; ctx.fillRect(p[0] - 3, p[1], 6, 1.2); }
+  const hull = [[x0 + 0.3, y0], [x1 - 1.0, y0], [x1, Y], [x1 - 1.0, y1], [x0 + 0.3, y1], [x0, Y + 0.4], [x0, Y - 0.4]];
+  const side = (z0, z1, col) => { for (let k = 0; k < hull.length; k++) { const p0 = hull[k], p1 = hull[(k + 1) % hull.length], nx = p1[1] - p0[1], ny = -(p1[0] - p0[0]); if (nx + ny <= 0) continue; poly([iso(p0[0], p0[1], z1), iso(p1[0], p1[1], z1), iso(p1[0], p1[1], z0), iso(p0[0], p0[1], z0)], shade(col, nx > ny ? -34 : -14)); } };
+  side(-draft, 3 - draft, dark('#8f3a30')); side(3 - draft, top, dark('#23303c'));
+  poly(hull.map(p => iso(p[0], p[1], top)), dark('#56606a'));
+  // five holds with hatch coamings; the coal shows as they fill
+  for (let h = 0; h < 5; h++) {
+    const hx = x0 + 1.9 + h * 1.4;
+    box(hx, y0 + 0.3, 1.1, w - 0.6, top + 2.5, dark('#3a4450'), { z0: top });
+    const fill = clamp(s.load * 5 - h * 0.6, 0, 1);
+    if (fill > 0) box(hx + 0.08, y0 + 0.38, 0.94, w - 0.76, top + 2.5 + fill * 2, '#1d1b1a', { z0: top + 1, top: hex('#34302c', '#1a1816', night) });
+  }
+  box(x0 + 0.25, y0 + 0.2, 1.3, w - 0.4, top + 20, dark('#e9e4da'), { z0: top });              // bridge at the stern
+  poly([iso(x0 + 0.25, y1 - 0.2, top + 17), iso(x0 + 1.55, y1 - 0.2, top + 17), iso(x0 + 1.55, y1 - 0.2, top + 13), iso(x0 + 0.25, y1 - 0.2, top + 13)], 'rgba(255,214,140,' + (0.35 + night * 0.5) + ')');
+  box(x0 + 0.6, Y - 0.2, 0.4, 0.4, top + 28, dark('#1a1e22'), { z0: top + 20 });
+  const [nx, ny] = iso(x1 - 2.2, y1, top - 3); ctx.font = '600 6px ' + MONO; ctx.fillStyle = 'rgba(226,238,246,.6)'; ctx.textAlign = 'center'; ctx.fillText('MV COLLIER', nx, ny);
+  if (night > 0.3) { const [rx, ry] = iso(x0 + 0.9, y1, 0); reflect(rx, ry, '255,214,140', 0.8); }
+  ctx.restore();
+  if (s.stage === 'load') {
+    // tied up: head, breast and stern lines to the jetty bollards
+    ctx.strokeStyle = 'rgba(220,210,190,.75)'; ctx.lineWidth = 0.9;
+    for (const [sxp, bxp] of [[x0 + 0.5, x0 - 0.4], [x0 + 3.2, x0 + 2.9], [x1 - 3.2, x1 - 2.9], [x1 - 0.9, x1 + 0.2]]) {
+      const bx = Math.min(STAITHE_X + 10.4, Math.max(STAITHE_X - 0.1, bxp));
+      const [ax, ay] = iso(sxp, y0 + 0.05, top + 1), [px, py] = iso(bx, trainY() + 2.4, 8);
+      ctx.beginPath(); ctx.moveTo(ax, ay); ctx.quadraticCurveTo((ax + px) / 2, Math.max(ay, py) + 3, px, py); ctx.stroke();
+    }
+  }
+  HITS.push({ kind: 'bulker', ref: s, poly: [iso(x0, y0, top + 30), iso(x1, y0, top + 30), iso(x1, y1, 0), iso(x0, y1, 0)] });
+}
+
+// ------------------------------------------------------------------ how a real port works
+// Big ships do not come alongside on their own: two tugs bring each one in and
+// take it out, a pilot boat meets the collier, and a ship at a berth is tied up.
+// All of it follows the ship it serves; none of it means anything of its own.
+const ESCORT = { tug: { e: { kind: 'tug' }, escort: true, phase: 0, stage: 'moving' } };
+function drawTug(x, y, hx, hy, night, seed, line) {
+  const v = { pos: [x, y], head: [hx, hy], e: { kind: 'tug' }, escort: true, phase: seed, stage: 'moving' };
+  if (line) {
+    // the tow line, slack in the middle
+    const [ax, ay] = iso(x, y, 5), [bx, by] = iso(line[0], line[1], line[2] || 8);
+    ctx.strokeStyle = 'rgba(220,210,190,.7)'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.quadraticCurveTo((ax + bx) / 2, Math.max(ay, by) + 6, bx, by); ctx.stroke();
+  }
+  drawVessel(v, night);
+}
+function reflect(sx, sy, rgb, k) {
+  // a light on the water: short broken strokes under it, trembling with the swell
+  const T = REDUCED ? 0 : W.t;
+  for (let i = 0; i < 6; i++) {
+    const w = (6 - i) * 1.7 + Math.sin(T * 2 + i + sx * 0.05) * 1.5, j = Math.sin(T * 1.3 + i * 1.7 + sy * 0.03) * 1.5;
+    ctx.fillStyle = 'rgba(' + rgb + ',' + (k * (1 - i / 6) * 0.45).toFixed(3) + ')'; ctx.fillRect(sx - w / 2 + j, sy + 3 + i * 4, w, 1.3);
+  }
+}
+function escortItems(items, night) {
+  const g = W.geo; if (!g) return;
+  const s = W.bulker, K = g.W + 44 + trainY() + 10;
+  if (s && s.stage !== 'load') {
+    const Y = bulkY(), x0 = s.x, x1 = s.x + BULK_LEN, bob = 0;
+    items.push({ z: K + 301, f: () => {
+      drawTug(x1 + 1.6, Y - 0.1, -1, 0, night, 1, [x1, Y, 10]);           // ahead, towing
+      drawTug(x0 - 1.1, Y + 0.3, -1, 0, night, 2, [x0, Y, 10]);           // astern, holding back
+      if (s.stage === 'in' && s.x < STAITHE_X - 4) {                       // the pilot comes out to meet it
+        const v = { pos: [x0 + 1.2, Y + 1.25], head: [-1, 0], e: { kind: 'launch' }, escort: true, phase: 3, stage: 'moving' };
+        drawVessel(v, night);
+      }
+    } });
+  }
+  for (const f of W.feeders) if (f.stage === 'sail' || f.stage === 'depart') {
+    const cx = f.x + 1.15, dir = f.stage === 'sail' ? 1 : -1, lead = dir > 0 ? f.y + 1.4 : f.y - 5.6, tail = dir > 0 ? f.y - 5.4 : f.y + 1.2;
+    items.push({ z: f.x + f.y + 0.5, f: () => {
+      drawTug(cx, lead, 0, -dir, night, 4, [cx, dir > 0 ? f.y : f.y - 4.2, 12]);
+      drawTug(cx + 0.3, tail, 0, -dir, night, 5, [cx, dir > 0 ? f.y - 4.2 : f.y, 12]);
+    } });
+  }
+  // the office's radar turns: scenery, like the gulls
+  items.push({ z: g.office.gx + g.office.gy + 3.2, f: () => {
+    const o = g.office, [cx, cy] = iso(o.gx + 1.3, o.gy + 1.2, 88), [bx, by] = iso(o.gx + 1.3, o.gy + 1.2, 78), a = REDUCED ? 0.6 : W.t * 1.6;
+    ctx.strokeStyle = hex('#9aa4ab', '#4a5158', night); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(cx, cy); ctx.stroke();
+    ctx.strokeStyle = hex('#dfe5ea', '#6a7278', night); ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(cx - Math.cos(a) * 11, cy - Math.sin(a) * 4); ctx.lineTo(cx + Math.cos(a) * 11, cy + Math.sin(a) * 4); ctx.stroke();
+    if (night > 0.3) { ctx.fillStyle = 'rgba(255,80,70,' + (0.5 + 0.5 * Math.sin(W.t * 3)) + ')'; ctx.beginPath(); ctx.arc(cx, cy - 4, 1.6, 0, 6.3); ctx.fill(); }
+  } });
+}
 
 // ------------------------------------------------------------------ sound
 // Off until you turn it on (M, or Layers). Made here with WebAudio: no files,
@@ -5050,6 +5415,7 @@ async function poll() {
     const doc = await r.json();
     const first = !W.snap;
     sync(doc);
+    if (first && W.openDrawer) { W.openDrawer = false; toggleDrawer(true, true); }
     if (first) { fit(false); pushLog('harbour scan complete: ' + doc.stats.services + ' services', '#6fe3a4', doc.at, 'scan'); for (const h of (doc.history || []).slice(0, 3).reverse()) pushLog(h.text, h.type === 'opened' ? '#6fe3a4' : '#8a7a68', h.ts, 'history'); }
     onEvents(doc.events || [], first);
     W.seq = doc.seq || W.seq;
@@ -5084,8 +5450,8 @@ setTimeout(() => document.body.classList.add('hinted'), 14000);
 makeGulls();
 renderLayers();
 if (W.cfg.screen || /[?&]screen=1/.test(location.search)) setScreen(true);
-if (!store.get('welcomed', false) && !W.cfg.screen) setTimeout(() => $('#welcome').classList.add('on'), 1600);
-function welcomed() { store.set('welcomed', true); $('#welcome').classList.remove('on'); }
+if (!store.get('welcomed', false) && !W.cfg.screen) setTimeout(() => { if (!store.get('welcomed', false) && !W.welcomedNow) $('#welcome').classList.add('on'); }, 1600);
+function welcomed() { W.welcomedNow = true; store.set('welcomed', true); $('#welcome').classList.remove('on'); }
 $('#wClose').onclick = welcomed;
 $('#wLegend').onclick = () => { welcomed(); toggleLegend(true); };
 $('#wGo').onclick = () => { welcomed(); setTour(true); tourAt = 0; toast('Tour on. Press T to stop, S for the second-screen mode', '#7fb2ff'); };

@@ -92,6 +92,10 @@ def scripted(t):
         traffic += [host(10 + i, a) for i, a in enumerate(["Google Chrome", "Docker", "claude.exe", "Slack", "Python", "MongoDB Compass"])]
     if phase == 2:
         traffic = traffic[:2]
+    # the rest go by sea: mail throughout, a push line while busy
+    traffic.append(dict(host(40, "Notes"), services=["IMAPS"], ports=[993], kind="mailboat"))
+    if phase == 1:
+        traffic.append(dict(host(41, "Google Chrome"), services=["Google push"], ports=[5228], kind="fishing"))
     isl = [island("db1.example", "db", "MongoDB", "mongodb", 27017)]
     if phase < 2:
         isl.insert(0, island("box.example", "ssh", "SSH", None, 22))
@@ -200,7 +204,10 @@ FINAL = r"""
   out.services = d.services.filter(s => !s.system && s.family !== 'ssh').length;
   out.carsSettled = [...W.cars.values()].every(c => c.stage === 'parked');
   out.cars = [...W.cars.values()].filter(c => c.stage !== 'leaving').length;
-  out.traffic = Math.min(d.traffic.length, lotGeo().cap);
+  out.traffic = Math.min(d.traffic.filter(isCar).length, lotGeo().cap);
+  out.vessels = [...W.vessels.values()].filter(v => v.stage !== 'out').length;
+  out.vesselsWant = d.traffic.filter(e => !isCar(e)).length;
+  out.vesselKinds = [...W.vessels.values()].map(v => v.e.kind).sort().join(',');
   out.islands = [...W.boats.values()].filter(b => !b.leaving).length;
   out.islandsWant = d.islands.length;
   out.lighthouse = d.lighthouse.state;
@@ -222,6 +229,44 @@ FINAL = r"""
   return out;
 })()
 """
+
+
+def stop_check(page):
+    """Stopping from the harbour, against a throwaway server this run starts:
+    refused without confirmation and cross-origin, refused for a pid that is not
+    on that port, and done when all is right."""
+    import socket
+    import subprocess
+    sock = socket.socket()
+    sock.bind(("127.0.0.1", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    proc = subprocess.Popen([sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(1.5)
+    js = """async ([pid, port, confirmed]) => { const r = await fetch('/api/world/stop', { method: 'POST',
+      headers: { [HEADER]: TOKEN, 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, port, confirmed }) });
+      return r.status; }"""
+    out = {"unconfirmed": page.evaluate(js, [proc.pid, port, False]),
+           "wrong_port": page.evaluate(js, [proc.pid, port + 1 if port < 65535 else port - 1, True])}
+    import urllib.error
+    import urllib.request
+    try:
+        req = urllib.request.Request("http://" + page.url.split("//", 1)[1].split("/", 1)[0] + "/api/world/stop", method="POST",
+                                     data=json.dumps({"pid": proc.pid, "port": port, "confirmed": True}).encode(),
+                                     headers={"X-Portlist-Token": page.evaluate("TOKEN"), "Origin": "http://evil.example"})
+        urllib.request.urlopen(req, timeout=10)
+        out["cross_origin"] = 200
+    except urllib.error.HTTPError as e:
+        out["cross_origin"] = e.code
+    out["stopped"] = page.evaluate(js, [proc.pid, port, True])
+    try:
+        proc.wait(timeout=8)
+        out["exited"] = True
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        out["exited"] = False
+    return out
 
 
 def main():
@@ -265,6 +310,8 @@ def main():
           const keep = HIST.cpu.slice(); HIST.cpu.push(96, 97, 95, 98, 96, 97); await frames(240); o.rain = W.rain > 0.5 && W.storm;
           HIST.cpu.length = 0; keep.forEach(v => HIST.cpu.push(v)); HIST.cpu.push(5, 6, 4, 5, 6, 5); await frames(30); o.clears = !W.storm;
           const v = [...W.visitShips.values()][0]; if (v) { v.t = 0.1; await frames(20); o.beam = W.beamLock === true; } else o.beam = 'no ship';
+          document.querySelector('#oGame').click(); o.gameOn = W.cfg.drama && W.cfg.sound;
+          document.querySelector('#oGame').click(); o.gameOff = !W.cfg.drama && !W.cfg.sound;
           W.cfg.sound = true; audioSync(); sfx('thud'); sfx('start'); sfx('purr'); sfx('horn'); sfx('thunder'); o.sound = !!AU.ctx; W.cfg.sound = false; audioSync();
           // the sandbox, with drama on: every simulation lands, is labelled, and Live takes it all back
           const nb = () => [...W.buildings.values()].filter(b => !b.leaving).length, b0 = nb();
@@ -283,6 +330,16 @@ def main():
           for (let i = 0; i < 100 && (W.sandbox || W.snap.services.some(s => s.sim) || (W.snap.yard.containers || []).some(k => k.status === 'simulated')); i++) await new Promise(r => setTimeout(r, 200));
           o.back = !W.sandbox && !W.snap.services.some(s => s.sim) && !document.querySelector('#banner').classList.contains('sim');
           W.cfg.drama = false;
+          // the coal carrier: half a bunker brings it in, the excavator loads it, it sails on lower in the water
+          W.coal = 0.6; const bstages = new Set(); let bload = 0, digs = new Set();
+          const bUntil = performance.now() + 150000;
+          while (performance.now() < bUntil && !(bstages.has('out') && !W.bulker)) {
+            await frames(2);
+            if (W.bulker) { bstages.add(W.bulker.stage); bload = Math.max(bload, W.bulker.load); }
+            if (W.digger) digs.add(W.digger.phase);
+          }
+          o.bulker = ['in', 'load', 'out'].every(k => bstages.has(k)) && bload > 0.3 && ['dig', 'swing', 'dump'].every(k => digs.has(k)) && !W.bulker;
+          o.bulkerInfo = [...bstages].join('>') + ' load ' + bload.toFixed(2) + ' digger ' + [...digs].join(',');
           // the coal train: a download starts it; it comes in, tips its wagons and backs out
           const real = sync; sync = d => { d.ship.net_rx = 600000; real(d); }; W.snap.ship.net_rx = 600000; W.trainWait = 0;
           const stages = new Set(); let maxV = 0, lastX = null, jump = 0;
@@ -296,6 +353,10 @@ def main():
           o.trainInfo = [...stages].join('>') + ' v' + maxV.toFixed(2) + ' jump' + jump.toFixed(3) + ' wagons ' + o.wagons;
           return o;
         }""")
+        n0 = len(errors)
+        stopcheck = stop_check(page)
+        # the refusals it asks for on purpose show up as failed loads; nothing else is excused
+        errors[n0:] = [e for e in errors[n0:] if "Failed to load resource" not in e]
         with page.expect_download(timeout=15000) as dl:
             page.evaluate("() => snapshot()")
         pic = dl.value
@@ -337,6 +398,7 @@ def main():
     check("sustained CPU brings rain, and it clears", extra["rain"] is True and extra["clears"] is True, json.dumps(extra))
     check("the lighthouse holds an arriving ssh ship", extra["beam"] is True, str(extra["beam"]))
     check("sound starts and stops without errors", extra["sound"] is True)
+    check("game mode turns drama and sound on together, and off", extra["gameOn"] is True and extra["gameOff"] is True)
     check("sandbox: a port collision lands, labelled", extra["simCollide"] is True)
     check("drama: the collision starts a brawl", extra["brawl"] is True)
     check("sandbox: exposure opens the gate", extra["simExpose"] is True)
@@ -345,6 +407,11 @@ def main():
     check("sandbox: settling a shared port stops one side", extra["settled"] is True)
     check("Back to live removes every simulated thing", extra["back"] is True)
     check("coal train comes in, tips and backs out", extra["train"] is True, extra["trainInfo"])
+    check("outbound by sea: vessels match their connections", fin["vessels"] == fin["vesselsWant"] and "mailboat" in fin["vesselKinds"], "%d vs %d (%s)" % (fin["vessels"], fin["vesselsWant"], fin["vesselKinds"]))
+    check("coal carrier comes in, is loaded by the excavator, sails on", extra["bulker"] is True, extra["bulkerInfo"])
+    check("stop refuses without confirmation, off-port and cross-origin",
+          stopcheck["unconfirmed"] == 400 and stopcheck["wrong_port"] == 409 and stopcheck["cross_origin"] == 403, json.dumps(stopcheck))
+    check("stop from the harbour ends a real process", stopcheck["stopped"] == 200 and stopcheck["exited"], json.dumps(stopcheck))
     check("a picture downloads as a PNG", extra["picture"] and extra["captureOff"], extra["pictureName"])
     check("no console errors", not errors, "; ".join(errors[:3]))
     print("\n%d frames sampled. %s" % (wc["frames"], "ALL PASS" if not fails else "%d FAILED" % len(fails)))

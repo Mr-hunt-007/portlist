@@ -356,6 +356,10 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.8} body.idle .pills{opaci
       <button type="button" data-sim="ghost">Ghost the harbour</button>
       <button type="button" data-sim="expose">Accidental exposure</button>
       <button type="button" data-sim="convoy">Docker convoy</button>
+      <button type="button" data-sim="storm">Storm: CPU at 95%</button>
+      <button type="button" data-sim="memory">Memory 92% full</button>
+      <button type="button" data-sim="train">Big download: coal train</button>
+      <button type="button" data-sim="boats">Boats come in</button>
     </div>
     <button type="button" class="simback" id="simBack" hidden>Back to live</button>
     <p class="popnote">Starts from your harbour as it is. Nothing on the machine is touched.</p>
@@ -2376,7 +2380,8 @@ function stepForklift(dt) {
     f.lift = lerp(f.lift, 0, 0.08); f.wait -= dt; if (f.wait > 0) return;
     const busy = [...W.buildings.values()].filter(b => b.s && !b.leaving && (b.s.activity === 'busy' || b.s.activity === 'active'));
     if (!busy.length) { if (Math.hypot(f.pos[0] - home[0], f.pos[1] - home[1]) > 0.4) { f.stage = 'go'; f.target = null; setPath(f, home); } else { f.stage = 'park'; f.wait = 4; } return; }
-    const b = busy[f.rr++ % busy.length]; f.target = b; f.load = true; f.stage = 'go'; setPath(f, g.door(b)); return;
+    // it sets the pallet down beside the door, not in it: the door is where people and pets stand
+    const b = busy[f.rr++ % busy.length], d = g.door(b); f.target = b; f.load = true; f.stage = 'go'; setPath(f, [d[0] + 1.05, d[1] + 0.1]); return;
   }
   if (f.stage === 'go') {
     if (f.target && (f.target.leaving || !W.buildings.has(f.target.key))) { f.target = null; f.load = false; f.stage = 'return'; setPath(f, home); return; }
@@ -2405,11 +2410,15 @@ function drawForklift(night) {
   const dark = v => hex(v, shade(v, -62), night * 0.72), along = f.axis === 'y', s = f.sign || 1;
   const L = 0.9, Wd = 0.55, bw = along ? Wd : L, bd = along ? L : Wd, x0 = f.pos[0] - bw / 2, y0 = f.pos[1] - bd / 2;
   shadow(x0, y0, bw, bd);
-  for (const [u, v] of [[0.15, -0.02], [0.75, -0.02], [0.15, 1.02], [0.75, 1.02]]) {
-    const wx = along ? x0 + (v < 0 ? 0 : bw) : x0 + u * bw, wy = along ? y0 + u * bd : y0 + (v < 0 ? 0 : bd), [px, py] = iso(wx, wy, 2.4);
-    ctx.fillStyle = '#121518'; ctx.beginPath(); ctx.arc(px, py, 2.4, 0, 6.3); ctx.fill();
+  box(x0, y0, bw, bd, 7, dark('#e0a13f'), { z0: 3, top: dark('#f0b95a') });
+  // tyres on the two faces you can see, drawn over the body, with a hub and a spoke that turns as it rolls
+  const roll = (f.pos[0] + f.pos[1]) * 7;
+  for (const u of [0.2, 0.8]) for (const face of ['s', 'e']) {
+    const wx = face === 's' ? x0 + u * bw : x0 + bw, wy = face === 's' ? y0 + bd : y0 + u * bd, [px, py] = iso(wx, wy, 3.2);
+    ctx.fillStyle = '#121518'; ctx.beginPath(); ctx.ellipse(px, py, face === 's' ? 3.4 : 2.6, 3.4, face === 's' ? -0.45 : 0.45, 0, 6.3); ctx.fill();
+    ctx.fillStyle = dark('#9aa4ab'); ctx.beginPath(); ctx.arc(px, py, 1.3, 0, 6.3); ctx.fill();
+    ctx.strokeStyle = 'rgba(200,210,218,.7)'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(roll) * 2.6, py + Math.sin(roll) * 2.6); ctx.stroke();
   }
-  box(x0, y0, bw, bd, 7, dark('#e0a13f'), { z0: 1.5, top: dark('#f0b95a') });
   const cx0 = along ? x0 + 0.08 : (s > 0 ? x0 + 0.05 : x0 + bw - 0.45), cy0 = along ? (s > 0 ? y0 + 0.05 : y0 + bd - 0.45) : y0 + 0.08;
   box(cx0, cy0, along ? bw - 0.16 : 0.4, along ? 0.4 : bd - 0.16, 15, 'rgba(160,190,215,.35)', { z0: 7, top: dark('#2b3138') });
   // mast and forks at the front, the pallet rides up with them
@@ -2579,6 +2588,11 @@ function visitorPos(v) {
 function drawVisitor(v, night) {
   const dark = v2 => hex(v2, shade(v2, -66), night * 0.7), T = REDUCED ? 0 : W.t;
   const [x, y] = visitorPos(v), bob = Math.sin(T * 0.9 + v.i) * 2 + (W.tide || 0) * 0.6;
+  // two mooring dolphins on the open-water side: it ties up to them, never to the rocks
+  const [mx, my] = visitorPos({ i: v.i, t: 1 }), dol = [[mx + 2.55, my - 0.9], [mx + 2.55, my - 3.7]];
+  ctx.save(); ctx.globalAlpha = Math.min(1, v.t * 2.5);
+  for (const [dx, dy] of dol) for (const [ox, oy] of [[0, 0], [0.22, 0.1], [0.08, 0.26]]) box(dx + ox, dy + oy, 0.16, 0.16, 9, dark('#5b5148'), { z0: -8, top: dark('#7a6e62') });
+  ctx.restore();
   ctx.save(); ctx.globalAlpha = Math.min(1, v.t * 2.5); ctx.translate(0, bob);
   const X0 = x, X1 = x + 1.9, BOW = y - 4.6, ST = y;
   const hull = [[(X0 + X1) / 2, BOW], [X1 - 0.2, BOW + 1.0], [X1, BOW + 1.8], [X1, ST - 0.4], [X1 - 0.3, ST], [X0 + 0.3, ST], [X0, ST - 0.4]];
@@ -2587,6 +2601,13 @@ function drawVisitor(v, night) {
   poly(side(13).concat(side(2).reverse()), dark('#e9e4da'));
   poly(side(3).concat(side(0).reverse()), dark('#2f4c60'));
   poly(hull.concat([[X0, BOW + 1.3], [X0 + 0.15, BOW + 0.7]]).map(p => iso(p[0], p[1], 13)), dark('#8a6a4a'));
+  if (v.t >= 1 && !v.leaving) {
+    ctx.strokeStyle = 'rgba(220,210,190,.75)'; ctx.lineWidth = 0.9;
+    for (const [[sx, sy], [dx, dy]] of [[[X1 - 0.05, ST - 0.6], dol[0]], [[X1 - 0.05, BOW + 1.6], dol[1]]]) {
+      const [a1, b1] = iso(sx, sy, 13), [a2, b2] = iso(dx + 0.15, dy + 0.15, 9 - bob);
+      ctx.beginPath(); ctx.moveTo(a1, b1); ctx.quadraticCurveTo((a1 + a2) / 2, Math.max(b1, b2) + 4, a2, b2); ctx.stroke();
+    }
+  }
   box(X0 + 0.3, ST - 2.0, 1.3, 1.5, 32, dark('#f2efe8'), { z0: 13 });
   box(X0 + 0.45, ST - 1.8, 1.0, 1.1, 44, dark('#f7f5ef'), { z0: 32 });
   poly([iso(X0 + 0.5, ST - 0.7, 41), iso(X0 + 1.4, ST - 0.7, 41), iso(X0 + 1.4, ST - 0.7, 36), iso(X0 + 0.5, ST - 0.7, 36)], 'rgba(255,214,140,' + (0.45 + night * 0.45) + ')');
@@ -2700,7 +2721,7 @@ function drawDormantBot(b, night) {
   const [dx, dy] = W.geo.door(b), [x, y] = charBase([dx - 0.7, dy - 0.3], 0.9), s = b.s;
   const col = hex(AGENT_LOGO[(s.owner_name || '').toLowerCase().includes('claude') ? 'claude-code' : ''] ? '#7fb2ff' : '#9fb4c8', '#56606a', 0.5);
   ctx.save(); ctx.globalAlpha = 0.85;
-  drawBot(x, y, col, '#56606a', 1, 0, true);
+  drawBot(x, y, col, '#56606a', 1, 0, true, 0, true);
   ctx.fillStyle = 'rgba(20,26,32,.95)'; ctx.beginPath(); ctx.roundRect(x - 3.5, y - 31, 7, 4, 2); ctx.fill();   // eyes off
   ctx.restore();
   const lg = appLogo(s.owner_name); if (lg) logoChip(lg, x + 4.5, y - 15.5, 4.2);
@@ -3887,11 +3908,27 @@ function charBase(pos, size, ring) {
   if (ring) { ctx.strokeStyle = ring; ctx.globalAlpha *= 0.45; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(x, y, 11 * size, 5.4 * size, 0, 0, 6.3); ctx.stroke(); ctx.globalAlpha /= 0.45; }
   return [x, y];
 }
-function drawBot(x, y, color, accent, face, bob, paused) {
+function drawBot(x, y, color, accent, face, bob, paused, phase, off) {
   ctx.save(); ctx.translate(x, y - bob); ctx.scale(face, 1);
-  ctx.fillStyle = '#2b3138'; ctx.fillRect(-7, -8, 14, 7);
-  ctx.fillStyle = '#454d56'; for (let i = 0; i < 3; i++) ctx.fillRect(-6 + i * 5, -7, 3, 5);
+  // legs and arms: a stride while walking, still while standing, hanging when powered down
+  const walk = paused || REDUCED ? 0 : Math.sin(phase == null ? W.t * 7 + x * 0.1 : phase), limb = shade(color, -45), joint = '#2b3138';
+  ctx.lineCap = 'round';
+  for (const [side, sw] of [[-1, walk], [1, -walk]]) {
+    const hx = side * 2.6, fx = hx + sw * 3.2, kx = hx + sw * 1.8 + 0.8;
+    ctx.strokeStyle = limb; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(hx, -8); ctx.lineTo(kx, -4); ctx.lineTo(fx, -0.8); ctx.stroke();
+    ctx.fillStyle = joint; ctx.beginPath(); ctx.roundRect(fx - 2.2, -1.6, 4.4, 2, 1); ctx.fill();
+  }
+  ctx.fillStyle = joint; ctx.beginPath(); ctx.roundRect(-5, -9.5, 10, 3, 1.5); ctx.fill();     // hips
   ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(-6, -24, 12, 17, 3); ctx.fill();
+  // arms outside the body: swinging with the stride, busy in front while working, hanging when off
+  const armSw = off ? 0 : paused ? Math.sin(W.t * 5 + x) : -walk;
+  for (const side of [-1, 1]) {
+    const sx = side * 6.6, sy = -21.5;
+    const hand = off ? [side * 7.6, -11] : paused ? [side * 4 + 7.5, -15.5 + armSw * side * 1.8] : [side * 8.2 + armSw * side * 2.4, -12.5];
+    ctx.strokeStyle = limb; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo(side * 9.4, (sy + hand[1]) / 2, hand[0], hand[1]); ctx.stroke();
+    ctx.fillStyle = joint; ctx.beginPath(); ctx.arc(sx, sy, 1.7, 0, 6.3); ctx.fill();            // shoulder
+    ctx.fillStyle = '#e8eef4'; ctx.beginPath(); ctx.arc(hand[0], hand[1], 1.8, 0, 6.3); ctx.fill();   // hand
+  }
   ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.fillRect(-6, -24, 12, 3);
   ctx.fillStyle = '#e8eef4'; ctx.fillRect(2, -20, 5, 8);
   ctx.fillStyle = shade(color, -30); ctx.beginPath(); ctx.roundRect(-5.5, -34, 11, 10, 3); ctx.fill();
@@ -3915,7 +3952,7 @@ function drawHuman(x, y, color, face, bob, phase, paused) {
 function drawWorker(e) {
   const w = e.w || {}, [x, y] = charBase(e.pos, 1, e.color), paused = e.pause > 0;
   const bob = paused ? Math.sin(e.phase) * .8 : Math.abs(Math.sin(e.phase)) * 2.2;
-  if (w.look === 'robot') { drawBot(x, y, e.color, e.accent, e.face || 1, bob, paused); const lg = AGENT_LOGO[w.kind] || appLogo(w.name); if (lg) logoChip(lg, x + 4.5 * (e.face || 1), y - bob - 15.5, 4.2); }
+  if (w.look === 'robot') { drawBot(x, y, e.color, e.accent, e.face || 1, bob, paused, e.phase); const lg = AGENT_LOGO[w.kind] || appLogo(w.name); if (lg) logoChip(lg, x + 4.5 * (e.face || 1), y - bob - 15.5, 4.2); }
   else drawHuman(x, y, e.color, e.face || 1, bob, e.phase, paused);
   const over = W.snap && W.snap.ship.mem_pct >= 90;
   if (paused && e.stage === 'work') bubble(x, y - 46, over ? '…' : w.look === 'robot' ? '⚙' : '·', over ? '#ffcf6a' : '#dbeaf5');
@@ -4086,7 +4123,7 @@ function hoverText(h) {
     case 'cart': return ['Local traffic', 'a loopback connection between two services'];
     case 'yard': return ['Container yard', r.engine ? r.engine + ' did not answer' : 'no container engine'];
     case 'bulker': return ['Coal carrier', Math.round(r.load * 100) + '% loaded · ' + (r.stage === 'load' ? 'loading' : r.stage === 'in' ? 'arriving' : 'sailing')];
-    case 'digger': return ['Excavator', r.phase === 'idle' ? 'parked' : 'loading the carrier'];
+    case 'digger': return ['Excavator', r.phase === 'idle' ? 'parked' : r.mode === 'trim' ? 'trimming the bunker' : 'loading the carrier'];
     case 'train': return ['Coal train', r.n + ' wagon' + (r.n > 1 ? 's' : '') + ' · ' + (r.stage === 'in' ? 'arriving' : r.stage === 'tip' ? 'unloading' : 'backing out') + ' · ' + fmtBytes(r.rx) + '/s down'];
     case 'disk': return ['Disk ' + Math.round(W.snap.ship.disk_pct) + '% full', 'the yard is crowded because the disk is'];
   }
@@ -4258,9 +4295,9 @@ function describe(h) {
       sections: [['WHAT YOU SEE', ['When the coal bunker is half full, this carrier comes in, the excavator loads it bucket by bucket, and it sits lower in the water as it fills. Full, or once the bunker is empty, it sails on. The coal is the data this machine has received; the carrier keeps the bunker from overflowing.']]], cmds: [] };
   }
   if (h.kind === 'digger') {
-    return { kind: 'EXCAVATOR', accent: '#e0a13f', title: r.phase === 'idle' ? 'Parked on the jetty' : 'Loading the carrier',
+    return { kind: 'EXCAVATOR', accent: '#e0a13f', title: r.phase === 'idle' ? 'Parked on the jetty' : r.mode === 'trim' ? 'Trimming the bunker' : 'Loading the carrier',
       tags: [soft(r.phase)], meta: [['bunker', Math.round((W.coal || 0) * 100) + '% full']],
-      sections: [['WHAT YOU SEE', ['Digs coal out of the staithe bunker and swings it into the carrier\'s holds, one bucket at a time. With no ship in, it waits at the end of the jetty.']]], cmds: [] };
+      sections: [['WHAT YOU SEE', ['While a train tips, and for a while after, it trims the bunker: coal from under the wagons, spread along the pit. With a carrier in, it digs the coal out and swings it into the holds, one bucket at a time. With neither, it waits at the end of the jetty.']]], cmds: [] };
   }
   if (h.kind === 'train') {
     const rx = W.snap.ship.net_rx;
@@ -4712,6 +4749,17 @@ $('#legend').addEventListener('click', e => { if (e.target.id === 'legend') togg
 // staithe bunker and backs out the way it came. The wagon count is the download
 // rate when it set off: one wagon at about 100 KB/s, up to six. No download, no train.
 const STAITHE_X = 4.2;
+// the consist: a diesel at each end (the rear one leads when it backs out), hopper wagons between
+const LOCO_LEN = 2.5, WAGON_LEN = 1.45, COUPLE = 0.14;
+function trainCars(t) {
+  const out = [{ x: t.x, len: LOCO_LEN, kind: 'loco', end: -1 }];
+  let x = t.x + LOCO_LEN + COUPLE;
+  for (let i = 0; i < t.n; i++) { out.push({ x, len: WAGON_LEN, kind: 'wagon', i }); x += WAGON_LEN + COUPLE; }
+  out.push({ x, len: LOCO_LEN, kind: 'loco', end: 1 });
+  return out;
+}
+function trainLen(t) { return 2 * LOCO_LEN + t.n * (WAGON_LEN + COUPLE) + COUPLE; }
+function wagonX(t, i) { return t.x + LOCO_LEN + COUPLE + i * (WAGON_LEN + COUPLE); }
 function trainY() { return W.geo.H + 1.25; }
 function trainWagons(rx) { return rx == null || rx < 20480 ? 0 : clamp(1 + Math.floor(Math.log2(rx / 102400 + 1)), 1, 6); }
 function stepTrain(dt) {
@@ -4736,9 +4784,10 @@ function stepTrain(dt) {
     t.load = Math.max(0, t.load - dt / 6);
     W.coal = Math.min(1, W.coal + dt / 6 * t.n / 10);
     if (!REDUCED && Math.random() < dt * 30) {
-      const i = Math.floor(Math.random() * t.n), x = t.x + 1.75 + i * 1.35 + 0.2 + Math.random() * 0.8, [sx, sy] = iso(x, trainY() + 0.35, 5);
+      const i = Math.floor(Math.random() * t.n), x = wagonX(t, i) + 0.25 + Math.random() * 0.95, [sx, sy] = iso(x, trainY() + 0.35, 5);
       W.sparks.push({ x: sx, y: sy, vx: (Math.random() - 0.5) * 6, vy: 10, life: 0, max: 0.45, col: '26,24,22' });
     }
+    W.lastTip = W.t;
     if (t.load <= 0) { t.stage = 'out'; t.wait = 1.5; }
   } else if (t.stage === 'out') {
     // empty, it backs out: gently up to a slower reversing speed, the tail lamp leading
@@ -4755,9 +4804,7 @@ function railItems(items, night) {
   items.push({ z: K, f: () => { for (let xa = STAITHE_X - 0.6; xa < far; xa += 3) drawTrestle(xa, Y, night, far); drawGantry(Y, night); } });
   items.push({ z: K + 200, f: () => drawBunker(Y, night) });
   const t = W.train; if (!t) return;
-  const cars = [[t.x, 1.55, 'loco']];
-  for (let i = 0; i < t.n; i++) cars.push([t.x + 1.75 + i * 1.35, 1.2, 'wagon', i]);
-  for (const c of cars) items.push({ z: K + 1 + c[0], f: () => drawRailCar(c, Y, night) });
+  for (const c of trainCars(t)) items.push({ z: K + 1 + c.x, f: () => drawRailCar(c, Y, night) });
 }
 function fogAt(x) { const g = W.geo; return x < g.W + 22 ? 1 : Math.max(0, 1 - (x - g.W - 22) / 20); }
 function drawTrestle(xa, Y, night, far) {
@@ -4783,38 +4830,70 @@ function drawBunker(Y, night) {
 function drawGantry(Y, night) {
   // the staithe's gantry, on the land side of the track, with its name
   const dark = v => hex(v, shade(v, -60), night * 0.75), x0 = STAITHE_X - 0.2, L = 10.8;
+  // the end of the line: a buffer stop, so the loco has something to stop short of
+  box(STAITHE_X - 0.62, Y - 0.34, 0.16, 0.68, 11, dark('#5a4a3c'), { z0: 5.6 });
+  box(STAITHE_X - 0.5, Y - 0.3, 0.12, 0.6, 10, dark('#c8433a'), { z0: 7, top: dark('#e9e4da') });
+  for (const yy of [Y - 0.2, Y + 0.18]) { const [bx, by] = iso(STAITHE_X - 0.38, yy, 8.5); ctx.fillStyle = '#e8e2d4'; ctx.beginPath(); ctx.arc(bx, by, 1.8, 0, 6.3); ctx.fill(); }
+  // the staithe signal: green for a train coming in to a clear staithe, red while one is on it
+  const t = W.train, sgx = STAITHE_X + 11.3, [px, py] = iso(sgx, Y - 0.75, 5), [, pt] = iso(sgx, Y - 0.75, 26);
+  const green = t && t.stage === 'in' && t.x > STAITHE_X + 11;
+  ctx.strokeStyle = dark('#3d444b'); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, pt); ctx.stroke();
+  ctx.fillStyle = '#15181b'; ctx.beginPath(); ctx.roundRect(px - 3, pt - 10, 6, 11, 2); ctx.fill();
+  ctx.fillStyle = green ? 'rgba(80,90,90,.9)' : '#ff4a3c'; ctx.beginPath(); ctx.arc(px, pt - 7, 1.7, 0, 6.3); ctx.fill();
+  ctx.fillStyle = green ? '#5ee89a' : 'rgba(80,90,90,.9)'; ctx.beginPath(); ctx.arc(px, pt - 2.5, 1.7, 0, 6.3); ctx.fill();
   for (let x = x0; x <= x0 + L; x += 2.7) box(x, Y - 0.62, 0.14, 0.14, 26, dark('#3d444b'), { z0: 5 });
   box(x0, Y - 0.62, L, 0.14, 27.5, dark('#566069'), { z0: 26 });
   const [sx, sy] = iso(x0 + 0.3, Y - 0.62, 28); ctx.font = '700 6px ' + MONO; ctx.fillStyle = 'rgba(230,236,240,.7)'; ctx.textAlign = 'left'; ctx.fillText('STAITHE', sx, sy - 2);
 }
 function drawRailCar(c, Y, night) {
-  const [x, len, kind, i] = c, t = W.train, a = fogAt(x); if (a <= 0 || !t) return;
+  const t = W.train, a = fogAt(c.x); if (a <= 0 || !t) return;
   ctx.globalAlpha = a;
-  const dark = v => hex(v, shade(v, -66), night * 0.72), w = 0.62, y = Y - w / 2;
-  box(x + 0.1, y + 0.08, len - 0.2, w - 0.16, 8, '#24282c', { z0: 5.6 });                     // bogies
-  for (const u of [0.28, len - 0.28]) { const [wx, wy] = iso(x + u, y + w, 7); ctx.fillStyle = '#15181b'; ctx.beginPath(); ctx.ellipse(wx, wy, 3.2, 3.2, 0, 0, 6.3); ctx.fill(); ctx.strokeStyle = 'rgba(160,170,178,.5)'; ctx.lineWidth = .8; ctx.stroke(); }
-  if (kind === 'loco') {
-    box(x, y, len, w, 19, dark('#2f6a4f'), { z0: 8, outline: 'rgba(0,0,0,.3)' });
-    box(x + 0.05, y + 0.04, 0.45, w - 0.08, 25, dark('#e3c45a'), { z0: 19 });                    // cab
-    poly([iso(x + 0.1, y + w - 0.04, 24), iso(x + 0.42, y + w - 0.04, 24), iso(x + 0.42, y + w - 0.04, 20.5), iso(x + 0.1, y + w - 0.04, 20.5)], 'rgba(255,220,150,' + (0.3 + night * 0.5) + ')');
-    tileRect(x, y + w - 0.02, len, 0.02, 11, '#e3c45a');
-    // headlight leading on the way in; dimmed on the way out, when the tail leads
-    const [hx, hy] = iso(x, Y, 14), on = t.stage !== 'out' ? 1 : 0.25;
-    ctx.fillStyle = 'rgba(255,246,210,' + (0.5 + 0.5 * on) + ')'; ctx.beginPath(); ctx.arc(hx, hy, 2.4, 0, 6.3); ctx.fill();
-    if (night > 0.3 && on > 0.5) { const bg = ctx.createLinearGradient(hx, hy, hx - 70, hy - 35); bg.addColorStop(0, 'rgba(255,240,190,.28)'); bg.addColorStop(1, 'rgba(255,240,190,0)'); ctx.fillStyle = bg; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx - 80, hy - 28); ctx.lineTo(hx - 60, hy - 48); ctx.closePath(); ctx.fill(); }
-    HITS.push({ kind: 'train', ref: t, poly: [iso(x, y, 26), iso(x + 1.75 + t.n * 1.35, y, 26), iso(x + 1.75 + t.n * 1.35, y + w, 5), iso(x, y + w, 5)] });
+  const dark = v => hex(v, shade(v, -66), night * 0.72), w = 0.62, y = Y - w / 2, x = c.x, len = c.len, T = REDUCED ? 0 : W.t;
+  const roll = t.x * 9;
+  // two bogies, two axles each, wheels showing on the near side
+  const bogie = bx => {
+    box(bx, y + 0.1, 0.6, w - 0.2, 7.6, '#1e2226', { z0: 5.6 });
+    for (const u of [0.14, 0.46]) {
+      const [wx, wy] = iso(bx + u, y + w - 0.08, 6.9);
+      ctx.fillStyle = '#121518'; ctx.beginPath(); ctx.arc(wx, wy, 2.6, 0, 6.3); ctx.fill();
+      ctx.strokeStyle = 'rgba(170,180,188,.6)'; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.arc(wx, wy, 1.8, 0, 6.3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + Math.cos(roll) * 1.8, wy + Math.sin(roll) * 1.8); ctx.stroke();
+    }
+  };
+  bogie(x + 0.12); bogie(x + len - 0.72);
+  // couplers and buffers at both ends
+  for (const ex of [x - 0.07, x + len + 0.07]) { const [bx, by] = iso(ex, Y, 10.5); ctx.fillStyle = '#2a2e32'; ctx.fillRect(bx - 1.6, by - 1.2, 3.2, 2.4); }
+  if (c.kind === 'loco') {
+    const out = c.end, cabX = out < 0 ? x : x + len - 0.62, hoodX = out < 0 ? x + 0.62 : x + 0.08;
+    box(x, y, len, w, 9, dark('#23282c'), { z0: 7.6 });                                      // underframe and walkway
+    box(hoodX, y + 0.08, len - 0.7, w - 0.16, 18, dark('#2f6a4f'), { z0: 9, outline: 'rgba(0,0,0,.25)' });   // long hood
+    tileRect(hoodX, y + w - 0.1, len - 0.7, 0.02, 13.5, '#e3c45a');                            // yellow stripe
+    for (let k = 0; k < 3; k++) { const [fx, fy] = iso(hoodX + 0.35 + k * 0.55, Y, 18.2); ctx.fillStyle = dark('#1a1e22'); ctx.beginPath(); ctx.ellipse(fx, fy, 3.4, 1.7, 0, 0, 6.3); ctx.fill(); ctx.strokeStyle = 'rgba(160,170,178,.4)'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(fx - 2.6 * Math.cos(T * 9 + k), fy - 1.3 * Math.sin(T * 9 + k)); ctx.lineTo(fx + 2.6 * Math.cos(T * 9 + k), fy + 1.3 * Math.sin(T * 9 + k)); ctx.stroke(); }   // radiator fans
+    box(cabX, y + 0.02, 0.62, w - 0.04, 24, dark('#2f6a4f'), { z0: 9, top: dark('#3a4450'), outline: 'rgba(0,0,0,.25)' });   // cab
+    // cab windows: side and the end facing out
+    poly([iso(cabX + 0.08, y + w - 0.02, 22), iso(cabX + 0.54, y + w - 0.02, 22), iso(cabX + 0.54, y + w - 0.02, 17.5), iso(cabX + 0.08, y + w - 0.02, 17.5)], 'rgba(170,215,240,' + (0.45 + night * 0.35) + ')');
+    if (out > 0) poly([iso(cabX + 0.62, y + 0.08, 22), iso(cabX + 0.62, y + w - 0.1, 22), iso(cabX + 0.62, y + w - 0.1, 17.5), iso(cabX + 0.62, y + 0.08, 17.5)], 'rgba(170,215,240,' + (0.45 + night * 0.35) + ')');
+    // yellow and black warning end, handrail along the walkway
+    const ex = out < 0 ? x : x + len;
+    if (out > 0) for (let k = 0; k < 4; k++) poly([iso(ex, y + k * w / 4, 16), iso(ex, y + (k + 1) * w / 4, 16), iso(ex, y + (k + 1) * w / 4, 9), iso(ex, y + k * w / 4, 9)], k % 2 ? '#1a1a1a' : '#e3c45a');
+    const [r0x, r0y] = iso(x + 0.05, y + w, 12.5), [r1x, r1y] = iso(x + len - 0.05, y + w, 12.5);
+    ctx.strokeStyle = 'rgba(220,226,232,.55)'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(r0x, r0y); ctx.lineTo(r1x, r1y); ctx.stroke();
+    // lights: the leading end shows white, the trailing end red
+    const leading = (t.stage !== 'out') === (out < 0), [hx, hy] = iso(ex, Y, 13);
+    ctx.fillStyle = leading ? 'rgba(255,246,210,.95)' : 'rgba(255,70,60,.85)'; ctx.beginPath(); ctx.arc(hx, hy, 2.3, 0, 6.3); ctx.fill();
+    if (leading && night > 0.3) { const dir = out, bg = ctx.createLinearGradient(hx, hy, hx + dir * 70, hy + dir * 35); bg.addColorStop(0, 'rgba(255,240,190,.28)'); bg.addColorStop(1, 'rgba(255,240,190,0)'); ctx.fillStyle = bg; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + dir * 80, hy + dir * 28); ctx.lineTo(hx + dir * 60, hy + dir * 48); ctx.closePath(); ctx.fill(); }
+    // a little exhaust from the working engine
+    if (!REDUCED && t.v > 0.05 && Math.random() < 0.15) { const [sx, sy] = iso(hoodX + 0.3, Y, 19); W.smoke.push({ x: sx, y: sy, vx: 3, vy: -10, r: 1.8, life: 0, max: 1.1, soot: true }); }
+    if (out < 0) { const L = trainLen(t); HITS.push({ kind: 'train', ref: t, poly: [iso(x, y, 26), iso(x + L, y, 26), iso(x + L, y + w, 5), iso(x, y + w, 5)] }); }
   } else {
-    box(x, y, len, w, 16, dark('#6b5a4a'), { z0: 8, outline: 'rgba(0,0,0,.35)' });
-    for (let k = 0.2; k < len; k += 0.3) poly([iso(x + k, y + w, 15), iso(x + k + 0.05, y + w, 15), iso(x + k + 0.05, y + w, 9), iso(x + k, y + w, 9)], 'rgba(0,0,0,.18)');
-    const load = t.load;
-    if (load > 0.02) { box(x + 0.08, y + 0.06, len - 0.16, w - 0.12, 15 + 3 * load, '#1d1b1a', { z0: 15, top: hex('#34302c', '#1a1816', night) }); }
-    const [cx, cy] = iso(x - 0.1, Y, 10), [dx, dy] = iso(x, Y, 10);
-    ctx.strokeStyle = '#2a2e32'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(dx, dy); ctx.stroke();
-    if (i === t.n - 1) {
-      // the tail lamp: red always, with a white reversing lamp while it backs out
-      const [tx, ty] = iso(x + len, Y, 13), bl = Math.sin(W.t * 6) > 0 ? 1 : 0.35;
-      ctx.fillStyle = 'rgba(255,70,60,' + (t.stage === 'out' ? bl : 0.8) + ')'; ctx.beginPath(); ctx.arc(tx, ty, 2, 0, 6.3); ctx.fill();
-      if (t.stage === 'out') { ctx.fillStyle = 'rgba(255,250,235,.9)'; ctx.beginPath(); ctx.arc(tx + 3, ty - 3, 1.8, 0, 6.3); ctx.fill(); }
+    // a hopper wagon: sloped chutes under the body, ribbed sides, coal heaped on top
+    for (const hx of [x + 0.3, x + len - 0.75]) poly([iso(hx, y + w - 0.05, 8), iso(hx + 0.45, y + w - 0.05, 8), iso(hx + 0.32, y + w - 0.05, 5.4), iso(hx + 0.13, y + w - 0.05, 5.4)], dark('#4e4136'));
+    box(x, y, len, w, 17, dark('#6b5a4a'), { z0: 8, outline: 'rgba(0,0,0,.35)' });
+    for (let k = 0.18; k < len; k += 0.26) poly([iso(x + k, y + w, 16.5), iso(x + k + 0.04, y + w, 16.5), iso(x + k + 0.04, y + w, 8.5), iso(x + k, y + w, 8.5)], 'rgba(0,0,0,.2)');
+    tileRect(x, y + w - 0.02, len, 0.02, 16.8, dark('#8a7460'));
+    if (t.load > 0.02) {
+      box(x + 0.06, y + 0.06, len - 0.12, w - 0.12, 16 + 3 * t.load, '#1d1b1a', { z0: 16, top: hex('#34302c', '#1a1816', night) });
+      const [mx, my] = iso(x + len / 2, Y, 19 + 3 * t.load); ctx.fillStyle = hex('#2c2926', '#161412', night); ctx.beginPath(); ctx.ellipse(mx, my, 12 * t.load + 4, 3.5, 0, Math.PI, 0); ctx.fill();
     }
   }
   ctx.globalAlpha = 1;
@@ -4945,6 +5024,7 @@ function sandboxOn() {
 function sandboxOff() {
   if (!W.sandbox) return;
   W.sandbox = false; $('#banner').classList.remove('on', 'past', 'sim'); $('#banner').textContent = '';
+  if (W.simHist) { HIST.cpu.length = 0; W.simHist.forEach(v => HIST.cpu.push(v)); W.simHist = null; }
   W.bossGone = [];
   renderPlay(); poll();
 }
@@ -4980,6 +5060,21 @@ function simulate(kind) {
     ev('SERVICE_EXTERNALLY_REACHABLE', 'service:' + s.id, ':' + s.port + ' is reachable from outside', 100, { port: s.port });
     cond('SERVICE_EXTERNALLY_REACHABLE', 'service:' + s.id, ':' + s.port + ' is reachable from outside', 100);
     petTo('guard', 'service:' + s.id, 'SERVICE_EXTERNALLY_REACHABLE', ':' + s.port + ' is reachable from outside');
+  } else if (kind === 'storm') {
+    // the weather reads the samples the page has, so the storm brings its own
+    if (!W.simHist) W.simHist = HIST.cpu.slice();
+    d.ship.load_pct = 95; for (let i = 0; i < 6; i++) HIST.cpu.push(94 + (i % 3));
+    ev('SIM_STORM', 'ship', 'CPU held at 95%: rain', 30);
+  } else if (kind === 'memory') {
+    d.ship.mem_pct = 92;
+    ev('SIM_MEMORY', 'ship', 'Memory 92% full: the deck is taped off' + (W.cfg.drama ? ' and the stacks wobble' : ''), 30);
+  } else if (kind === 'train') {
+    d.ship.net_rx = 1.6e6; W.trainWait = 0; W.coal = Math.max(W.coal || 0, 0.42);
+    ev('SIM_DOWNLOAD', 'ship', 'A 1.6 MB/s download: the coal train runs, and a full bunker brings the collier', 30);
+  } else if (kind === 'boats') {
+    const at = (i, app, svc, port, k) => ({ key: 'sim-boat-' + n + '-' + i, address: '198.18.0.' + (i + 10), alias: null, apps: [app], services: [svc], ports: [port], scope: 'public', count: 1, kind: k });
+    d.traffic = (d.traffic || []).concat([at(1, 'Google Chrome', 'Google push', 5228, 'fishing'), at(2, 'Mail', 'IMAPS', 993, 'mailboat'), at(3, 'Slack', 'Slack', 443, 'ferry'), at(4, 'Claude', 'Anthropic API', 443, 'launch'), at(5, 'Postgres client', 'PostgreSQL', 5432, 'tug')]);
+    ev('SIM_BOATS', 'world', 'Five outbound connections by sea: fishing boat, mail boat, ferry, launch, tug', 30);
   } else if (kind === 'convoy') {
     d.yard.reachable = true; d.yard.engine = d.yard.engine || 'simulated';
     d.yard.containers = (d.yard.containers || []).concat([0, 1, 2].map(i => ({ name: 'convoy-' + n + '-' + (i + 1), running: true, state: 'running', status: 'simulated', image: 'simulated', colour: ['#c9784a', '#4d7fa8', '#5aa08a'][i], ports: [] })));
@@ -5179,10 +5274,26 @@ function stepBulker(dt) {
 }
 function stepDigger(dt) {
   // one bucket at a time: dig in the bunker, lift, swing out over a hold, open, swing back
-  const d = W.digger = W.digger || { x: STAITHE_X + 9.6, tx: STAITHE_X + 9.6, swing: 0, reach: 0.3, phase: 'idle', t: 0, full: 0 };
+  const d = W.digger = W.digger || { x: STAITHE_X + 9.6, tx: STAITHE_X + 9.6, swing: 0.42, reach: 1, phase: 'idle', t: 0, full: 0 };
   const s = W.bulker, working = s && s.stage === 'load' && (W.coal || 0) > 0.02;
   const mv = (cur, tgt, rate) => { const q = tgt - cur; return Math.abs(q) <= rate * dt ? tgt : cur + Math.sign(q) * rate * dt; };
-  if (!working) { d.phase = 'idle'; d.tx = STAITHE_X + 9.6; d.swing = mv(d.swing, 0, 0.8); d.reach = mv(d.reach, 0.3, 0.6); d.x = mv(d.x, d.tx, 0.6); return; }
+  // with no ship in, it still works while a train tips and a while after: it trims
+  // the bunker, taking coal from under the wagons and spreading it along the pit
+  const trimming = !working && (W.coal || 0) > 0.03 && ((W.train && W.train.stage === 'tip') || W.t - (W.lastTip || -99) < 15);
+  if (trimming) {
+    if (d.mode !== 'trim') { d.mode = 'trim'; d.phase = 'move'; d.tx = trimSpot(); }
+    if (d.phase === 'move') { d.x = mv(d.x, d.tx, 0.7); d.swing = mv(d.swing, 0, 0.8); d.reach = mv(d.reach, 0.3, 0.6); if (d.x === d.tx) d.phase = 'dig'; }
+    else if (d.phase === 'dig') { d.reach = mv(d.reach, 1, 0.7); if (d.reach === 1) { d.full = 1; d.phase = 'lift'; } }
+    else if (d.phase === 'lift') { d.reach = mv(d.reach, 0.35, 0.8); if (d.reach === 0.35) { d.phase = 'carry'; d.tx = clamp(d.x + (d.x < STAITHE_X + 5 ? 3 : -3), STAITHE_X + 0.8, STAITHE_X + 9.4); } }
+    else if (d.phase === 'carry') { d.x = mv(d.x, d.tx, 0.6); if (d.x === d.tx) { d.phase = 'dump'; d.t = 0.6; } }
+    else if (d.phase === 'dump') {
+      if (d.full) { d.full = 0; if (!REDUCED) for (let k = 0; k < 10; k++) { const [px, py] = iso(d.x + (Math.random() - 0.5) * 0.4, trainY() + 0.9, 14); W.sparks.push({ x: px, y: py, vx: (Math.random() - 0.5) * 10, vy: 10 + Math.random() * 6, life: 0, max: 0.5, col: '26,24,22' }); } }
+      if ((d.t -= dt) <= 0) { d.phase = 'move'; d.tx = trimSpot(); }
+    }
+    return;
+  }
+  if (d.mode === 'trim') { d.mode = null; d.phase = 'idle'; }
+  if (!working) { d.phase = 'idle'; d.tx = STAITHE_X + 9.6; d.swing = mv(d.swing, 0.42, 0.8); d.reach = mv(d.reach, 1, 0.6); d.x = mv(d.x, d.tx, 0.6); return; }
   if (d.phase === 'idle') { d.phase = 'move'; d.tx = STAITHE_X + 0.8 + ((W.digN = (W.digN || 0) + 1) % 8) * 1.2; }
   if (d.phase === 'move') { d.x = mv(d.x, d.tx, 0.6); d.swing = mv(d.swing, 0, 0.8); if (d.x === d.tx) d.phase = 'dig'; }
   else if (d.phase === 'dig') { d.reach = mv(d.reach, 1, 0.7); if (d.reach === 1) { d.full = 1; d.phase = 'lift'; } }
@@ -5196,6 +5307,12 @@ function stepDigger(dt) {
     }
     if ((d.t -= dt) <= 0) d.phase = 'back';
   } else if (d.phase === 'back') { d.swing = mv(d.swing, 0, 0.55); if (d.swing === 0) d.phase = 'move'; d.tx = STAITHE_X + 0.8 + ((W.digN = (W.digN || 0) + 1) % 8) * 1.2; }
+}
+function trimSpot() {
+  // under whichever wagon is tipping, or anywhere along the pit once the train has gone
+  const t = W.train;
+  if (t && t.stage === 'tip') return clamp(wagonX(t, Math.floor(Math.random() * t.n)) + 0.7, STAITHE_X + 0.8, STAITHE_X + 9.4);
+  return STAITHE_X + 0.8 + Math.random() * 8.6;
 }
 function bulkItems(items, night) {
   if (!W.geo) return;

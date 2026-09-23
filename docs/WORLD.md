@@ -16,9 +16,9 @@ itself.
 | The dot on its sign | Green in use, amber idle, brown long idle, blue still measuring |
 | Smoke | Only from a service seen in use (or using CPU). Its density follows the service's own CPU when the scan has it: a light puff at a few percent, thick dark plumes near a whole core. Fewer samples than needed is "still measuring", never "idle" |
 | Boats at the anchorage | Outbound connections that are not web traffic, as the vessel their port says they are: push (held open, waiting) is a fishing boat with a line out, mail the mail boat, chat a ferry, AI a fast launch, databases, caches and queues tugs, name and directory services a tender. They sail in off the causeway when the first connection opens and out when the last closes. Web traffic stays cars |
-| Coal carrier and excavator | When the coal bunker is half full, a bulk carrier is towed in, ties up to the jetty, and an excavator loads it bucket by bucket; it sits lower as it fills and is towed out full or once the bunker is empty |
+| Coal carrier and excavator | While a train tips and for a while after, the excavator trims the bunker, spreading coal along the pit. When the bunker is half full, a bulk carrier is towed in, ties up to the jetty, and an excavator loads it bucket by bucket; it sits lower as it fills and is towed out full or once the bunker is empty |
 | Tugs, pilot boat, mooring lines, radar, reflections | How a real port works, following the ship they serve: two tugs bring every big ship in and out, a pilot boat meets the collier, a ship at the jetty is tied up. The radar on the harbour master's office and lights reflected on the water at night are scenery |
-| Coal train | Data this machine is receiving. While the network brings data in, a train runs in over the trestle south of the harbour, tips its wagons into the staithe bunker and backs out the way it came, tail lamp leading. One wagon at about 100 KB/s, up to six. Nothing coming in, no train |
+| Coal train | Data this machine is receiving. A long diesel at each end and hopper wagons on two-axle bogies: it comes in behind the front engine and backs out behind the rear one. The line ends at a buffer stop, and a signal at the staithe shows green for a train coming in to a clear staithe, red while one is on it. While the network brings data in, a train runs in over the trestle south of the harbour, tips its wagons into the staithe bunker and backs out the way it came, tail lamp leading. One wagon at about 100 KB/s, up to six. Nothing coming in, no train |
 | Dust, weeds, a cobweb | Long idle, or it looks left over, with the reasons in the panel |
 | Roof beacon | Risk as scored. Amber medium, red high and critical |
 | Grey plate, no paperwork, `?` | Nobody knows who started it. Unknown, not dangerous: never red, never prioritised above exposure |
@@ -26,7 +26,7 @@ itself.
 | Crossed swords | More than one process listens on this port, on different addresses |
 | The external-access gate | The boom rises only when portlist connected to this machine's own network address and was let in. A 0.0.0.0 bind alone lights the lamp amber and leaves the boom down. A refused connection shuts the building's door |
 | Red line to the gate | This service is reachable from beyond the machine |
-| Robots | Coding agents that are running now and started something here |
+| Robots | Coding agents that are running now and started something here. They walk on two legs and swing their arms; at work their hands move in front of them |
 | Hard hats | Terminals, shells and editors that started something here |
 | Harbour master's office | Coding sessions. A lit window is a live session; robots at the door are live sessions with nothing listening. Titles only, never prompts |
 | Container yard | Containers, with a lamp lit while running. A yard the engine did not answer for is shown closed, not empty |
@@ -42,7 +42,7 @@ itself.
 | Other machines | Machines that report in to a fleet store, where there is one (standalone portlist has none), as harbours on the horizon west of the lighthouse: one small building per listening port, a red lamp if anything there is exposed. A host that has stopped reporting stays, dark and fogged, with how long ago it was last heard |
 | The groundskeeper | Sweeps up an old foundation once its service has been gone 90 seconds. The stop stays in the Timeline |
 | Old foundations | Something that stopped here. Kept for a while so a restart lands in the same lot |
-| The lighthouse | SSH. Full beam while any SSH session is open, in or out; a steady lamp while a server listens with nobody connected; dark otherwise. Someone logged in to this machine arrives as a big ship and moors at the lighthouse, and the beam swings round and holds on it as it comes in |
+| The lighthouse | SSH. Full beam while any SSH session is open, in or out; a steady lamp while a server listens with nobody connected; dark otherwise. Someone logged in to this machine arrives as a big ship and ties up to two mooring posts clear of the lighthouse rocks, and the beam swings round and holds on it as it comes in |
 | Customs house | By the gate: this machine's firewall, read from its own settings. Lit with a green flag while it is on, dark with a red flag when it is off, blinds down in stealth mode. The gate stays a separate measurement: a firewall that is on can still let a service through |
 | Walls, fence, barriers | Sea walls on every edge that meets water, a security fence on the landward side with the gate as the only way through, a parapet on the south wall, barriers where a road would run into the sea, and a causeway carrying the road to the mainland. Structure, not data |
 | Islands and boats | Every machine you hold an SSH or database session to (MongoDB, PostgreSQL, MySQL, Redis, Elasticsearch...) is an island on the horizon with its logo. A small boat shuttles out and back while the session is open: SSH from a jetty between the third and fourth piers, databases from the water east of the last pier. Never from the lighthouse, whose rocks would sink it |
@@ -199,7 +199,8 @@ over, 3 per unknown origin. The figures at the fence and the tugs are
 dramatisation; nobody measured them, and the legend says so.
 
 **Sandbox** is a simulation, labelled as one: port collision, ghost the harbour,
-accidental exposure, Docker convoy. It copies the harbour as it is, stops
+accidental exposure, Docker convoy, a storm (CPU at 95%), memory 92% full, a big
+download (the coal train, and then the collier), and boats coming in. It copies the harbour as it is, stops
 listening to the scan while it runs, and changes nothing on the machine. Every
 simulated line in the log says "(simulated)", the status chip reads "sandbox",
 a banner says so, and a picture taken then is stamped SIM. Back to live

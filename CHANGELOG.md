@@ -6,6 +6,14 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **Harbour: engineered details.** The coal train is a proper consist: a long
+  diesel at each end and hopper wagons on two-axle bogies, backing out behind
+  its rear engine. Robots walk on legs and swing their arms.
+  The excavator trims the bunker while a train tips instead of waiting for a
+  ship. The line ends at a buffer stop, with a signal at the staithe. The
+  inbound SSH ship ties up to mooring posts clear of the rocks. The forklift
+  has tyres you can see and sets pallets beside a door, not in it. Sandbox
+  adds a storm, full memory, a big download and boats coming in.
 - **Harbour: a port that works like one, boats by kind, and stopping.**
   Outbound connections that are not web go by sea as the vessel their port
   says: fishing boats for push, the mail boat, a ferry for chat, a launch for

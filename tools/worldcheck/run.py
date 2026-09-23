@@ -322,17 +322,21 @@ def main():
           simulate('expose'); await frames(20); o.simExpose = W.snap.gate.state === 'open';
           simulate('ghost'); await frames(20); o.toolbox = HITS.some(h => h.kind === 'dormant') && (W.bossGone || []).length > 0;
           simulate('convoy'); await frames(20); o.convoy = [...W.crates.values()].filter(k => k.c && k.c.status === 'simulated').length === 3;
+          simulate('storm'); await frames(10); o.simStorm = W.storm === true;
+          simulate('memory'); await frames(5); o.simMemory = W.snap.ship.mem_pct === 92;
+          W.train = null; simulate('train'); await frames(5); o.simTrain = !!W.train;
+          simulate('boats'); await frames(10); o.simBoats = [...W.vessels.values()].filter(v => v.key.startsWith('sim-boat-')).length === 5;
           const c = W.snap.services.find(s => s.sim); settle(c.pid, c.port); await frames(10);
           o.settled = !W.snap.services.some(s => s.pid === c.pid);
           await new Promise(r => setTimeout(r, 9000)); await frames(5);
           o.bossLine = W.chat.some(x => /Boss went home/.test(x.line)) || (W.bossGone || []).length === 0;
           sandboxOff();
           for (let i = 0; i < 100 && (W.sandbox || W.snap.services.some(s => s.sim) || (W.snap.yard.containers || []).some(k => k.status === 'simulated')); i++) await new Promise(r => setTimeout(r, 200));
-          o.back = !W.sandbox && !W.snap.services.some(s => s.sim) && !document.querySelector('#banner').classList.contains('sim');
+          o.back = !W.sandbox && !W.snap.services.some(s => s.sim) && !document.querySelector('#banner').classList.contains('sim') && !(W.snap.traffic || []).some(e => String(e.key).startsWith('sim-boat-'));
           W.cfg.drama = false;
           // the coal carrier: half a bunker brings it in, the excavator loads it, it sails on lower in the water
-          W.coal = 0.6; const bstages = new Set(); let bload = 0, digs = new Set();
-          const bUntil = performance.now() + 150000;
+          W.bulker = null; W.digger = null; W.coal = 0.6; const bstages = new Set(); let bload = 0, digs = new Set();
+          const bUntil = performance.now() + 200000;
           while (performance.now() < bUntil && !(bstages.has('out') && !W.bulker)) {
             await frames(2);
             if (W.bulker) { bstages.add(W.bulker.stage); bload = Math.max(bload, W.bulker.load); }
@@ -346,6 +350,7 @@ def main():
           const until = performance.now() + 120000;
           while (performance.now() < until && !(stages.has('out') && !W.train)) {
             await frames(2);
+            if (W.digger && W.digger.mode === 'trim' && ['dig', 'carry', 'dump'].includes(W.digger.phase)) o.trimmed = true;
             if (W.train) { stages.add(W.train.stage); maxV = Math.max(maxV, W.train.v); if (lastX != null) jump = Math.max(jump, Math.abs(W.train.x - lastX)); lastX = W.train.x; o.wagons = W.train.n; }
           }
           sync = real;
@@ -405,7 +410,10 @@ def main():
     check("sandbox: ghosting leaves tools and a cat on the way", extra["toolbox"] is True and extra["bossLine"] is True)
     check("sandbox: a convoy brings three containers", extra["convoy"] is True)
     check("sandbox: settling a shared port stops one side", extra["settled"] is True)
+    check("sandbox: storm, full memory, a download and boats all show", extra["simStorm"] is True and extra["simMemory"] is True and extra["simTrain"] is True and extra["simBoats"] is True,
+          json.dumps({k: extra[k] for k in ("simStorm", "simMemory", "simTrain", "simBoats")}))
     check("Back to live removes every simulated thing", extra["back"] is True)
+    check("the excavator works when the train tips", extra.get("trimmed") is True)
     check("coal train comes in, tips and backs out", extra["train"] is True, extra["trainInfo"])
     check("outbound by sea: vessels match their connections", fin["vessels"] == fin["vesselsWant"] and "mailboat" in fin["vesselKinds"], "%d vs %d (%s)" % (fin["vessels"], fin["vesselsWant"], fin["vesselKinds"]))
     check("coal carrier comes in, is loaded by the excavator, sails on", extra["bulker"] is True, extra["bulkerInfo"])

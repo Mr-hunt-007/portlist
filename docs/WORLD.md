@@ -14,7 +14,8 @@ itself.
 | A building | One listening service. The shape and the emblem on its wall say what kind: lighthouse for SSH, tanks for Postgres, MySQL, Mongo and friends, a short block for Redis, a dome for local models and AI apps, a radio mast for MCP, an onion tower for Tor, a gatehouse for nginx and Caddy, a garage for dev servers, a factory for app servers, a warehouse for file and object storage, a shed for system services and anything unidentified |
 | Logos | On the wall, the service's own mark (Redis, MongoDB, PostgreSQL, nginx, Docker, Grafana...). On the sign, chips for what it runs on and what it was built with: the runtime (Python, Node, Bun, Deno...) is read from the process, the framework (React, Next.js, Vue, Svelte, Angular, FastAPI, Django, Flask...) from the project's own package.json, requirements.txt or pyproject.toml. Nothing is inferred from a port. Marks from Simple Icons (CC0) |
 | The dot on its sign | Green in use, amber idle, brown long idle, blue still measuring |
-| Smoke | Only from a service seen in use. Fewer samples than needed is "still measuring", never "idle" |
+| Smoke | Only from a service seen in use (or using CPU). Its density follows the service's own CPU when the scan has it: a light puff at a few percent, thick dark plumes near a whole core. Fewer samples than needed is "still measuring", never "idle" |
+| Coal train | Data this machine is receiving. While the network brings data in, a train runs in over the trestle south of the harbour, tips its wagons into the staithe bunker and backs out the way it came, tail lamp leading. One wagon at about 100 KB/s, up to six. Nothing coming in, no train |
 | Dust, weeds, a cobweb | Long idle, or it looks left over, with the reasons in the panel |
 | Roof beacon | Risk as scored. Amber medium, red high and critical |
 | Grey plate, no paperwork, `?` | Nobody knows who started it. Unknown, not dangerous: never red, never prioritised above exposure |
@@ -176,6 +177,33 @@ landmark. Focus moves the camera there; Enter opens the same inspector a click
 does. On a phone the machine panel collapses to one line: cpu, memory, disk,
 time.
 
+## Play: drama and the sandbox
+
+`G`, or the Play button, opens a panel with two things, both off by default.
+
+**Drama** tells real events with more theatre. An agent that exits leaves its
+toolbox at the door, and some while later the inspector cat comes to say "Boss
+went home. :3000 is still on." A port two processes hold gets a brawl: two
+forklifts nose to nose, a crew arguing, a red ⚔ :port ⚔ sign. A service
+verified reachable from outside brings a siren by the gate, figures in coats at
+the boundary and tugs lying off the causeway. Rain brings lightning over the
+cranes; memory at 85% makes the yard stacks wobble. A calm score sits in the
+pills and on the picture: 100, less 20 per service reachable from outside, 10
+per high risk, 8 per failing, 5 per left running by an exited agent, 5 per left
+over, 3 per unknown origin. The figures at the fence and the tugs are
+dramatisation; nobody measured them, and the legend says so.
+
+**Sandbox** is a simulation, labelled as one: port collision, ghost the harbour,
+accidental exposure, Docker convoy. It copies the harbour as it is, stops
+listening to the scan while it runs, and changes nothing on the machine. Every
+simulated line in the log says "(simulated)", the status chip reads "sandbox",
+a banner says so, and a picture taken then is stamped SIM. Back to live
+restores the real harbour.
+
+**Settle it.** A shared port's inspector has one button per process. In the
+sandbox it stops the simulated one; live, it copies `kill <pid>` for you to run
+in a terminal. The page never signals a process itself.
+
 ## Spotlight, sound and pictures
 
 Whatever you click stays lit and the rest of the harbour steps back a little,
@@ -190,7 +218,7 @@ addresses and the pets' chat are left out, and nothing is uploaded.
 
 `F` full screen, `S` ambient mode (tour + captions, chrome fades), `T` tour,
 `/` find, `P` replay, `?` legend, `A` what needs a look, `L` light (the clock, day, dusk,
-night), `M` sound, `K` picture, `0` whole harbour, `+` `-` zoom, `Esc` close.
+night), `M` sound, `K` picture, `G` play, `0` whole harbour, `+` `-` zoom, `Esc` close.
 
 ## How it is built
 

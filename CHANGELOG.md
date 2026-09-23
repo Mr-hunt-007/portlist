@@ -6,6 +6,19 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **Harbour: a coal train, CPU smoke, and Play.** A coal train is the data the
+  machine is receiving: it runs in over a trestle south of the harbour while
+  downloads flow, tips its wagons at the staithe and backs out the way it came
+  (one wagon per ~100 KB/s, up to six). Chimney smoke follows each service's own
+  CPU. `G` opens Play: **Drama** (off by default) tells real events with more
+  theatre (a robot's dropped toolbox and a cat who says the boss went home, a
+  brawl at a shared port, a siren with figures at the fence and tugs offshore
+  when something is verified reachable, lightning in the rain, wobbling stacks
+  at 85% memory, a calm score with its rule shown); **Sandbox** runs labelled
+  simulations (port collision, ghost the harbour, accidental exposure, Docker
+  convoy) from a copy of the harbour, touching nothing, with Back to live. A
+  shared port's inspector gets "Settle it": simulated in the sandbox, a copied
+  `kill <pid>` live. The harness checks all of it.
 - **Harbour: what you click, what the machine feels, and a picture to share.**
   A spotlight stays on whatever you click while the rest steps back. Rain means
   the CPU has stayed above 80% (it clears below 65%, and a note says so); tape

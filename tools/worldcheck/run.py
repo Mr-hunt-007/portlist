@@ -265,7 +265,35 @@ def main():
           const keep = HIST.cpu.slice(); HIST.cpu.push(96, 97, 95, 98, 96, 97); await frames(240); o.rain = W.rain > 0.5 && W.storm;
           HIST.cpu.length = 0; keep.forEach(v => HIST.cpu.push(v)); HIST.cpu.push(5, 6, 4, 5, 6, 5); await frames(30); o.clears = !W.storm;
           const v = [...W.visitShips.values()][0]; if (v) { v.t = 0.1; await frames(20); o.beam = W.beamLock === true; } else o.beam = 'no ship';
-          W.cfg.sound = true; audioSync(); sfx('thud'); sfx('start'); sfx('purr'); o.sound = !!AU.ctx; W.cfg.sound = false; audioSync();
+          W.cfg.sound = true; audioSync(); sfx('thud'); sfx('start'); sfx('purr'); sfx('horn'); sfx('thunder'); o.sound = !!AU.ctx; W.cfg.sound = false; audioSync();
+          // the sandbox, with drama on: every simulation lands, is labelled, and Live takes it all back
+          const nb = () => [...W.buildings.values()].filter(b => !b.leaving).length, b0 = nb();
+          W.cfg.drama = true;
+          simulate('collide'); await frames(30);
+          o.simCollide = nb() === b0 + 1 && W.sandbox && document.querySelector('#banner').classList.contains('sim') && document.querySelector('#liveT').textContent === 'sandbox';
+          o.brawl = W.t - (W.brawlAt || -9) < 0.5;
+          simulate('expose'); await frames(20); o.simExpose = W.snap.gate.state === 'open';
+          simulate('ghost'); await frames(20); o.toolbox = HITS.some(h => h.kind === 'dormant') && (W.bossGone || []).length > 0;
+          simulate('convoy'); await frames(20); o.convoy = [...W.crates.values()].filter(k => k.c && k.c.status === 'simulated').length === 3;
+          const c = W.snap.services.find(s => s.sim); settle(c.pid, c.port); await frames(10);
+          o.settled = !W.snap.services.some(s => s.pid === c.pid);
+          await new Promise(r => setTimeout(r, 9000)); await frames(5);
+          o.bossLine = W.chat.some(x => /Boss went home/.test(x.line)) || (W.bossGone || []).length === 0;
+          sandboxOff();
+          for (let i = 0; i < 100 && (W.sandbox || W.snap.services.some(s => s.sim) || (W.snap.yard.containers || []).some(k => k.status === 'simulated')); i++) await new Promise(r => setTimeout(r, 200));
+          o.back = !W.sandbox && !W.snap.services.some(s => s.sim) && !document.querySelector('#banner').classList.contains('sim');
+          W.cfg.drama = false;
+          // the coal train: a download starts it; it comes in, tips its wagons and backs out
+          const real = sync; sync = d => { d.ship.net_rx = 600000; real(d); }; W.snap.ship.net_rx = 600000; W.trainWait = 0;
+          const stages = new Set(); let maxV = 0, lastX = null, jump = 0;
+          const until = performance.now() + 120000;
+          while (performance.now() < until && !(stages.has('out') && !W.train)) {
+            await frames(2);
+            if (W.train) { stages.add(W.train.stage); maxV = Math.max(maxV, W.train.v); if (lastX != null) jump = Math.max(jump, Math.abs(W.train.x - lastX)); lastX = W.train.x; o.wagons = W.train.n; }
+          }
+          sync = real;
+          o.train = ['in', 'tip', 'out'].every(k => stages.has(k)) && !W.train && maxV <= 3.21 && jump < 0.3 && W.coal > 0;
+          o.trainInfo = [...stages].join('>') + ' v' + maxV.toFixed(2) + ' jump' + jump.toFixed(3) + ' wagons ' + o.wagons;
           return o;
         }""")
         with page.expect_download(timeout=15000) as dl:
@@ -309,6 +337,14 @@ def main():
     check("sustained CPU brings rain, and it clears", extra["rain"] is True and extra["clears"] is True, json.dumps(extra))
     check("the lighthouse holds an arriving ssh ship", extra["beam"] is True, str(extra["beam"]))
     check("sound starts and stops without errors", extra["sound"] is True)
+    check("sandbox: a port collision lands, labelled", extra["simCollide"] is True)
+    check("drama: the collision starts a brawl", extra["brawl"] is True)
+    check("sandbox: exposure opens the gate", extra["simExpose"] is True)
+    check("sandbox: ghosting leaves tools and a cat on the way", extra["toolbox"] is True and extra["bossLine"] is True)
+    check("sandbox: a convoy brings three containers", extra["convoy"] is True)
+    check("sandbox: settling a shared port stops one side", extra["settled"] is True)
+    check("Back to live removes every simulated thing", extra["back"] is True)
+    check("coal train comes in, tips and backs out", extra["train"] is True, extra["trainInfo"])
     check("a picture downloads as a PNG", extra["picture"] and extra["captureOff"], extra["pictureName"])
     check("no console errors", not errors, "; ".join(errors[:3]))
     print("\n%d frames sampled. %s" % (wc["frames"], "ALL PASS" if not fails else "%d FAILED" % len(fails)))

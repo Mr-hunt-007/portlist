@@ -147,6 +147,16 @@ body.screen #machine{display:block;opacity:.8}
 .sw::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#9fb6c6;transition:transform .15s}
 .opt[aria-checked="true"] .sw{background:rgba(240,162,75,.7)} .opt[aria-checked="true"] .sw::after{transform:translateX(13px);background:#fff}
 .seg{display:flex;gap:4px;margin:4px 16px 8px}
+.popnote{margin:2px 16px 10px;font-size:11.5px;line-height:1.45;color:#7f9aac}
+.simgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 16px 6px}
+.simgrid button,.simback,.act{padding:8px 6px;border-radius:8px;border:1px solid var(--line);background:rgba(120,170,200,.06);font-size:12px;color:#cfe0ea;cursor:pointer}
+.simgrid button:hover,.simback:hover{border-color:var(--amber);color:var(--amber2)}
+.simback{display:block;width:calc(100% - 32px);margin:2px 16px 6px;border-color:rgba(127,178,255,.5);color:#bcd6ff}
+.acts{padding:2px 16px 12px;display:flex;flex-direction:column;gap:6px}
+.act{width:100%;text-align:left;border-color:rgba(255,95,86,.45);background:rgba(255,95,86,.1);color:#ffd6d2}
+.act:hover{background:rgba(255,95,86,.2)}
+#banner.sim{top:auto;bottom:78px;left:50%;right:auto;transform:translateX(-50%);max-width:calc(100vw - 32px);border-radius:10px;border:1px solid rgba(190,150,255,.5);background:rgba(58,32,86,.95);color:#ecdcff;border-bottom-color:rgba(190,150,255,.5)}
+#banner.sim button{margin-left:10px;padding:3px 10px;border-radius:6px;border:1px solid rgba(236,220,255,.5);background:none;color:inherit;cursor:pointer;font-size:12px}
 .seg button{flex:1;padding:6px 0;border-radius:7px;border:1px solid var(--line);background:none;font-size:12px;color:#9fc0d2;cursor:pointer}
 .seg button[aria-pressed="true"]{border-color:var(--amber);color:var(--amber2);background:rgba(240,162,75,.12)}
 /* inspector */
@@ -305,6 +315,7 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.45} body.idle .pills{opac
       <button class="tool" type="button" id="bPast" title="Replay: the harbour at an earlier time (P)" aria-pressed="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.8"/><path d="M8 4.8V8l2.4 1.6"/><path d="M1.6 5.2 2.6 2.4 4.6 4.4"/></svg><span class="l">Replay</span></button>
       <button class="tool" type="button" id="bFit" title="Whole harbour (0)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg><span class="l">Fit</span></button>
       <button class="tool" type="button" id="bLegend" title="What everything means (?)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6"/><path d="M6.3 6.2a1.8 1.8 0 1 1 2.4 1.7c-.5.2-.7.6-.7 1.1v.5"/><circle cx="8" cy="11.6" r=".5" fill="currentColor"/></svg><span class="l">Legend</span></button>
+      <button class="tool" type="button" id="bPlay" title="Play: drama and the sandbox (G)" aria-expanded="false" aria-pressed="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.6" y="4.4" width="12.8" height="7.6" rx="3.8"/><path d="M4.6 7v2.4M3.4 8.2h2.4"/><circle cx="10.6" cy="7.4" r=".6" fill="currentColor"/><circle cx="12" cy="9" r=".6" fill="currentColor"/></svg><span class="l">Play</span></button>
       <button class="tool" type="button" id="bShare" title="Save a picture of the harbour (K)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.8" y="4" width="12.4" height="9" rx="1.6"/><circle cx="8" cy="8.5" r="2.4"/><path d="M5.5 4l1-1.8h3L10.5 4"/></svg><span class="l">Picture</span></button>
       <button class="tool" type="button" id="bFull" title="Full screen (F)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg><span class="l">Full screen</span></button>
     </div>
@@ -317,6 +328,21 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.45} body.idle .pills{opac
     <div id="layerOpts"></div>
     <h3>SECOND SCREEN</h3>
     <button class="opt" type="button" id="oScreen" role="switch" aria-checked="false">Ambient mode: tour, captions, no chrome <span class="sw"></span></button>
+  </div>
+
+  <div class="pop" id="play" role="dialog" aria-label="Play">
+    <h3>DRAMA</h3>
+    <button class="opt" type="button" id="oDrama" role="switch" aria-checked="false">Tell real events with more theatre <span class="sw"></span></button>
+    <p class="popnote">Robots drop their tools, a cat comes to look, sirens, brawls, lightning, a calm score. Still only real events; the figures at the fence and the tugs are dramatisation.</p>
+    <h3>SANDBOX · A SIMULATION</h3>
+    <div class="simgrid">
+      <button type="button" data-sim="collide">Port collision</button>
+      <button type="button" data-sim="ghost">Ghost the harbour</button>
+      <button type="button" data-sim="expose">Accidental exposure</button>
+      <button type="button" data-sim="convoy">Docker convoy</button>
+    </div>
+    <button type="button" class="simback" id="simBack" hidden>Back to live</button>
+    <p class="popnote">Starts from your harbour as it is. Nothing on the machine is touched.</p>
   </div>
 
   <section id="insp" aria-live="polite"></section>
@@ -571,7 +597,7 @@ const W = {
   gate: { boom: 0, moving: false }, cranes: [],
   t: 0, highlight: null, hlLabel: '', sel: null, hovered: null, chat: [], chatAt: 0,
   offline: false, lastOk: 0, firstFrame: true,
-  cfg: Object.assign({ light: 'auto', labels: true, pets: true, lines: true, traffic: true, ruins: true, tour: false, screen: false, sound: false }, store.get('cfg', {}))
+  cfg: Object.assign({ light: 'auto', labels: true, pets: true, lines: true, traffic: true, ruins: true, tour: false, screen: false, sound: false, drama: false }, store.get('cfg', {}))
 };
 const cam = { x: 0, y: 0, zoom: 1, tx: null, ty: null, tz: null, userAt: 0 };
 
@@ -933,6 +959,9 @@ function onEvents(evs, quiet) {
     } else if (ev.trigger === 'CONTAINER_STARTED') {
       const k = W.crates.get(sub.slice(10));
       if (k && k.arriving && !W.feeders.some(f => f.crate === k)) sendFeeder(k);
+    } else if (ev.trigger === 'AGENT_EXITED_SERVICE_REMAINS') {
+      const b = buildingById(sub.slice(8));
+      if (b) (W.bossGone = W.bossGone || []).push({ key: b.key, port: b.s.port, at: W.t + (W.sandbox ? 8 : 30) });
     } else if (ev.trigger === 'PORT_CONFLICT') {
       for (const b of W.buildings.values()) if (b.s && b.s.port === ev.evidence.port) b.flash = 4;
     } else if (ev.trigger === 'REACHABILITY_VERIFIED' || ev.trigger === 'SERVICE_EXTERNALLY_REACHABLE') {
@@ -997,9 +1026,13 @@ function step(dt) {
   if (!REDUCED) for (const b of W.buildings.values()) {
     const s = b.s; if (!s || b.leaving || (b.build !== undefined && b.build < 1)) continue;
     const busy = s.activity === 'busy', act = busy || s.activity === 'active';
-    if (act && ['factory', 'garage', 'tanks', 'warehouse', 'gatehouse', 'observatory', 'control'].includes(s.shape) && Math.random() < dt * (busy ? 7 : 3.5) * rate) {
+    // the chimney follows the service's own CPU when the scan has it: a light puff
+    // at a few percent, a thick plume near a whole core. Without it, the activity decides.
+    const cpu = s.cpu == null ? null : +s.cpu, heavy = cpu == null ? 0 : clamp(cpu / 100, 0, 1.5);
+    const puffs = cpu == null ? (busy ? 7 : 3.5) * rate : 1.5 + heavy * 10;
+    if ((act || (cpu != null && cpu >= 2)) && ['factory', 'garage', 'tanks', 'warehouse', 'gatehouse', 'observatory', 'control'].includes(s.shape) && Math.random() < dt * puffs) {
       const [sx, sy] = iso(b.gx + 0.6, b.gy + 0.6, b.h + 26);
-      W.smoke.push({ x: sx, y: sy, vx: 6 + Math.random() * 10, vy: -16 - Math.random() * 10, r: 3 + Math.random() * 2, life: 0, max: 3 + Math.random() });
+      W.smoke.push({ x: sx, y: sy, vx: 6 + Math.random() * 10, vy: -16 - Math.random() * 10, r: 3 + Math.random() * 2 + heavy * 4, life: 0, max: 3 + Math.random() + heavy * 2, soot: heavy > 0.5 });
     }
     if (s.failure === 'failed' && Math.random() < dt * 3) {
       const [sx, sy] = iso(b.gx + 2.4, b.gy + 2.6, b.h * 0.5);
@@ -1016,6 +1049,8 @@ function step(dt) {
   stepBoats(dt);
   stepCars(dt);
   stepVisitors(dt);
+  stepTrain(dt);
+  stepDrama(dt);
   if (W.snap && W.snap.chatter && W.snap.chatter.length && W.t > W.chatAt) startChat();
   W.chat = W.chat.filter(c => W.t < c.until);
   stepCamera(dt);
@@ -1400,7 +1435,15 @@ function draw() {
   items.push({ z: g.gateX + g.RY, f: () => drawGate(night) });
   civilItems(items, night);
   furnitureItems(items, night);
-  for (const b of leftBehind()) { const d = W.geo.door(b); items.push({ z: d[0] + d[1] - 1, f: () => drawDormantBot(b, night) }); }
+  for (const b of leftBehind()) { const d = W.geo.door(b); items.push({ z: d[0] + d[1] - 1, f: () => drama() ? drawToolbox(b, night) : drawDormantBot(b, night) }); }
+  railItems(items, night);
+  if (drama()) {
+    // one brawl per port, in front of the first building holding it
+    const seen = new Set();
+    for (const b of [...W.buildings.values()].sort((x, y) => (x.s && x.s.sim ? 1 : 0) - (y.s && y.s.sim ? 1 : 0) || x.slot - y.slot))
+      if (b.s && !b.leaving && b.s.conflict && b.s.conflict.length && !seen.has(b.s.port)) { seen.add(b.s.port); items.push({ z: b.gx + b.gy + b.d + 4, f: () => drawBrawl(b, night) }); }
+    if (W.snap && W.snap.gate.state === 'open') items.push({ z: g.W + g.RY + 3, f: () => drawAlarmCast(night) });
+  }
   if (W.cleaner) items.push({ z: W.cleaner.pos[0] + W.cleaner.pos[1], f: () => drawCleaner(night) });
   for (const c of W.cars.values()) if (c.stage !== 'queued') items.push({ z: c.pos[0] + c.pos[1] + 0.6, f: () => drawParkedCar(c, night) });
   items.push({ z: tollX() + W.geo.RY + 2, f: () => drawToll(night) });
@@ -1420,8 +1463,8 @@ function draw() {
   items.sort((a, b) => a.z - b.z);
   items.forEach(i => i.f());
 
-  for (const p of W.smoke) { ctx.fillStyle = 'rgba(215,228,238,' + ((1 - p.life / p.max) * 0.3).toFixed(3) + ')'; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r * 1.25, p.r, 0, 0, 6.3); ctx.fill(); }
-  for (const p of W.sparks) { ctx.fillStyle = 'rgba(255,150,80,' + (1 - p.life / p.max).toFixed(2) + ')'; ctx.fillRect(p.x, p.y, 2, 2); }
+  for (const p of W.smoke) { ctx.fillStyle = (p.soot ? 'rgba(90,96,104,' : 'rgba(215,228,238,') + ((1 - p.life / p.max) * (p.soot ? 0.42 : 0.3)).toFixed(3) + ')'; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r * 1.25, p.r, 0, 0, 6.3); ctx.fill(); }
+  for (const p of W.sparks) { ctx.fillStyle = 'rgba(' + (p.col || '255,150,80') + ',' + (1 - p.life / p.max).toFixed(2) + ')'; ctx.fillRect(p.x, p.y, 2, 2); }
   for (const r of W.rings) {
     const [x, y] = iso(r.b.gx + 1.25, r.b.gy + 1.25, r.b.h + 70);
     const k = r.life / r.max; ctx.strokeStyle = 'rgba(127,178,255,' + (0.5 * (1 - k)).toFixed(2) + ')'; ctx.lineWidth = 1.4;
@@ -1434,6 +1477,7 @@ function draw() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.drawImage(vignette(), 0, 0, VW, VH);
   drawWeather(night);
+  if (drama()) drawLightning();
   drawSpotlight();
   if (W.offline) { ctx.fillStyle = 'rgba(40,50,60,.35)'; ctx.fillRect(0, 0, VW, VH); }
   drawSigns();
@@ -3538,7 +3582,7 @@ function drawCrate(k, night) {
   const col = c.running ? (c.colour || '#4d7fa8') : shade(c.colour || '#4d7fa8', -60);
   shadow(k.gx, k.gy, 2.1, 1.05);
   for (let s = 0; s < k.stack; s++) {
-    ctx.save(); ctx.translate(0, -s * 15);
+    ctx.save(); ctx.translate(drama() && W.snap && W.snap.ship.mem_pct >= 85 && !REDUCED ? Math.sin(W.t * 2.6 + k.gx) * 1.4 * s : 0, -s * 15);
     const f = box(k.gx, k.gy, 2.1, 1.05, 15, dark(col), { outline: 'rgba(0,0,0,.35)' });
     for (let u = 0.08; u < 0.98; u += 0.11) poly([iso(k.gx + u * 2.1, k.gy + 1.05, 14), iso(k.gx + (u + .035) * 2.1, k.gy + 1.05, 14), iso(k.gx + (u + .035) * 2.1, k.gy + 1.05, 1), iso(k.gx + u * 2.1, k.gy + 1.05, 1)], 'rgba(0,0,0,.14)');
     if (s === 0) HITS.push({ kind: 'container', ref: k, poly: f.silhouette.map(p => [p[0], p[1] - (k.stack - 1) * 15]) });
@@ -4005,6 +4049,7 @@ function hoverText(h) {
     case 'visitor': return ['Outside visitor', 'a real connection from beyond this machine'];
     case 'cart': return ['Local traffic', 'a loopback connection between two services'];
     case 'yard': return ['Container yard', r.engine ? r.engine + ' did not answer' : 'no container engine'];
+    case 'train': return ['Coal train', r.n + ' wagon' + (r.n > 1 ? 's' : '') + ' · ' + (r.stage === 'in' ? 'arriving' : r.stage === 'tip' ? 'unloading' : 'backing out') + ' · ' + fmtBytes(r.rx) + '/s down'];
     case 'disk': return ['Disk ' + Math.round(W.snap.ship.disk_pct) + '% full', 'the yard is crowded because the disk is'];
   }
   return ['', ''];
@@ -4044,7 +4089,7 @@ function describe(h) {
       kind: 'SERVICE', accent: a.c, title: s.name, tags,
       logos: [logoOf(s)].concat(badgesOf(s)).filter(Boolean).map(k => [k, k === s.runtime ? 'runtime' : k === s.framework ? 'framework' : 'service']),
       meta: [['port', ':' + s.port]].concat(s.local_name ? [['name', s.local_name + '.localhost']] : []).concat([['process', (s.cmd || '?') + (s.pid != null ? '  pid ' + s.pid : '')]]).concat([ ['project', s.project || s.dir || 'none'],
-        ['bind', s.bind || '?'], ['reachability', s.exposure_why], ['activity', s.activity_why], ['origin', s.origin_phrase || s.origin_why],
+        ['bind', s.bind || '?'], ['reachability', s.exposure_why], ['activity', s.activity_why], ['cpu', s.cpu == null ? 'not measured' : s.cpu + '% of a core, which sets the chimney'], ['origin', s.origin_phrase || s.origin_why],
         ['owner', s.owner_name ? s.owner_name + (s.owner_alive === false ? ' (exited)' : s.owner_alive ? ' (running)' : '') : 'nobody on record'],
         ['runtime', s.runtime && LOGOS[s.runtime] ? LOGOS[s.runtime].t + ', from the process' : 'not recognised'],
         ['framework', s.framework && LOGOS[s.framework] ? LOGOS[s.framework].t + ', ' + s.framework_why : 'none found in the project'],
@@ -4052,6 +4097,9 @@ function describe(h) {
       sections: [['WHAT YOU SEE', see], ['WHY IT IS RUNNING', [s.why || s.origin_why]]]
         .concat(s.reasons.length ? [['RISK, AS SCORED', s.reasons]] : []).concat(s.leftover_why.length ? [['WHY IT LOOKS LEFT OVER', s.leftover_why]] : []),
       cmds: ['lsof -nP -iTCP:' + s.port + ' -sTCP:LISTEN'].concat(s.pid != null ? ['kill ' + s.pid] : []),
+      // a shared port: one button per side. The sandbox acts it out; live, the page hands you the command
+      acts: s.conflict.length ? [s].concat(s.conflict.map(id => W.snap.services.find(x => x.id === id)).filter(Boolean)).filter(x => x.pid != null)
+        .map(x => ({ pid: x.pid, port: x.port, label: (W.sandbox ? 'Settle it: stop ' : 'Settle it: copy kill for ') + x.name + ' (pid ' + x.pid + (x.bind ? ', ' + x.bind : '') + ')' })) : [],
       link: s.local_url && s.health !== 'nodata' && /^https?:/.test(s.url || '') ? s.local_url : /^https?:/.test(s.url || '') && s.health !== 'nodata' ? s.url : null,
       tui: s.exposure === 'reachable' ? 'portlist, then 2 for exposed' : s.leftover ? 'portlist, then 4 for leftovers' : s.risk_band === 'High' || s.risk_band === 'Critical' ? 'portlist, then 3 for attention' : 'portlist, then 1 for services'
     };
@@ -4167,6 +4215,12 @@ function describe(h) {
       meta: [['project', r.project || '?'], ['context', r.context ? Math.round(r.context / 1000) + 'k tokens' : '?'], ['last active', r.last_active ? hms(r.last_active) : '?']],
       sections: [['WHY IT IS IN THE OFFICE', ['This session is running, and it has nothing listening, so it waits in the harbour master\'s office rather than on a lot. Titles only: prompts never leave the transcript.']]], cmds: [] };
   }
+  if (h.kind === 'train') {
+    const rx = W.snap.ship.net_rx;
+    return { kind: 'COAL TRAIN', accent: '#e3c45a', title: r.stage === 'in' ? 'Arriving' : r.stage === 'tip' ? 'Unloading at the staithe' : 'Backing out, empty',
+      tags: [soft(r.n + ' wagon' + (r.n > 1 ? 's' : ''))], meta: [['download when it set off', fmtBytes(r.rx) + '/s'], ['download now', rx == null ? 'measuring' : fmtBytes(rx) + '/s'], ['bunker', Math.round((W.coal || 0) * 100) + '% full']],
+      sections: [['WHAT YOU SEE', ['Data this machine is receiving, as coal. While the network brings data in, a train runs in over the trestle, tips its wagons into the staithe bunker and backs out the way it came. One wagon at about 100 KB/s, up to six. With nothing coming in, no train runs.']]], cmds: [] };
+  }
   if (h.kind === 'container') {
     const c = r.c || {};
     return { kind: 'CONTAINER', accent: c.colour || '#4d7fa8', title: c.name, tags: [c.running ? solid('running', '#6fe3a4') : solid(c.state || 'stopped', '#8a7a68'), soft(c.image || 'image?')],
@@ -4228,6 +4282,7 @@ function openInspector(h) {
     d.tags.map(t => '<span class="tag" style="color:' + t.fg + ';background:' + t.bg + ';border-color:' + t.bd + '">' + esc(t.label) + '</span>').join('') + '</div></div>' +
     (d.meta.length ? '<div class="meta">' + d.meta.map(([k, v]) => '<div class="kv"><span>' + esc(k) + '</span><span>' + esc(v) + '</span></div>').join('') + '</div>' : '') +
     d.sections.filter(s => s[1].some(Boolean)).map(([h4, items]) => '<div class="note"><h4>' + esc(h4) + '</h4>' + (items.length > 1 ? '<ul>' + items.map(i => '<li>' + esc(i) + '</li>').join('') + '</ul>' : '<p>' + esc(items[0]) + '</p>') + '</div>').join('') +
+    (d.acts && d.acts.length ? '<div class="acts">' + d.acts.map(a => '<button class="act" type="button" data-pid="' + a.pid + '" data-port="' + a.port + '">' + esc(a.label) + '</button>').join('') + '</div>' : '') +
     (d.cmds.length ? '<div class="cmds">' + d.cmds.map(c => '<button class="cmd" type="button" data-cmd="' + esc(c) + '"><code>' + esc(c) + '</code><span>COPY</span></button>').join('') + '</div>' : '') +
     (d.link ? '<a class="link" href="' + esc(d.link) + '" target="_blank" rel="noopener noreferrer">Open ' + esc(d.link) + '</a>' : '') +
     (d.tui ? '<div class="link" style="color:#63859a">In the terminal: ' + esc(d.tui) + '</div>' : '');
@@ -4236,6 +4291,7 @@ function openInspector(h) {
   el.classList.add('on'); document.body.classList.add('inspecting'); el.scrollTop = keep;
   if (!same && h.ref && h.ref.gx != null && h.kind !== 'lighthouse') { cam.userAt = performance.now(); focusOn(h.ref.gx + 1.2, h.ref.gy + 1.4, Math.max(cam.zoom, 1.05)); if (VW > 760) cam.tx += 170 / cam.tz; }
   el.querySelector('.x').onclick = closeInspector;
+  el.querySelectorAll('.act').forEach(b => b.onclick = () => settle(+b.dataset.pid, +b.dataset.port));
   el.querySelectorAll('.cmd').forEach(b => b.onclick = () => {
     const cmd = b.dataset.cmd, done = () => { b.querySelector('span').textContent = 'COPIED'; setTimeout(() => b.querySelector('span').textContent = 'COPY', 1600); };
     if (navigator.clipboard) navigator.clipboard.writeText(cmd).then(done, done); else done();
@@ -4246,6 +4302,7 @@ function refreshInspector() {
   if (!W.sel) return;
   const r = W.sel.ref;
   if (W.sel.kind === 'building' && !W.buildings.has(r.key)) return closeInspector();
+  if (W.sel.kind === 'train' && W.train !== r) return closeInspector();
   if (W.sel.kind === 'building' || W.sel.kind === 'pet' || W.sel.kind === 'gate' || W.sel.kind === 'ship' || W.sel.kind === 'office') openInspector(W.sel);
 }
 
@@ -4261,7 +4318,8 @@ function renderPills() {
   // a pill with nothing in it says nothing, so it is not drawn
   const order = ['exposed', 'active', 'idle', 'unknown', 'left', 'abandoned'];
   const shown = order.map(k => P.find(p => p[0] === k)).filter(p => s[p[0]] || W.hlLabel === p[0]);
-  $('#pills').innerHTML = '<span class="pill total">' + s.services + ' listening</span>' + shown.map(([k, l, c]) => '<button type="button" class="pill' + (k === 'exposed' ? ' hot' : '') + '" data-k="' + k + '" aria-pressed="' + (W.hlLabel === k) + '" title="Highlight these"><i style="background:' + c + '"></i>' + s[k] + ' ' + l + '</button>').join('');
+  const calm = drama() ? '<span class="pill total" title="' + esc('Calm score: ' + CALM_RULE) + '">calm ' + harbourCalm(s) + '%</span>' : '';
+  $('#pills').innerHTML = calm + '<span class="pill total">' + s.services + ' listening</span>' + shown.map(([k, l, c]) => '<button type="button" class="pill' + (k === 'exposed' ? ' hot' : '') + '" data-k="' + k + '" aria-pressed="' + (W.hlLabel === k) + '" title="Highlight these"><i style="background:' + c + '"></i>' + s[k] + ' ' + l + '</button>').join('');
   $('#pills').querySelectorAll('button.pill').forEach(b => b.onclick = () => {
     const k = b.dataset.k, f = P.find(p => p[0] === k)[3];
     if (W.hlLabel === k) { W.highlight = null; W.hlLabel = ''; }
@@ -4444,6 +4502,10 @@ function renderLegend() {
     ['🌧', 'Rain', 'The CPU has stayed above 80%. It clears once it is back below 65%.'],
     ['🚧', 'Tape on the deck', 'Memory is 85% full or more.'],
     ['🔊', 'Sound (M)', 'Off until you turn it on. The water, a chime when a service starts, a clonk when one stops, a thud when a container is set down. Made in the page, no files.'],
+    ['🚂', 'Coal train', 'Data this machine is receiving. It runs in over the trestle while the network brings data in, tips its wagons at the staithe and backs out. One wagon at about 100 KB/s, up to six.'],
+    ['🏭', 'Chimney smoke', 'Follows the service\'s own CPU when the scan has it: a light puff at a few percent, thick dark plumes near a whole core.'],
+    ['🎭', 'Drama (G)', 'Off by default. Real events told with more theatre: a robot drops its tools and a cat comes to look, a siren and brawls, lightning in the rain, wobbling stacks, a calm score. The figures at the fence and the tugs are dramatisation, not measurements.'],
+    ['🧪', 'Sandbox (G)', 'A simulation, labelled as one: port collision, ghost the harbour, accidental exposure, Docker convoy. It starts from your harbour and changes nothing on the machine. Back to live returns.'],
     ['📷', 'Picture (K)', 'Saves a PNG of the harbour with its counts. Host names, addresses and the chat are left out, and nothing is uploaded.']];
   $('#lgBody').innerHTML = '<header><div><h2 id="lgT">What everything means</h2><p class="lead">Every building, light, line and pet here is a fact portlist measured. Click anything and it tells you which one.</p></div><button class="x" type="button" aria-label="Close">×</button></header>' +
     '<div class="lgrid">' + L.map(l => '<div class="li"><div class="sym">' + l[0] + '</div><div><b>' + esc(l[1]) + '</b><span>' + esc(l[2]) + '</span></div></div>').join('') + '</div>' +
@@ -4550,7 +4612,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key;
-  if (k === 'Escape') { if ($('#legend').classList.contains('on')) toggleLegend(false); else if ($('#layers').classList.contains('on')) toggleLayers(false); else closeInspector(); }
+  if (k === 'Escape') { if ($('#legend').classList.contains('on')) toggleLegend(false); else if ($('#layers').classList.contains('on')) toggleLayers(false); else if ($('#play').classList.contains('on')) togglePlay(false); else closeInspector(); }
   else if (k === 'f' || k === 'F') fullscreen();
   else if (k === 'p' || k === 'P') openScrub();
   else if (k === '/') { e.preventDefault(); openSearch(true); }
@@ -4565,6 +4627,7 @@ document.addEventListener('keydown', e => {
   else if (k === 'h' || k === 'H') document.body.classList.toggle('bare');
   else if (k === 'm' || k === 'M') { W.cfg.sound = !W.cfg.sound; saveCfg(); renderLayers(); audioSync(); toast('Sound ' + (W.cfg.sound ? 'on' : 'off'), '#7fb2ff'); }
   else if (k === 'k' || k === 'K') snapshot();
+  else if (k === 'g' || k === 'G') togglePlay();
 });
 function toggleDrawer(on) { const el = $('#attn'); on = on == null ? !el.classList.contains('open') : on; el.classList.toggle('open', on); $('#attnBtn').setAttribute('aria-expanded', on); if (on) renderDrawer(); }
 function toggleLayers(on) { const el = $('#layers'); on = on == null ? !el.classList.contains('on') : on; el.classList.toggle('on', on); $('#bLayers').setAttribute('aria-expanded', on); if (on) renderLayers(); }
@@ -4580,9 +4643,321 @@ $('#scrubRange').addEventListener('input', e => scrubTo(e.target.value));
 $('#bLegend').onclick = () => toggleLegend();
 $('#bFull').onclick = fullscreen;
 $('#bShare').onclick = () => snapshot();
+$('#bPlay').onclick = () => togglePlay();
+$('#oDrama').onclick = () => { W.cfg.drama = !W.cfg.drama; saveCfg(); renderPlay(); renderPills(); };
+document.querySelectorAll('#play [data-sim]').forEach(b => b.onclick = () => simulate(b.dataset.sim));
+$('#simBack').onclick = sandboxOff;
 $('#oScreen').onclick = () => setScreen(!W.cfg.screen);
 $('#q').addEventListener('input', runSearch);
 $('#legend').addEventListener('click', e => { if (e.target.id === 'legend') toggleLegend(false); });
+
+// ------------------------------------------------------------------ coal train
+// Data this machine is receiving, as coal. While the network brings data in, a
+// train runs in over the trestle south of the harbour, tips its wagons into the
+// staithe bunker and backs out the way it came. The wagon count is the download
+// rate when it set off: one wagon at about 100 KB/s, up to six. No download, no train.
+const STAITHE_X = 4.2;
+function trainY() { return W.geo.H + 1.25; }
+function trainWagons(rx) { return rx == null || rx < 20480 ? 0 : clamp(1 + Math.floor(Math.log2(rx / 102400 + 1)), 1, 6); }
+function stepTrain(dt) {
+  if (!W.geo) return;
+  const rx = W.snap && !W.past ? W.snap.ship.net_rx : null, far = W.geo.W + 44;
+  W.coal = Math.max(0, (W.coal || 0) - dt * 0.004);                    // the bunker is shipped on, slowly
+  let t = W.train;
+  if (!t) {
+    W.trainWait = (W.trainWait || 0) - dt;
+    const n = trainWagons(rx);
+    if (n && W.trainWait <= 0) W.train = { x: far, v: 2.6, stage: 'in', n, load: 1, rx, horn: false };
+    return;
+  }
+  if (t.stage === 'in') {
+    // rolls in at line speed, then brakes to stop with the loco at the staithe's west end
+    const d = t.x - STAITHE_X, vmax = Math.min(3.2, Math.sqrt(2 * 0.7 * Math.max(0, d)) + 0.04);
+    t.v = t.v < vmax ? Math.min(vmax, t.v + dt * 0.8) : vmax;
+    t.x -= t.v * dt;
+    if (!t.horn && t.x < W.geo.W + 8) { t.horn = true; sfx('horn'); }
+    if (t.x - STAITHE_X < 0.01) { t.x = STAITHE_X; t.v = 0; t.stage = 'tip'; }
+  } else if (t.stage === 'tip') {
+    t.load = Math.max(0, t.load - dt / 6);
+    W.coal = Math.min(1, W.coal + dt / 6 * t.n / 10);
+    if (!REDUCED && Math.random() < dt * 30) {
+      const i = Math.floor(Math.random() * t.n), x = t.x + 1.75 + i * 1.35 + 0.2 + Math.random() * 0.8, [sx, sy] = iso(x, trainY() + 0.35, 5);
+      W.sparks.push({ x: sx, y: sy, vx: (Math.random() - 0.5) * 6, vy: 10, life: 0, max: 0.45, col: '26,24,22' });
+    }
+    if (t.load <= 0) { t.stage = 'out'; t.wait = 1.5; }
+  } else if (t.stage === 'out') {
+    // empty, it backs out: gently up to a slower reversing speed, the tail lamp leading
+    if ((t.wait -= dt) > 0) return;
+    t.v = Math.min(2.2, t.v + dt * 0.5); t.x += t.v * dt;
+    if (t.x > far) { W.train = null; W.trainWait = 6; }
+  }
+}
+function railItems(items, night) {
+  const g = W.geo; if (!g) return;
+  // the line is south of everything else, so it is painted as its own layer, in
+  // order: trestle and gantry, then the train on them, then the bunker in front
+  const Y = trainY(), far = g.W + 44, K = far + Y + 10;
+  items.push({ z: K, f: () => { for (let xa = STAITHE_X - 0.6; xa < far; xa += 3) drawTrestle(xa, Y, night, far); drawGantry(Y, night); } });
+  items.push({ z: K + 200, f: () => drawBunker(Y, night) });
+  const t = W.train; if (!t) return;
+  const cars = [[t.x, 1.55, 'loco']];
+  for (let i = 0; i < t.n; i++) cars.push([t.x + 1.75 + i * 1.35, 1.2, 'wagon', i]);
+  for (const c of cars) items.push({ z: K + 1 + c[0], f: () => drawRailCar(c, Y, night) });
+}
+function fogAt(x) { const g = W.geo; return x < g.W + 22 ? 1 : Math.max(0, 1 - (x - g.W - 22) / 20); }
+function drawTrestle(xa, Y, night, far) {
+  const a = fogAt(xa); if (a <= 0) return;
+  const [sx, sy] = toScreen(...iso(xa + 1.5, Y, 0));
+  if (sx < -140 || sx > VW + 140 || sy < -80 || sy > VH + 120) return;       // off screen: nothing to paint
+  ctx.globalAlpha = a;
+  const dark = v => hex(v, shade(v, -60), night * 0.75);
+  box(xa + 1.35, Y - 0.3, 0.3, 0.6, 4, dark('#5b5148'), { z0: -16 });                       // pier
+  box(xa, Y - 0.5, 3, 1.0, 5, dark('#6d6258'), { z0: 3.6 });                                  // deck
+  for (let k = 0.15; k < 3; k += 0.38) tileRect(xa + k, Y - 0.34, 0.14, 0.68, 5.2, dark('#3e3630'));   // sleepers
+  for (const ry of [Y - 0.2, Y + 0.18]) tileRect(xa, ry, 3, 0.05, 5.6, hex('#b8bec4', '#5a6066', night));
+  ctx.globalAlpha = 1;
+}
+function drawBunker(Y, night) {
+  // the staithe: a long coal bunker beside the track, filled by what the trains tip
+  const dark = v => hex(v, shade(v, -60), night * 0.75), x0 = STAITHE_X - 0.2, L = 10.8;
+  box(x0, Y + 0.5, L, 0.85, 10, dark('#4e5760'), { z0: -14, outline: 'rgba(0,0,0,.3)' });
+  const fill = 1 + 8 * (W.coal || 0);
+  box(x0 + 0.08, Y + 0.56, L - 0.16, 0.73, fill, '#1c1a19', { z0: 1, top: hex('#2c2926', '#161412', night) });
+  for (let i = 0; i < 9; i++) { const [cx, cy] = iso(x0 + 0.6 + i * 1.2, Y + 0.92, fill + 0.5); ctx.fillStyle = 'rgba(70,64,58,.7)'; ctx.beginPath(); ctx.ellipse(cx, cy, 7, 2.5, 0, 0, 6.3); ctx.fill(); }
+}
+function drawGantry(Y, night) {
+  // the staithe's gantry, on the land side of the track, with its name
+  const dark = v => hex(v, shade(v, -60), night * 0.75), x0 = STAITHE_X - 0.2, L = 10.8;
+  for (let x = x0; x <= x0 + L; x += 2.7) box(x, Y - 0.62, 0.14, 0.14, 26, dark('#3d444b'), { z0: 5 });
+  box(x0, Y - 0.62, L, 0.14, 27.5, dark('#566069'), { z0: 26 });
+  const [sx, sy] = iso(x0 + 0.3, Y - 0.62, 28); ctx.font = '700 6px ' + MONO; ctx.fillStyle = 'rgba(230,236,240,.7)'; ctx.textAlign = 'left'; ctx.fillText('STAITHE', sx, sy - 2);
+}
+function drawRailCar(c, Y, night) {
+  const [x, len, kind, i] = c, t = W.train, a = fogAt(x); if (a <= 0 || !t) return;
+  ctx.globalAlpha = a;
+  const dark = v => hex(v, shade(v, -66), night * 0.72), w = 0.62, y = Y - w / 2;
+  box(x + 0.1, y + 0.08, len - 0.2, w - 0.16, 8, '#24282c', { z0: 5.6 });                     // bogies
+  for (const u of [0.28, len - 0.28]) { const [wx, wy] = iso(x + u, y + w, 7); ctx.fillStyle = '#15181b'; ctx.beginPath(); ctx.ellipse(wx, wy, 3.2, 3.2, 0, 0, 6.3); ctx.fill(); ctx.strokeStyle = 'rgba(160,170,178,.5)'; ctx.lineWidth = .8; ctx.stroke(); }
+  if (kind === 'loco') {
+    box(x, y, len, w, 19, dark('#2f6a4f'), { z0: 8, outline: 'rgba(0,0,0,.3)' });
+    box(x + 0.05, y + 0.04, 0.45, w - 0.08, 25, dark('#e3c45a'), { z0: 19 });                    // cab
+    poly([iso(x + 0.1, y + w - 0.04, 24), iso(x + 0.42, y + w - 0.04, 24), iso(x + 0.42, y + w - 0.04, 20.5), iso(x + 0.1, y + w - 0.04, 20.5)], 'rgba(255,220,150,' + (0.3 + night * 0.5) + ')');
+    tileRect(x, y + w - 0.02, len, 0.02, 11, '#e3c45a');
+    // headlight leading on the way in; dimmed on the way out, when the tail leads
+    const [hx, hy] = iso(x, Y, 14), on = t.stage !== 'out' ? 1 : 0.25;
+    ctx.fillStyle = 'rgba(255,246,210,' + (0.5 + 0.5 * on) + ')'; ctx.beginPath(); ctx.arc(hx, hy, 2.4, 0, 6.3); ctx.fill();
+    if (night > 0.3 && on > 0.5) { const bg = ctx.createLinearGradient(hx, hy, hx - 70, hy - 35); bg.addColorStop(0, 'rgba(255,240,190,.28)'); bg.addColorStop(1, 'rgba(255,240,190,0)'); ctx.fillStyle = bg; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx - 80, hy - 28); ctx.lineTo(hx - 60, hy - 48); ctx.closePath(); ctx.fill(); }
+    HITS.push({ kind: 'train', ref: t, poly: [iso(x, y, 26), iso(x + 1.75 + t.n * 1.35, y, 26), iso(x + 1.75 + t.n * 1.35, y + w, 5), iso(x, y + w, 5)] });
+  } else {
+    box(x, y, len, w, 16, dark('#6b5a4a'), { z0: 8, outline: 'rgba(0,0,0,.35)' });
+    for (let k = 0.2; k < len; k += 0.3) poly([iso(x + k, y + w, 15), iso(x + k + 0.05, y + w, 15), iso(x + k + 0.05, y + w, 9), iso(x + k, y + w, 9)], 'rgba(0,0,0,.18)');
+    const load = t.load;
+    if (load > 0.02) { box(x + 0.08, y + 0.06, len - 0.16, w - 0.12, 15 + 3 * load, '#1d1b1a', { z0: 15, top: hex('#34302c', '#1a1816', night) }); }
+    const [cx, cy] = iso(x - 0.1, Y, 10), [dx, dy] = iso(x, Y, 10);
+    ctx.strokeStyle = '#2a2e32'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(dx, dy); ctx.stroke();
+    if (i === t.n - 1) {
+      // the tail lamp: red always, with a white reversing lamp while it backs out
+      const [tx, ty] = iso(x + len, Y, 13), bl = Math.sin(W.t * 6) > 0 ? 1 : 0.35;
+      ctx.fillStyle = 'rgba(255,70,60,' + (t.stage === 'out' ? bl : 0.8) + ')'; ctx.beginPath(); ctx.arc(tx, ty, 2, 0, 6.3); ctx.fill();
+      if (t.stage === 'out') { ctx.fillStyle = 'rgba(255,250,235,.9)'; ctx.beginPath(); ctx.arc(tx + 3, ty - 3, 1.8, 0, 6.3); ctx.fill(); }
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ------------------------------------------------------------------ drama
+// Off by default (Play, or G). Real facts, told with more theatre: the robot
+// drops its tools and a cat comes to see, a siren and figures at the fence when
+// something is verified reachable, a brawl at a shared port, lightning in the
+// rain, wobbling stacks when memory is full, and a calm score. The figures at
+// the fence and the tugs are not measured; the legend says so.
+function drama() { return !!W.cfg.drama; }
+function harbourCalm(st) {
+  const fail = W.snap ? W.snap.services.filter(s => !s.system && s.failure === 'failed').length : 0;
+  return clamp(100 - 20 * (st.exposed || 0) - 10 * (st.attention || 0) - 8 * fail - 5 * (st.left || 0) - 5 * (st.abandoned || 0) - 3 * (st.unknown || 0), 0, 100);
+}
+const CALM_RULE = '100, less 20 per service reachable from outside, 10 per high risk, 8 per failing, 5 per left running by an exited agent, 5 per left over, 3 per unknown origin';
+function drawToolbox(b, night) {
+  const [dx, dy] = W.geo.door(b);
+  box(dx - 0.95, dy - 0.15, 0.42, 0.22, 4, hex('#c8433a', '#5a2a26', night * .6), { top: hex('#e0584c', '#6a302b', night * .6) });
+  const [hx, hy] = iso(dx - 0.74, dy - 0.04, 5.5); ctx.strokeStyle = '#3a3f45'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(hx, hy, 2.2, Math.PI, 0); ctx.stroke();
+  const [wx, wy] = iso(dx - 0.35, dy + 0.1, 0.5); ctx.strokeStyle = '#9aa4ab'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(wx - 5, wy + 1); ctx.lineTo(wx + 4, wy - 2); ctx.stroke();
+  // dust gathering at the door of a factory with nobody in it
+  if (!REDUCED) for (let k = 0; k < 5; k++) { const ph = W.t * 0.4 + k * 1.3 + b.seed, [px, py] = iso(dx - 0.4 + Math.sin(ph) * 0.4, dy - 0.3, 6 + (ph * 7 % 18)); ctx.fillStyle = 'rgba(210,200,180,' + (0.25 + 0.2 * Math.sin(ph * 2)).toFixed(2) + ')'; ctx.fillRect(px, py, 1.4, 1.4); }
+  HITS.push({ kind: 'dormant', ref: b, poly: [iso(dx - 1.1, dy - 0.3, 14), iso(dx - 0.3, dy - 0.3, 14), iso(dx - 0.3, dy + 0.3, 0), iso(dx - 1.1, dy + 0.3, 0)] });
+}
+function stepDrama(dt) {
+  // "Boss went home": some while after an agent exits and leaves a service running, the inspector goes to look
+  const due = (W.bossGone || []).filter(x => W.t >= x.at);
+  W.bossGone = (W.bossGone || []).filter(x => W.t < x.at);
+  if (!drama()) return;
+  for (const x of due) {
+    const p = [...W.pets.values()].find(q => q.role === 'inspector') || [...W.pets.values()][0];
+    if (p && W.buildings.has(x.key)) W.chat.push({ who: p.name, line: 'Boss went home. :' + x.port + ' is still on.', from: W.t, until: W.t + 5 });
+  }
+  if (W.storm && !REDUCED) {
+    W.boltIn = (W.boltIn == null ? 4 : W.boltIn) - dt;
+    if (W.boltIn <= 0) { W.bolt = { t: 0, cr: W.cranes[Math.floor(Math.random() * W.cranes.length)], seed: Math.random() }; W.boltIn = 6 + Math.random() * 9; sfx('thunder'); }
+  }
+  if (W.bolt && (W.bolt.t += dt) > 0.5) W.bolt = null;
+  const conflicts = [...W.buildings.values()].filter(b => b.s && !b.leaving && b.s.conflict && b.s.conflict.length);
+  if (!REDUCED) for (const b of conflicts) if (Math.random() < dt * 5) {
+    const [sx, sy] = iso(b.gx + 1.25, b.gy + b.d + 0.75, 10);
+    W.smoke.push({ x: sx + (Math.random() - 0.5) * 16, y: sy, vx: (Math.random() - 0.5) * 20, vy: -18 - Math.random() * 10, r: 2.5, life: 0, max: 1.2 });
+  }
+}
+function drawBrawl(b, night) {
+  // two forklifts nose to nose in front of a port two processes hold, and a crew arguing
+  const y = b.gy + b.d + 0.75, j = REDUCED ? 0 : Math.sin(W.t * 11) * 0.04;
+  W.brawlAt = W.t;
+  const fk = (x, dir, col) => {
+    box(x, y - 0.25, 0.55, 0.5, 7, hex(col, shade(col, -60), night * .6), { z0: 1.5 });
+    box(x + (dir > 0 ? 0.05 : 0.3), y - 0.2, 0.2, 0.4, 13, hex('#2e343a', '#1a1e22', night * .6), { z0: 7 });
+    const [fx, fy] = iso(x + (dir > 0 ? 0.6 : -0.05), y, 3); ctx.strokeStyle = '#c8ccd0'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + dir * 7, fy + dir * 3.5); ctx.stroke();
+    for (const u of [0.12, 0.43]) { const [wx, wy] = iso(x + u, y + 0.25, 1.5); ctx.fillStyle = '#15181b'; ctx.beginPath(); ctx.arc(wx, wy, 2.2, 0, 6.3); ctx.fill(); }
+  };
+  fk(b.gx + 0.45 + j, 1, '#e0a13f'); fk(b.gx + 1.3 - j, -1, '#4d7fa8');
+  for (const [dx, face] of [[0.2, 1], [2.3, -1]]) { const [hx, hy] = iso(b.gx + dx, y + 0.35, 0); drawHuman(hx, hy, '#e8a13c', face, Math.abs(Math.sin(W.t * 8 + dx)) * 1.5, W.t * 9, true); bubble(hx, hy - 44, '!', '#ff6a5e'); }
+  const [lx, ly] = iso(b.gx + 1.25, y, 40);
+  ctx.font = '800 12px ' + SANS; ctx.textAlign = 'center'; const txt = '⚔ :' + b.s.port + ' ⚔', w = ctx.measureText(txt).width + 14;
+  ctx.fillStyle = 'rgba(120,16,12,.92)'; ctx.beginPath(); ctx.roundRect(lx - w / 2, ly - 11, w, 18, 9); ctx.fill();
+  ctx.fillStyle = '#ffe2dc'; ctx.textBaseline = 'middle'; ctx.fillText(txt, lx, ly - 1.5); ctx.textBaseline = 'alphabetic';
+  HITS.push({ kind: 'building', ref: b, poly: [[lx - w / 2, ly - 11], [lx + w / 2, ly - 11], [lx + w / 2, ly + 7], [lx - w / 2, ly + 7]] });
+}
+function drawAlarmCast(night) {
+  // with something verified reachable: a siren by the gate, figures idling at the
+  // boundary and tugs lying off the causeway. Dramatisation: nobody measured them.
+  const g = W.geo, T = REDUCED ? 0 : W.t, [h0, h1] = hwyEdges();
+  const [sx, sy] = iso(g.gateX + 1.2, g.roadY0 - 0.55, 0);
+  ctx.strokeStyle = '#5a636b'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx, sy - 30); ctx.stroke();
+  ctx.fillStyle = '#c8433a'; ctx.beginPath(); ctx.moveTo(sx, sy - 34); ctx.lineTo(sx + 9, sy - 39); ctx.lineTo(sx + 9, sy - 27); ctx.closePath(); ctx.fill();
+  if (!REDUCED) for (let k = 1; k <= 3; k++) { const r = ((T * 30 + k * 8) % 24) + 4; ctx.strokeStyle = 'rgba(255,110,90,' + (0.6 * (1 - r / 28)).toFixed(2) + ')'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(sx + 10, sy - 33, r, -0.7, 0.7); ctx.stroke(); }
+  for (let k = 0; k < 2; k++) {
+    const [px, py] = iso(tollX() + 8.6 + k * 0.8, h1 + 0.17, 0), sway = Math.sin(T * 0.8 + k * 2) * 0.8;
+    ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(px, py, 7, 3, 0, 0, 6.3); ctx.fill();
+    ctx.fillStyle = hex('#2a2622', '#0e0d0c', night * .5);
+    ctx.beginPath(); ctx.moveTo(px - 5 + sway, py - 22); ctx.lineTo(px + 5 + sway, py - 22); ctx.lineTo(px + 7, py - 1); ctx.lineTo(px - 7, py - 1); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.arc(px + sway, py - 25, 4, 0, 6.3); ctx.fill();
+    ctx.fillRect(px - 7 + sway, py - 29, 14, 2); ctx.fillRect(px - 4 + sway, py - 33, 8, 4);        // the hat
+    ctx.fillStyle = 'rgba(255,220,120,' + (0.5 + 0.5 * Math.sin(T * 3 + k)) + ')'; ctx.fillRect(px + 1.5 + sway, py - 26, 1.5, 1);
+  }
+  for (let k = 0; k < 2; k++) {
+    const bx = g.W + 5 + k * 3.2, by = h0 - 2.6 - k * 0.8, [x, y] = iso(bx, by, 0), bob = Math.sin(T * 1.1 + k) * 2;
+    ctx.save(); ctx.translate(x, y + bob);
+    ctx.fillStyle = 'rgba(196,226,242,.14)'; ctx.beginPath(); ctx.ellipse(0, 3, 26, 8, 0, 0, 6.3); ctx.fill();
+    ctx.fillStyle = hex('#2b2320', '#120f0e', night * .5); ctx.beginPath(); ctx.moveTo(-22, -4); ctx.lineTo(20, -10); ctx.lineTo(24, -4); ctx.lineTo(16, 4); ctx.lineTo(-18, 6); ctx.closePath(); ctx.fill();
+    ctx.fillRect(-6, -20, 12, 12); ctx.fillStyle = '#1a1512'; ctx.fillRect(-2, -30, 4, 11);
+    ctx.fillStyle = '#e8e2d4'; ctx.beginPath(); ctx.moveTo(0, -30); ctx.lineTo(9, -28); ctx.lineTo(0, -25); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#141414'; ctx.beginPath(); ctx.arc(4, -27.5, 1.2, 0, 6.3); ctx.fill();
+    ctx.restore();
+  }
+}
+function drawLightning() {
+  const b = W.bolt; if (!b) return;
+  const k = 1 - b.t / 0.5;
+  ctx.fillStyle = 'rgba(230,240,255,' + (0.22 * k * k).toFixed(3) + ')'; ctx.fillRect(0, 0, VW, VH);
+  if (!b.cr) return;
+  const [tx, ty] = toScreen(...iso(b.cr.gx + 0.5, b.cr.gy + 0.5, 90)); let x = tx + (b.seed - 0.5) * 120, y = -10;
+  ctx.strokeStyle = 'rgba(240,246,255,' + k.toFixed(2) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y);
+  for (let i = 1; i <= 7; i++) { y = lerp(-10, ty, i / 7); x = lerp(x, tx, 0.35) + (hash('lb' + i + b.seed) - 0.5) * 30; ctx.lineTo(x, y); }
+  ctx.stroke();
+}
+
+// ------------------------------------------------------------------ sandbox
+// A simulation, clearly labelled. It starts from the harbour as it is, stops
+// listening to the scan, and plays what you ask for. Nothing on the machine is
+// touched, and Live puts the real harbour back.
+function statsOf(d) {
+  const sv = d.services.filter(s => !s.system), c = d.yard.containers || [];
+  return Object.assign({}, d.stats, {
+    services: sv.length, busy: sv.filter(s => s.activity === 'busy').length, active: sv.filter(s => s.activity === 'busy' || s.activity === 'active').length,
+    idle: sv.filter(s => s.activity === 'idle' || s.activity === 'long_idle').length, abandoned: sv.filter(s => s.leftover).length,
+    exposed: sv.filter(s => s.exposure === 'reachable').length, bound: sv.filter(s => s.exposure === 'bound').length,
+    unknown: sv.filter(s => s.origin === 'unknown' || s.origin === 'ambiguous').length, left: sv.filter(s => s.lights_left_on).length,
+    containers: c.filter(x => x.running).length, agents: d.workers.filter(w => w.ai && w.alive).length });
+}
+function sandboxOn() {
+  if (W.sandbox) return true;
+  if (W.past) { toast('Leave replay first', '#ffcf6a'); return false; }
+  W.sandbox = true;
+  $('#live').className = 'live wait'; $('#liveT').textContent = 'sandbox';
+  const b = $('#banner'); b.classList.add('on', 'past', 'sim');
+  b.innerHTML = '<b>Sandbox.</b> A simulation: nothing here is happening on this machine, and nothing is changed. <button type="button" id="simLive">Back to live</button>';
+  $('#simLive').onclick = sandboxOff;
+  renderPlay();
+  return true;
+}
+function sandboxOff() {
+  if (!W.sandbox) return;
+  W.sandbox = false; $('#banner').classList.remove('on', 'past', 'sim'); $('#banner').textContent = '';
+  W.bossGone = [];
+  renderPlay(); poll();
+}
+function simulate(kind) {
+  if (!W.snap || !sandboxOn()) return;
+  const d = JSON.parse(JSON.stringify(W.snap)), evs = [], now = Date.now() / 1000;
+  W.simN = (W.simN || 0) + 1; const n = W.simN;
+  const ev = (trigger, subject, meaning, priority, evidence) => evs.push({ trigger, subject, meaning: meaning + ' (simulated)', priority, ts: now, evidence: evidence || {} });
+  const cond = (trigger, subject, meaning, priority) => { d.conditions = (d.conditions || []).concat([{ trigger, subject, meaning: meaning + ' (simulated)', priority }]); };
+  const petTo = (role, subject, trigger, meaning) => { const t = (d.pets || []).find(p => p.role === role); if (t) Object.assign(t, { subject, trigger, emotion: 'alert', meaning: meaning + ' (simulated)' }); };
+  const main = d.services.filter(s => !s.system && s.family !== 'ssh');
+  const pick = main.find(s => s.port === 3000) || main[0];
+  if (kind === 'collide') {
+    if (!pick) return toast('Nothing listening to collide with', '#ffcf6a');
+    const c = Object.assign({}, pick, { id: pick.port + '-sim' + n, key: 'sim|' + pick.port + '|' + n, pid: 90000 + n, name: pick.name, bind: '0.0.0.0', conflict: [pick.id], sim: true,
+      origin: 'unknown', origin_why: 'simulated', lights_left_on: false, exposure: 'bound', exposure_why: 'simulated' });
+    pick.conflict = (pick.conflict || []).concat([c.id]); d.services.push(c);
+    ev('PORT_CONFLICT', 'port:' + pick.port, ':' + pick.port + ' is held by two processes', 95, { port: pick.port });
+    cond('PORT_CONFLICT', 'port:' + pick.port, ':' + pick.port + ' is held by two processes', 95);
+    petTo('inspector', 'port:' + pick.port, 'PORT_CONFLICT', 'Two processes on :' + pick.port);
+  } else if (kind === 'ghost') {
+    if (!main.length) return toast('Nothing listening to leave behind', '#ffcf6a');
+    for (const w of d.workers) if (w.alive) w.alive = false;
+    for (const s of main.slice(0, 5)) {
+      Object.assign(s, { lights_left_on: true, owner_ai: true, owner_alive: false, owner_name: s.owner_ai && s.owner_name ? s.owner_name : 'Claude Code' });
+      ev('AGENT_EXITED_SERVICE_REMAINS', 'service:' + s.id, s.owner_name + ' exited. :' + s.port + ' is still running', 55, { port: s.port, owner: s.owner_name });
+    }
+  } else if (kind === 'expose') {
+    const s = main.find(x => x.exposure !== 'reachable') || pick;
+    if (!s) return toast('Nothing listening to expose', '#ffcf6a');
+    Object.assign(s, { exposure: 'reachable', exposure_why: 'simulated: nothing was probed', bind: '0.0.0.0' });
+    d.gate.state = 'open'; d.gate.reachable = (d.gate.reachable || []).concat([s.id]);
+    ev('SERVICE_EXTERNALLY_REACHABLE', 'service:' + s.id, ':' + s.port + ' is reachable from outside', 100, { port: s.port });
+    cond('SERVICE_EXTERNALLY_REACHABLE', 'service:' + s.id, ':' + s.port + ' is reachable from outside', 100);
+    petTo('guard', 'service:' + s.id, 'SERVICE_EXTERNALLY_REACHABLE', ':' + s.port + ' is reachable from outside');
+  } else if (kind === 'convoy') {
+    d.yard.reachable = true; d.yard.engine = d.yard.engine || 'simulated';
+    d.yard.containers = (d.yard.containers || []).concat([0, 1, 2].map(i => ({ name: 'convoy-' + n + '-' + (i + 1), running: true, state: 'running', status: 'simulated', image: 'simulated', colour: ['#c9784a', '#4d7fa8', '#5aa08a'][i], ports: [] })));
+    for (const c of d.yard.containers.slice(-3)) ev('CONTAINER_STARTED', 'container:' + c.name, 'Container ' + c.name + ' started', 45, { name: c.name });
+  }
+  d.stats = statsOf(d);
+  sync(d); onEvents(evs, false);
+  renderPills(); renderA11y(); renderDrawerLabel(); refreshInspector();
+}
+function settle(pid, port) {
+  // in the sandbox the process goes; live, the page never signals anything, so it hands you the command
+  if (W.sandbox) {
+    const d = JSON.parse(JSON.stringify(W.snap)), gone = d.services.find(s => s.pid === pid && s.port === port);
+    if (!gone) return;
+    d.services = d.services.filter(s => s !== gone);
+    for (const s of d.services) if (s.conflict) s.conflict = s.conflict.filter(id => id !== gone.id);
+    if (!d.services.some(s => s.port === port && s.conflict && s.conflict.length)) d.conditions = (d.conditions || []).filter(c => !(c.trigger === 'PORT_CONFLICT' && c.subject === 'port:' + port));
+    d.stats = statsOf(d); sync(d);
+    onEvents([{ trigger: 'SERVICE_STOPPED', subject: 'service:' + gone.id, meaning: ':' + port + ' ' + gone.name + ' stopped (simulated)', priority: 40, ts: Date.now() / 1000, evidence: { port } }], false);
+    renderPills(); renderDrawerLabel(); closeInspector();
+    return;
+  }
+  const cmd = 'kill ' + pid;
+  const done = () => toast('Copied "' + cmd + '". Run it in a terminal: this page never stops anything itself', '#ffcf6a');
+  if (navigator.clipboard) navigator.clipboard.writeText(cmd).then(done, done); else done();
+}
+function renderPlay() {
+  const el = $('#play'); if (!el) return;
+  el.querySelector('#oDrama').setAttribute('aria-checked', !!W.cfg.drama);
+  el.querySelector('#simBack').hidden = !W.sandbox;
+  $('#bPlay').setAttribute('aria-pressed', !!(W.cfg.drama || W.sandbox));
+}
+function togglePlay(on) { const el = $('#play'); on = on == null ? !el.classList.contains('on') : on; el.classList.toggle('on', on); $('#bPlay').setAttribute('aria-expanded', on); if (on) { toggleLayers(false); renderPlay(); } }
 
 // ------------------------------------------------------------------ sound
 // Off until you turn it on (M, or Layers). Made here with WebAudio: no files,
@@ -4621,6 +4996,8 @@ function sfx(kind) {
   if (kind === 'start') { tone('sine', 660, 660, 0.35, 0.04); tone('sine', 880, 880, 0.5, 0.035, 0.12); }
   else if (kind === 'stop') { tone('triangle', 220, 150, 0.3, 0.05); }
   else if (kind === 'thud') { tone('sine', 90, 42, 0.4, 0.12); tone('square', 60, 40, 0.08, 0.02); }
+  else if (kind === 'horn') { tone('sawtooth', 196, 190, 0.7, 0.018); tone('sawtooth', 247, 240, 0.7, 0.014); }
+  else if (kind === 'thunder') { tone('sine', 55, 30, 1.6, 0.1); tone('triangle', 80, 35, 1.2, 0.04, 0.1); }
   else if (kind === 'purr') { for (let i = 0; i < 6; i++) tone('sawtooth', 48, 44, 0.07, 0.012, i * 0.075); }
 }
 window.addEventListener('pointerdown', () => { if (W.cfg.sound && (!AU.ctx || AU.ctx.state === 'suspended')) audioSync(); });
@@ -4641,6 +5018,8 @@ function snapshot() {
   const facts = [[st.services, 'listening'], [st.active, 'in use'], [st.idle, 'idle'], [st.exposed, 'reachable from outside', st.exposed ? '#ff6a5e' : null],
     [st.left, 'left running after an agent exited', st.left ? '#ffcf6a' : null], [st.abandoned, 'look left over'], [st.containers, 'containers'], [st.agents, 'agents at work']]
     .filter(f => f[0] != null);
+  if (drama()) facts.unshift([harbourCalm(st) + '%', 'calm']);
+  if (W.sandbox) facts.unshift(['SIM', 'a simulation', '#c9a8ff']);
   x.textBaseline = 'middle'; let px = 20 * D; const cy = src.height + band / 2 + 1 * D;
   x.font = '700 ' + 15 * D + 'px ' + SANS; x.fillStyle = '#f2ece0'; x.fillText('My harbour', px, cy - 9 * D);
   x.font = '500 ' + 10.5 * D + 'px ' + MONO; x.fillStyle = '#84a8bf'; x.fillText(new Date().toLocaleString() + ' · portlist --world', px, cy + 10 * D);
@@ -4664,7 +5043,7 @@ function snapshot() {
 // ------------------------------------------------------------------ polling
 let polling = false;
 async function poll() {
-  if (polling || W.past) return; polling = true;
+  if (polling || W.past || W.sandbox) return; polling = true;
   try {
     const r = await fetch(API + '?since=' + W.seq, { headers: { [HEADER]: TOKEN }, cache: 'no-store' });
     if (!r.ok) throw new Error(r.status === 403 ? 'this page\'s key is from an older run. Open the address the terminal printed.' : 'the scan answered ' + r.status);

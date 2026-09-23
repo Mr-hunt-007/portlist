@@ -1200,7 +1200,7 @@ def collect(force=False):
     snap = build(rows, host, groups, cdoc, sdoc, si, hist, outbound=outbound, conns=conns, traffic=traffic)
     snap["ship"]["self"] = _self_cost()
     try:
-        from . import fleet as fleet_mod            # portboard only; portlist has no fleet
+        from . import fleet as fleet_mod            # only where a fleet store exists; otherwise none
         snap["fleet"] = fleet_harbours(fleet_mod.hosts(), (host or {}).get("hostname"))
     except Exception:
         snap["fleet"] = []

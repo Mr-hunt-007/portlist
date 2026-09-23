@@ -6,6 +6,21 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **Harbour: what you click, what the machine feels, and a picture to share.**
+  A spotlight stays on whatever you click while the rest steps back. Rain means
+  the CPU has stayed above 80% (it clears below 65%, and a note says so); tape
+  goes round the deck cargo at 85% memory. A rotary beacon sweeps the gate and
+  washes the road red only while a service is verified reachable from outside.
+  The lighthouse beam swings round and holds an arriving SSH ship. A meter turns
+  on the wall of anything left running by an agent that has exited, as fast as
+  it is used; hazard stripes mark a port two processes hold. Buildings get a
+  pale rim and a door lamp (warm, guttering when long idle, out when not
+  answering); pets and workers a faint ring in their colour; zoomed out, every
+  building keeps a quiet port tag where there is room. Clicking a pet makes it
+  purr. `M` turns on sound (off by default, WebAudio, no files): water, a chime
+  on start, a clonk on stop, a thud when a container lands. `K` saves a PNG with
+  a strip of real counts, host names, addresses and chat left out, nothing
+  uploaded. The harness checks all of it (23 checks).
 - **The living harbour.** `portlist --world` (also `-world`, and `W` inside the
   terminal) opens the machine as an isometric harbour in a browser, full screen
   in a Chromium app window, for a second screen. Buildings are services, shaped
@@ -38,7 +53,7 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   explains the harbour once.
 - **Replay, other machines, keyboard access, phone panel, a real gate.** A
   scrubber rebuilds the harbour at any recorded moment (listeners and exposure
-  only, and it says so). Machines reporting to Portboard appear as harbours on
+  only, and it says so). Machines that report in to a fleet store appear as harbours on
   the horizon, dark once silent. A skip link leads to a list of everything,
   keyboard-reachable, opening the same inspectors. The phone gets a one-line
   machine panel. The entrance is a two-lane checkpoint with a barrier per lane
@@ -78,9 +93,9 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   mainland. The **customs house** by the gate is the firewall (on, off,
   stealth), read from the host.
 - **One scanner per process**: `/api/world` never adds a scan loop where one
-  already runs (portboard's server, the terminal's `W`); only standalone
-  `portlist --world` keeps its own. Portboard with `/world` open measured ~3% of
-  one core, 3 threads.
+  already runs (a server that already scans, the terminal's `W`); only
+  standalone `portlist --world` keeps its own. A server with `/world` open
+  measured ~3% of one core, 3 threads.
 - **Attention counts places, not reasons.**
 - **Outbound SSH sessions** appear as boats off the lighthouse, read from the
   ssh client process and its connection, with an event card when one opens or

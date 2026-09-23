@@ -72,7 +72,7 @@ def island(name, kind, service, logo, port):
 def scripted(t):
     phase = 0 if t < 15 else 1 if t < 90 else 2
     rows = [
-        row(3000, 11, conns=4),
+        row(3000, 11, conns=4, depends_on=[{"id": "5432-12"}]),
         row(5432, 12, service="PostgreSQL", service_id="postgres", service_cat="Database", exposure=exposed(),
             risk=72, risk_band="High", cmdline="postgres -D /var/pg"),
         row(22, 13, service="SSH", service_id="ssh", cmdline="sshd", cmd="sshd"),
@@ -310,6 +310,18 @@ def main():
           const keep = HIST.cpu.slice(); HIST.cpu.push(96, 97, 95, 98, 96, 97); await frames(240); o.rain = W.rain > 0.5 && W.storm;
           HIST.cpu.length = 0; keep.forEach(v => HIST.cpu.push(v)); HIST.cpu.push(5, 6, 4, 5, 6, 5); await frames(30); o.clears = !W.storm;
           const v = [...W.visitShips.values()][0]; if (v) { v.t = 0.1; await frames(20); o.beam = W.beamLock === true; } else o.beam = 'no ship';
+          // relationships, mood, memory, stories, the hour-ago comparison, today
+          o.pipes = W.buildings.size > 0 && W.snap.services.some(s => (s.depends_on || []).length);
+          W.snap.ship.load_pct = 88; o.moodPressure = harbourMood().k === 'pressure'; W.snap.ship.load_pct = 35;
+          const ms = W.snap.services.find(s => !s.system); ms.memory = { opens_today: 3, stops_today: 2, exposed_before: 0, since: null };
+          W.memAt = 0; W.said = new Set(); await frames(10);
+          o.memory = W.chat.some(c => /times today|came back/.test(c.line));
+          for (let i = 0; i < 3; i++) storyFeed({ trigger: 'CONTAINER_STARTED', subject: 'container:story-' + i, evidence: {} });
+          o.story = document.querySelector('#story').classList.contains('on') && /stack came up/i.test(document.querySelector('#story b').textContent);
+          await toggleGhost(true); o.ghost = !!W.ghost && W.ghost.fresh instanceof Set; await frames(10); await toggleGhost(false);
+          document.querySelector('.tab[data-tab="today"]').click(); toggleDrawer(true); await new Promise(r => setTimeout(r, 1500));
+          o.today = /Since midnight/.test(document.querySelector('#attnBody').textContent);
+          document.querySelector('.tab[data-tab="attn"]').click();
           document.querySelector('#oGame').click(); o.gameOn = W.cfg.drama && W.cfg.sound;
           document.querySelector('#oGame').click(); o.gameOff = !W.cfg.drama && !W.cfg.sound;
           W.cfg.sound = true; audioSync(); sfx('thud'); sfx('start'); sfx('purr'); sfx('horn'); sfx('thunder'); o.sound = !!AU.ctx; W.cfg.sound = false; audioSync();
@@ -403,6 +415,12 @@ def main():
     check("sustained CPU brings rain, and it clears", extra["rain"] is True and extra["clears"] is True, json.dumps(extra))
     check("the lighthouse holds an arriving ssh ship", extra["beam"] is True, str(extra["beam"]))
     check("sound starts and stops without errors", extra["sound"] is True)
+    check("services that depend on each other are joined by a pipe", extra["pipes"] is True)
+    check("the harbour has one mood from the machine's load", extra["moodPressure"] is True)
+    check("pets say what the history remembers", extra["memory"] is True)
+    check("a chain of events is told as a story", extra["story"] is True)
+    check("compare with an hour ago marks what is new", extra["ghost"] is True)
+    check("the Today tab tells the day so far", extra["today"] is True)
     check("game mode turns drama and sound on together, and off", extra["gameOn"] is True and extra["gameOff"] is True)
     check("sandbox: a port collision lands, labelled", extra["simCollide"] is True)
     check("drama: the collision starts a brawl", extra["brawl"] is True)

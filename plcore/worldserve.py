@@ -100,8 +100,17 @@ def make_handler(token, port_ref, keep_fresh=True):
                     since = int((q.get("since") or ["0"])[0])
                 except ValueError:
                     since = 0
+                try:
+                    at = float((q.get("at") or [""])[0])
+                except ValueError:
+                    at = None
                 with _lock:
-                    doc = world.payload(since=max(0, since), keep_fresh=keep_fresh)
+                    if at:
+                        doc = world.past_payload(at)
+                    elif (q.get("timeline") or [""])[0] == "1":
+                        doc = {"timeline": world.timeline()}
+                    else:
+                        doc = world.payload(since=max(0, since), keep_fresh=keep_fresh)
                 return self._send(200, world.dumps(doc), "application/json")
             return self._send(404, "not here")
 

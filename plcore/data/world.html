@@ -69,7 +69,26 @@ button{font:inherit;color:inherit}
 .row i{flex:none;width:7px;height:7px;border-radius:50%;margin-top:6px}
 .row small{display:block;font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:2px}
 .empty{padding:16px 14px;font-size:12.5px;color:var(--muted);line-height:1.5}
- /* machine panel */
+ /* replay */
+#scrub{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:min(720px,calc(100vw - 48px));display:none;align-items:center;gap:10px;
+  padding:6px 12px 6px 6px;border-radius:12px;background:rgba(10,19,29,.92);border:1px solid rgba(255,255,255,.08);box-shadow:0 14px 40px rgba(0,0,0,.4)}
+#scrub.on{display:flex}
+#scrub .tool{width:auto;padding:0 10px;font-size:12px}
+.scrubtrack{position:relative;flex:1;height:30px}
+#scrubTicks{position:absolute;inset:1px 0;width:100%;height:28px;pointer-events:none}
+#scrubRange{position:absolute;inset:0;width:100%;margin:0;background:transparent;accent-color:#f0a24b}
+#scrubWhen{font-family:var(--mono);font-size:11.5px;color:#ffd9a8;min-width:112px;text-align:right}
+#banner.past{background:rgba(24,40,64,.94);color:#cfe6f2;border-bottom-color:rgba(127,178,255,.4)}
+/* list of everything: hidden until a keyboard reaches it */
+.skip{position:absolute;left:-9999px;top:10px;z-index:30;padding:8px 12px;border-radius:8px;background:#f0a24b;color:#1a1208;font-size:13px}
+.skip:focus{left:24px}
+#a11y{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+#a11y:focus-within{clip:auto;width:300px;height:auto;max-height:calc(100vh - 220px);overflow:auto;left:24px;top:110px;padding:10px;border-radius:12px;background:rgba(10,19,29,.95);border:1px solid rgba(255,255,255,.1);z-index:20}
+#a11y h2{margin:2px 6px 8px;font-size:11px;letter-spacing:.14em;font-weight:500;color:#63859a}
+#a11y ul{list-style:none;margin:0;padding:0}
+#a11y button{display:block;width:100%;text-align:left;padding:6px 8px;border:0;border-radius:6px;background:none;color:#cfe0ea;font-size:12.5px;cursor:pointer}
+#a11y button:focus-visible{background:rgba(240,162,75,.14)}
+/* machine panel */
 #machine{position:absolute;left:24px;bottom:22px;width:352px;border-radius:12px;background:rgba(10,19,29,.86);border:1px solid rgba(255,255,255,.07);
   box-shadow:0 14px 40px rgba(0,0,0,.4);overflow:hidden;transition:opacity .8s ease}
 #machine .mh{display:block;width:100%;text-align:left;padding:10px 13px 8px;background:none;border:0;cursor:pointer}
@@ -88,7 +107,14 @@ button{font:inherit;color:inherit}
 #machine .ms{font-family:var(--mono);font-size:10px;color:#6f8ea3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body.idle #machine{opacity:.72}
 body.screen #machine{display:block;opacity:.8}
-@media (max-width:760px){#machine{display:none!important}}
+@media (max-width:760px){
+  #machine{left:16px;right:16px;width:auto;bottom:118px}
+  #machine .mb{display:none}
+  #machine .mh span{display:none}
+  #machine .mh i.m1{display:block;font-style:normal}
+  #scrub{bottom:118px}
+}
+#machine .mh .m1{display:none;font-family:var(--mono);font-size:11px;color:#b9d3e2;margin-top:3px}
 /* event log */
 #log{position:absolute;left:24px;bottom:188px;display:flex;flex-direction:column;gap:5px;pointer-events:none;max-width:min(46vw,640px)}
 .ev.old{opacity:0;transform:translateY(4px)}
@@ -253,6 +279,13 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.45} body.idle .pills{opac
     </div>
   </div>
 
+  <a class="skip" href="#a11yList">Skip to the list of everything in the harbour</a>
+  <nav id="a11y" aria-label="Everything in the harbour"><h2>In the harbour</h2><ul id="a11yList"></ul></nav>
+  <div id="scrub" role="group" aria-label="Replay the harbour">
+    <button class="tool" type="button" id="scrubLive">Live</button>
+    <div class="scrubtrack"><canvas id="scrubTicks" aria-hidden="true"></canvas><input id="scrubRange" type="range" aria-label="Time" step="60"></div>
+    <span id="scrubWhen">now</span>
+  </div>
   <div id="log" aria-live="polite"></div>
   <section id="machine" aria-label="This machine"></section>
   <div id="toasts" aria-live="assertive"></div>
@@ -269,6 +302,7 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.45} body.idle .pills{opac
       <button class="tool" type="button" id="bSearch" title="Find a service (/)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.6"/><path d="M10.5 10.5 14 14"/></svg><span class="l">Find</span></button>
       <button class="tool" type="button" id="bLayers" title="Layers and light" aria-expanded="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2 14 5 8 8 2 5z"/><path d="M2 8l6 3 6-3M2 11l6 3 6-3"/></svg><span class="l">Layers</span></button>
       <button class="tool" type="button" id="bTour" title="Tour: the camera visits whatever matters most (T)" aria-pressed="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.6"/><path d="M6.5 5.5v5l4-2.5z" fill="currentColor"/></svg><span class="l">Tour</span></button>
+      <button class="tool" type="button" id="bPast" title="Replay: the harbour at an earlier time (P)" aria-pressed="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.8"/><path d="M8 4.8V8l2.4 1.6"/><path d="M1.6 5.2 2.6 2.4 4.6 4.4"/></svg><span class="l">Replay</span></button>
       <button class="tool" type="button" id="bFit" title="Whole harbour (0)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg><span class="l">Fit</span></button>
       <button class="tool" type="button" id="bLegend" title="What everything means (?)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6"/><path d="M6.3 6.2a1.8 1.8 0 1 1 2.4 1.7c-.5.2-.7.6-.7 1.1v.5"/><circle cx="8" cy="11.6" r=".5" fill="currentColor"/></svg><span class="l">Legend</span></button>
       <button class="tool" type="button" id="bFull" title="Full screen (F)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg><span class="l">Full screen</span></button>
@@ -917,11 +951,14 @@ function onEvents(evs, quiet) {
 function sendTruck(b) {
   const g = W.geo;
   b.truck = true; b.delivered = false;
-  const t = { b, pos: [g.W + 10, g.RS], leg: 0, wait: 0, axis: 'x', sign: -1, wheel: 0 };
-  t.path = [[g.EX, g.RS]].concat(route([g.EX, g.RS], [b.gx + 1.2, b.gy + 3.5]).slice(1));
+  // in on the north lane (westbound), out on the south lane (eastbound): never head on.
+  // A burst waits out on the highway and is let through the gate one at a time.
+  const t = { b, id: 'truck-' + b.key, pos: [g.W + 18, g.RN], leg: 0, wait: 0, axis: 'x', sign: -1, wheel: 0, queued: true };
+  t.path = [[g.EX, g.RN]].concat(route([g.EX, g.RN], [b.gx + 1.2, b.gy + 3.5]).slice(1));
   W.trucks.push(t);
 }
 function sendFeeder(k) {
+  if (W.feeders.length) { (W.feederQueue = W.feederQueue || []).push(k); return; }
   const cr = W.cranes.find(c => c.sts) || W.cranes[0];
   const berth = -2.6, crateOff = -1.6;
   const f = { crate: k, cr, x: cr.gx - 0.12, y: -22, berth, crateOff, stage: 'sail' };
@@ -996,11 +1033,18 @@ function stepGate(dt) {
 
 function stepTrucks(dt) {
   const g = W.geo;
+  W.truckRelease = (W.truckRelease || 0) - dt;
+  if (W.truckRelease <= 0) {
+    const next = W.trucks.find(t => t.queued);
+    const clear = !W.trucks.some(t => !t.queued && t.going !== 'out' && t.pos[0] > g.W + 10);
+    if (next && clear) { next.queued = false; next.pos = [g.W + 14, g.RN]; next.v = 1.2; W.truckRelease = 2.4; }
+  }
   for (let i = W.trucks.length - 1; i >= 0; i--) {
     const t = W.trucks[i];
+    if (t.queued) continue;
     if (t.wait > 0) {
       t.wait -= dt;
-      if (t.wait <= 0) { t.b.delivered = true; t.going = 'out'; t.path = route(t.pos, [g.EX, g.RS]).concat([[g.W + 14, g.RS]]); t.leg = 0; }
+      if (t.wait <= 0) { t.b.delivered = true; t.going = 'out'; t.v = 0; t.path = route(t.pos, [g.EX, g.RS]).concat([[g.W + 22, g.RS]]); t.leg = 0; }
       continue;
     }
     t.wheel += dt * 9;
@@ -1019,7 +1063,7 @@ function stepFeeders(dt) {
       if (f.y >= f.berth - 0.02) { f.stage = 'unload'; f.cr.job = { f, stage: 'toSea' }; }
     } else if (f.stage === 'depart') {
       f.vd = Math.min(1.4, (f.vd || 0) + dt * 0.35); f.y -= dt * f.vd;
-      if (f.y < -24) W.feeders.splice(i, 1);
+      if (f.y < -24) { W.feeders.splice(i, 1); const q = W.feederQueue || []; while (q.length) { const k = q.shift(); if (W.crates.get(k.name) === k && k.arriving) { sendFeeder(k); break; } } }
     }
   }
 }
@@ -1099,7 +1143,7 @@ function stepBuildings(dt) {
       }
       if (b.build !== undefined && b.build <= 0) {
         W.buildings.delete(k);
-        if (b.s) W.ruins.push({ slot: b.slot, port: b.s.port, name: b.s.name, left_at: Date.now() / 1000, source: 'live' });
+        if (b.s && !W.past) W.ruins.push({ slot: b.slot, port: b.s.port, name: b.s.name, left_at: Date.now() / 1000, source: 'live' });
         delete W.slots[k];
       }
       continue;
@@ -1220,6 +1264,7 @@ function startChat() {
 function worldBounds() {
   const g = W.geo;
   const pts = [iso(-6, -8, 0), iso(g.head.gx - 1, g.head.gy + 3, 150), iso(g.gateX + 4, -2, 0), iso(g.gateX + 4, g.RY + 1.5, 0), iso(-2, g.RY + 1.5, 0), iso(g.office.gx + 2, 2, 90), [iso(g.head.gx, g.head.gy, 0)[0], HZ - 90]];
+  (W.snap && W.snap.fleet || []).forEach((f, i) => { const q = FLEET_AT[i % FLEET_AT.length]; pts.push(iso(q[0] - 3, q[1] + 3, 60)); });
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
   return [Math.min(...xs), Math.min(...ys) - 60, Math.max(...xs), Math.max(...ys)];
 }
@@ -1347,7 +1392,7 @@ function draw() {
   W.office.forEach((s, i) => items.push({ z: g.office.gx + g.office.gy + 4, f: () => drawOfficeBot(s, i) }));
   if (W.cfg.pets) for (const p of W.pets.values()) items.push({ z: p.pos[0] + p.pos[1], f: () => drawPet(p) });
   for (const f of W.feeders) items.push({ z: f.x + f.y, f: () => drawFeeder(f, night) });
-  for (const t of W.trucks) items.push({ z: t.pos[0] + t.pos[1], f: () => drawTruck(t, night) });
+  for (const t of W.trucks) if (!t.queued) items.push({ z: t.pos[0] + t.pos[1], f: () => drawTruck(t, night) });
   for (const ca of W.carriers) items.push({ z: ca.pos[0] + ca.pos[1], f: () => drawCarrier(ca, night) });
   if (W.cfg.traffic) for (const v of W.visitors.concat(W.carts)) items.push({ z: v.pos[0] + v.pos[1], f: () => drawCar(v, night) });
   items.push({ z: g.gateX + g.RY, f: () => drawGate(night) });
@@ -1364,6 +1409,7 @@ function draw() {
   for (const v of W.visitShips.values()) { const p = visitorPos(v); items.push({ z: p[0] + p[1], f: () => drawVisitor(v, night) }); }
   { const c = customsBox(); items.push({ z: c.x + c.y + 1.5, f: () => drawCustoms(night) }); }
   items.push({ z: g.head.gx + g.head.gy, f: () => drawHeadland(night) });
+  (W.snap && W.snap.fleet || []).forEach((f, i) => items.push({ z: -80 + i, f: () => drawFleetHarbour(f, i, night) }));
   for (const b of W.boats.values()) { const p = boatPos(b), q = isleAt(b.i); items.push({ z: q[0] + q[1], f: () => drawIsle(b, night) }); items.push({ z: p[0] + p[1] + 1, f: () => drawBoat(b, night) }); }
   for (const b of W.sysB.values()) items.push({ z: b.gx + b.gy + 1.2, f: () => drawSysShed(b, night) });
   for (const [x, y] of lampSpots()) items.push({ z: x + y - 0.1, f: () => drawLamp(x, y, night) });
@@ -1410,6 +1456,8 @@ function drawGround(night) {
   tileRect(LW - 0.18, 0, 0.18, LH, 0.5, hex('#7a8087', '#3a3f45', night));
   drawLot(night);
   drawTollDeck(night);
+  drawGateDeck(night);
+  drawApron(night);
   tileRect(0, 0, LW, 1.6, 0.2, hex(PAL.quay, '#2f343b', night));
   tileRect(0, 0, 1.6, g.yardY1, 0.2, hex(PAL.quay, '#2f343b', night));
   const RD = hex(PAL.road, '#1b1f24', night), KERB = hex('#6a7178', '#33383e', night);
@@ -2061,7 +2109,7 @@ function blocks(e, o) {
 }
 function rowPriority(o) { return o.stage === 'leaving' && o.leg === 0 ? 1 : 5 - (o.lane || 0); }
 function vehicleAhead(e) {
-  const pool = W.trucks.concat(W.carriers, W.visitors, [...W.cars.values()].filter(c => c.stage !== 'parked' && c.stage !== 'queued'));
+  const pool = W.trucks.filter(t => !t.queued).concat(W.carriers, W.visitors, [...W.cars.values()].filter(c => c.stage !== 'parked' && c.stage !== 'queued'));
   for (const o of pool) {
     if (o === e || !o.pos) continue;
     // side by side where lanes merge: the one with right of way goes, the other eases off
@@ -2459,16 +2507,17 @@ function propLayout() {
   add('tree', g.gateX - 1.3, sy + 1.9, 0.64, 0.64, { sd: 0.7 });
   add('tree', g.office.gx - 0.5, g.office.gy + 0.6, 0.64, 0.64, { sd: 0.4 });
   add('tree', g.office.gx - 0.5, g.office.gy + 2.0, 0.64, 0.64, { sd: 0.9 });
-  add('tree', g.gateX + 1.0, sy + 1.9, 0.64, 0.64, { sd: 0.3 });
-  add('bench', g.gateX + 1.7, sy + 1.75, 1.2, 0.4);
-  add('shelter', g.gateX + 3.3, sy + 1.2, 1.7, 0.7);
-  add('tree', g.W - 0.6, sy + 1.9, 0.64, 0.64, { sd: 0.6 });
+  add('shelter', g.gateX + 2.6, sy + 0.12, 1.7, 0.5);
+  add('bench', g.gateX + 4.6, sy + 0.18, 1.2, 0.36);
+  add('tree', g.gateX + 1.5, sy + 1.4, 0.64, 0.64, { sd: 0.3 });
+  add('tree', g.gateX + 3.6, sy + 1.6, 0.64, 0.64, { sd: 0.5 });
+  add('tree', g.W - 0.9, sy + 1.4, 0.64, 0.64, { sd: 0.6 });
   add('tree', L.x1 - 0.25, 0.3, 0.5, 0.5, { sd: 0.8 });
   add('booth', L.x1 - 0.85, L.y1 + 0.35, 0.7, 0.6);
   // lamps outside: lot corners, the apron kerb, the causeway edges (never in the plaza flare)
   const lamp = (x, y) => add('lamp', x, y, 0.12, 0.12);
   lamp(L.x0 - 0.12, L.y0 + 0.2); lamp(L.x1 + 0.05, L.y0 + 0.2); lamp(L.x0 - 0.12, (L.y0 + L.y1) / 2); lamp(L.x1 + 0.05, (L.y0 + L.y1) / 2);
-  lamp(g.gateX + 2.6, sy + 0.3); lamp(g.W - 1.4, sy + 0.3);
+  lamp(g.gateX + 1.2, sy + 0.2); lamp(g.gateX + 4.45, sy + 0.2); lamp(g.W - 0.3, sy + 0.2);
   const px0 = tollX() - 3.2, px1 = tollX() + 3.2;
   const [h0, h1] = hwyEdges();
   for (let x = g.W + 1.5; x < g.W + 24; x += 4.5) { if (x > px0 && x < px1) continue; lamp(x, h0 - 0.28); lamp(x + 2.2, h1 + 0.16); }
@@ -2778,6 +2827,128 @@ function drawCustoms(night) {
   HITS.push({ kind: 'customs', ref: null, poly: [iso(c.x, c.y, 60), iso(c.x + c.w + .4, c.y, 60), iso(c.x + c.w + .4, c.y + c.d + .4, 0), iso(c.x, c.y + c.d + .4, 0)] });
 }
 
+// ------------------------------------------------------------------ other machines
+// Hosts that report to this Portboard, as harbours far out on the horizon. From
+// the fleet store only: nothing here contacts them. A host that has stopped
+// reporting stays, dark and in the fog, with how long ago it was last heard from.
+// just below the horizon (x + y about -19.5), west of the lighthouse; the SSH islands take the east
+const FLEET_AT = [[-16.75, -2.75], [-22.25, 2.75], [-27.75, 8.25], [-12.5, -7], [-33.25, 13.75]];
+function drawFleetHarbour(f, i, night) {
+  const [fx, fy] = FLEET_AT[i % FLEET_AT.length], [cx, cy] = iso(fx, fy, 0), T = REDUCED ? 0 : W.t;
+  const on = f.status === 'online', stale = f.status === 'stale';
+  ctx.save(); ctx.globalAlpha = on ? 1 : stale ? 0.75 : 0.5;
+  ctx.translate(cx, cy); ctx.scale(2.1, 2.1); ctx.translate(-cx, -cy);
+  const land = hex('#5b6f7e', '#18242f', night * 0.85);
+  ctx.fillStyle = 'rgba(200,225,240,' + (0.06 + 0.06 * (1 - night)).toFixed(3) + ')'; ctx.beginPath(); ctx.ellipse(cx, cy + 3, 80, 11, 0, 0, 6.3); ctx.fill();
+  ctx.fillStyle = land; ctx.beginPath(); ctx.moveTo(cx - 74, cy + 2);
+  for (let k = 0; k <= 18; k++) ctx.lineTo(cx - 74 + k * 8.2, cy - 5 - Math.sin(k * 0.7 + i) * 2 - hash('fl' + i + k) * 3);
+  ctx.lineTo(cx + 74, cy + 2); ctx.closePath(); ctx.fill();
+  // a quay line, and one small building per listening port (up to eight)
+  ctx.fillStyle = hex('#7d8a95', '#28323c', night * 0.8); ctx.fillRect(cx - 60, cy - 4, 120, 2);
+  const n = Math.max(1, Math.min(8, f.ports || 1));
+  for (let k = 0; k < n; k++) {
+    const bx = cx - 50 + k * 13, h = 8 + hash('fb' + i + k) * 12;
+    ctx.fillStyle = hex('#6c7c88', '#1c2833', night * 0.8); ctx.fillRect(bx, cy - 5 - h, 9, h);
+    if (on) { ctx.fillStyle = 'rgba(255,214,150,' + (0.35 + night * 0.5).toFixed(2) + ')'; ctx.fillRect(bx + 2, cy - 3 - h, 2, 2); ctx.fillRect(bx + 5, cy - h + 2, 2, 2); }
+  }
+  // its crane, and a lamp: red if something there is exposed, green if not, dark when silent
+  ctx.strokeStyle = hex('#c68d34', '#5a4420', night * 0.6); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(cx + 44, cy - 4); ctx.lineTo(cx + 44, cy - 26); ctx.lineTo(cx + 30, cy - 26); ctx.stroke();
+  const lampOn = on && Math.sin(T * 1.6 + i) > -0.2, col = (f.exposed || 0) > 0 ? '255,90,80' : '111,227,164';
+  ctx.fillStyle = on ? 'rgba(' + col + ',' + (lampOn ? 0.95 : 0.3) + ')' : 'rgba(70,80,90,.8)'; ctx.beginPath(); ctx.arc(cx + 44, cy - 28, 1.8, 0, 6.3); ctx.fill();
+  ctx.restore();
+  if (!on) { const fg = ctx.createRadialGradient(cx, cy - 10, 10, cx, cy - 10, 180); fg.addColorStop(0, 'rgba(140,160,180,.22)'); fg.addColorStop(1, 'rgba(140,160,180,0)'); ctx.fillStyle = fg; ctx.beginPath(); ctx.ellipse(cx, cy - 10, 190, 60, 0, 0, 6.3); ctx.fill(); }
+  HITS.push({ kind: 'fleet', ref: f, poly: [[cx - 160, cy - 70], [cx + 160, cy - 70], [cx + 160, cy + 14], [cx - 160, cy + 14]] });
+  f._wx = fx; f._wy = fy;
+}
+function ago(s) { return s == null ? '?' : dur(s) + ' ago'; }
+
+// ------------------------------------------------------------------ the past
+// A scrubber over the recorded opens and closes. Dragging it rebuilds the
+// harbour as it stood then, from history alone; Live goes back to now.
+let scrubT = 0;
+async function openScrub(on) {
+  const el = $('#scrub'); on = on == null ? !el.classList.contains('on') : on;
+  el.classList.toggle('on', on); $('#bPast').setAttribute('aria-pressed', on);
+  if (!on) { goLive(); return; }
+  try {
+    const r = await fetch(API + '?timeline=1', { headers: { [HEADER]: TOKEN }, cache: 'no-store' });
+    const tl = (await r.json()).timeline || [];
+    W.timeline = tl;
+    const now = Date.now() / 1000, oldest = tl.length ? Math.min(...tl.map(e => e.ts)) : now - 86400;
+    const sl = $('#scrubRange'); sl.min = Math.floor(oldest); sl.max = Math.ceil(now); if (!W.past) sl.value = sl.max;
+    drawTicks(oldest, now);
+    $('#scrubWhen').textContent = W.past ? stamp(W.past.at) : 'now';
+  } catch (e) { $('#scrubWhen').textContent = 'history unavailable'; }
+}
+function drawTicks(t0, t1) {
+  const c = $('#scrubTicks'), x = c.getContext('2d'), w = c.width = c.clientWidth * 2, h = c.height = 28;
+  x.clearRect(0, 0, w, h);
+  for (const e of W.timeline || []) {
+    const px = (e.ts - t0) / Math.max(1, t1 - t0) * w;
+    x.fillStyle = e.type === 'opened' ? 'rgba(111,227,164,.7)' : 'rgba(160,170,180,.55)'; x.fillRect(px, e.type === 'opened' ? 2 : 14, 2, 12);
+  }
+}
+function stamp(ts) { const d = new Date(ts * 1000); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + hms(ts); }
+function scrubTo(v) {
+  const at = +v, max = +$('#scrubRange').max;
+  $('#scrubWhen').textContent = max - at < 30 ? 'now' : stamp(at);
+  clearTimeout(scrubT);
+  scrubT = setTimeout(async () => {
+    if (max - at < 30) { goLive(); return; }
+    try {
+      const r = await fetch(API + '?at=' + at, { headers: { [HEADER]: TOKEN }, cache: 'no-store' });
+      const doc = await r.json();
+      // the past has no traffic, sessions or recent rubble: clear what belongs to now
+      if (!W.past) { W.cars = new Map(); W.firstCars = true; W.ruins = []; W.trucks = []; W.visitors = []; W.carts = []; }
+      W.past = doc.past; sync(doc);
+      $('#live').className = 'live wait'; $('#liveT').textContent = 'replay'; renderPills(); renderDrawerLabel(); renderA11y();
+      const b = $('#banner'); b.classList.add('on', 'past');
+      b.textContent = 'The harbour at ' + stamp(at) + (doc.past.before_history ? ', before history began (' + stamp(doc.past.oldest) + '): only what was already listening then' : '') + '. ' + doc.past.note;
+    } catch (e) { }
+  }, 220);
+}
+function goLive() {
+  if (!W.past) return;
+  W.past = null; $('#banner').classList.remove('on', 'past'); W.cars = new Map(); W.firstCars = true; W.ruins = [];
+  const sl = $('#scrubRange'); if (sl.max) sl.value = sl.max; $('#scrubWhen').textContent = 'now';
+  poll();
+}
+
+// ------------------------------------------------------------------ keyboard and screen readers
+// Everything in the harbour as a list of buttons: tab through it, Enter opens
+// the same inspector a click does, and the camera goes to it.
+function a11yItems() {
+  if (!W.snap) return [];
+  const out = [];
+  for (const b of W.buildings.values()) if (b.s && !b.leaving) {
+    const s = b.s;
+    out.push({ key: 'b:' + s.key, text: ':' + s.port + ' ' + s.name + ', ' + ((ACT[s.activity] || {}).label || '') + ', ' + (s.exposure === 'reachable' ? 'reachable from outside' : s.exposure === 'local' ? 'local only' : s.exposure) + (s.lights_left_on ? ', owner has exited' : ''), h: { kind: 'building', ref: b } });
+  }
+  out.push({ key: 'gate', text: 'The gate: external access ' + W.snap.gate.state, h: { kind: 'gate', ref: W.gate } });
+  out.push({ key: 'customs', text: 'Customs: firewall ' + (W.snap.ship.firewall === true ? 'on' : W.snap.ship.firewall === false ? 'off' : 'unknown'), h: { kind: 'customs', ref: null } });
+  out.push({ key: 'lh', text: 'Lighthouse: SSH ' + W.snap.lighthouse.state, h: { kind: 'lighthouse', ref: W.head } });
+  for (const bt of W.boats.values()) if (!bt.leaving) out.push({ key: 'isl:' + bt.key, text: (bt.o.kind === 'db' ? bt.o.service : 'SSH') + ' session to ' + bt.o.target, h: { kind: 'boat', ref: bt } });
+  for (const f of W.snap.fleet || []) out.push({ key: 'fl:' + f.id, text: 'Other machine ' + f.name + ', ' + (f.status === 'online' ? 'reporting' : 'last heard ' + ago(f.age)), h: { kind: 'fleet', ref: f } });
+  for (const k of W.crates.values()) if (k.c && !k.leaving) out.push({ key: 'ct:' + k.name, text: 'Container ' + k.name + ', ' + (k.c.running ? 'running' : k.c.state), h: { kind: 'container', ref: k } });
+  for (const c of W.cars.values()) if (c.e && c.stage !== 'leaving') out.push({ key: 'car:' + c.key, text: 'Outbound to ' + (c.e.alias || c.e.address) + ' from ' + (c.e.apps || []).join(', '), h: { kind: 'car', ref: c } });
+  out.push({ key: 'ship', text: 'This machine: ' + W.snap.ship.name, h: { kind: 'ship', ref: null } });
+  out.push({ key: 'office', text: 'Coding sessions', h: { kind: 'office', ref: null } });
+  return out;
+}
+function renderA11y() {
+  const ul = $('#a11yList'); if (!ul) return;
+  const items = a11yItems(), sig = items.map(i => i.key + '|' + i.text).join('\n');
+  if (ul._sig === sig) return;
+  ul._sig = sig; ul._items = items;
+  const focused = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.k;
+  ul.innerHTML = items.map((it, i) => '<li><button type="button" data-i="' + i + '" data-k="' + esc(it.key) + '">' + esc(it.text) + '</button></li>').join('');
+  ul.querySelectorAll('button').forEach(b => {
+    b.onclick = () => openInspector(ul._items[+b.dataset.i].h);
+    b.onfocus = () => { const r = ul._items[+b.dataset.i].h.ref; if (r && r._wx != null) focusOn(r._wx, r._wy, 1.1); else if (r && r.gx != null) focusOn(r.gx + 1.2, r.gy + 1.2, Math.max(cam.zoom, 1.05)); };
+  });
+  if (focused) { const again = ul.querySelector('[data-k="' + CSS.escape(focused) + '"]'); if (again) again.focus(); }
+}
+
 // ------------------------------------------------------------------ machine panel
 // The same readout as the terminal's system view: every figure is the scan's,
 // and the sparklines are the samples this page has received, nothing smoothed in.
@@ -2794,12 +2965,13 @@ function renderMachine() {
     const row = (k, spark) => '<div class="mr" data-r="' + k + '"><span class="mk">' + k + '</span>' +
       (spark ? '<canvas data-k="' + k + '" width="148" height="32"></canvas>' : '<i class="bar"><i></i></i>') +
       '<span class="mv"></span><span class="ms"></span></div>';
-    el.innerHTML = '<button class="mh" type="button"><b></b><span></span></button><div class="mb"><div class="ml"></div>' +
+    el.innerHTML = '<button class="mh" type="button"><b></b><span></span><i class="m1"></i></button><div class="mb"><div class="ml"></div>' +
       row('cpu', 1) + row('mem', 1) + row('disk', 0) + row('net', 1) + '</div>';
     el.querySelector('.mh').onclick = () => { W.cfg.machineMin = !W.cfg.machineMin; saveCfg(); renderMachine(); };
   }
   const set = (sel, v) => { const n = el.querySelector(sel); if (n && n.textContent !== v) n.textContent = v; };
   set('.mh b', s.name || '');
+  set('.m1', 'cpu ' + (s.load_pct == null ? '?' : Math.round(s.load_pct) + '%') + ' · mem ' + (s.mem_pct == null ? '?' : Math.round(s.mem_pct) + '%') + ' · disk ' + (s.disk_pct == null ? '?' : Math.round(s.disk_pct) + '%') + ' · ' + hms());
   set('.mh span', [s.os, s.model ? s.model + (s.pcores ? ' (' + s.pcores + 'P+' + s.ecores + 'E)' : '') : null].filter(Boolean).join(' · '));
   set('.ml', hms() + ' · up ' + dur(s.uptime) + (s.processes ? ' · ' + s.processes + ' processes' : '') + (s.self && s.self.rss ? ' · scanner ' + fmtBytes(s.self.rss) : ''));
   const put = (k, val, col, sub) => { const r = el.querySelector('[data-r="' + k + '"]'); set('[data-r="' + k + '"] .mv', val); set('[data-r="' + k + '"] .ms', sub); r.querySelector('.mv').style.color = col; };
@@ -3076,10 +3248,10 @@ function drawBuilding(b, night) {
   }
   // the gate line: only for a service portlist was let into from outside
   if (s.exposure === 'reachable') {
-    const [x1, y1] = iso(b.gx + 3, b.gy + 3, 12), [x2, y2] = iso(W.geo.gateX - 0.2, W.geo.RN, 12);
+    const [x1, y1] = iso(b.gx + 3, b.gy + 3, 12), [x2, y2] = iso(W.geo.gateX + 0.45, W.geo.roadY0 - 0.1, 14);
     ctx.save(); ctx.setLineDash([7, 9]); ctx.lineDashOffset = REDUCED ? 0 : -W.t * 26;
-    ctx.strokeStyle = 'rgba(255,95,86,' + (0.35 + 0.25 * Math.sin(W.t * 3)) + ')'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.quadraticCurveTo((x1 + x2) / 2, Math.min(y1, y2) - 70, x2, y2); ctx.stroke(); ctx.restore();
+    ctx.strokeStyle = 'rgba(255,95,86,' + (0.25 + 0.15 * Math.sin(W.t * 3)) + ')'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.quadraticCurveTo((x1 + x2) / 2, Math.min(y1, y2) - 30, x2, y2); ctx.stroke(); ctx.restore();
   }
   // shared dock: the swords sit between buildings holding the same port
   if (s.conflict && s.conflict.length && W.cfg.labels) {
@@ -3211,6 +3383,13 @@ function drawSigns() {
     const o = W.geo.office, hov = W.hovered && W.hovered.kind === 'office', live = (W.snap.sessions || []).filter(x => x.live).length;
     const [x, y] = toScreen(...iso(o.gx + 1.3, o.gy + 1.2, 92));
     if (lvl >= 1 || hov) add({ kind: 'office', ref: null, x, y, pop: 1, hov, label: 'Sessions · ' + live + ' live', dot: live ? '#7fb2ff' : '#5d6873', muted: !live, exposed: false, chips: [], marks: [], pri: hov ? 100 : 30 });
+  }
+  for (const f of (W.snap && W.snap.fleet) || []) {
+    if (f._wx == null) continue;
+    const hov = W.hovered && W.hovered.ref === f, sel = W.sel && W.sel.ref === f;
+    const [x, y] = toScreen(...iso(f._wx, f._wy, 70));
+    add({ kind: 'fleet', ref: f, x, y, pop: 1, hov, sel, label: f.name + ' · ' + (f.status === 'online' ? (f.ports || 0) + ' ports' : 'last heard ' + ago(f.age)),
+      dot: f.status === 'online' ? ((f.exposed || 0) > 0 ? '#ff5f56' : '#6fe3a4') : '#5d6873', muted: f.status !== 'online', exposed: f.status === 'online' && (f.exposed || 0) > 0, chips: [], marks: [], pri: hov || sel ? 100 : 32 });
   }
   cands.sort((a, b) => b.pri - a.pri);
   const placed = [], hit = (r) => placed.some(p => r.x < p.x + p.w + 4 && r.x + r.w + 4 > p.x && r.y < p.y + p.h + 3 && r.y + r.h + 3 > p.y);
@@ -3389,41 +3568,87 @@ function drawCar(c, night) {
   HITS.push({ kind: vis ? 'visitor' : 'cart', ref: c, poly: hit });
 }
 
+// The harbour gate: a checkpoint canopy over both lanes. In on the north lane,
+// out on the south. Each lane has its own barrier that lifts for the vehicle in
+// front of it. External access is a separate, measured fact: the lit panel on
+// the canopy and the red lamp say whether a service here is reachable from
+// outside, and while one is, the north barrier stands open for outside traffic.
+function drawGateDeck(night) {
+  // markings on the approach, drawn with the ground so vehicles pass over them
+  const g = W.geo, GX = g.gateX, HY0 = g.roadY0, HY1 = g.roadY0 + 1.8;
+  const white = 'rgba(238,241,244,' + (0.5 - night * 0.15).toFixed(2) + ')';
+  // stop lines, one per lane, each on its approach side
+  poly([iso(GX + 0.55, HY0 + 0.08, .3), iso(GX + 0.68, HY0 + 0.08, .3), iso(GX + 0.68, g.RY - 0.04, .3), iso(GX + 0.55, g.RY - 0.04, .3)], white);
+  poly([iso(GX - 0.68, g.RY + 0.04, .3), iso(GX - 0.55, g.RY + 0.04, .3), iso(GX - 0.55, HY1 - 0.08, .3), iso(GX - 0.68, HY1 - 0.08, .3)], white);
+  // rumble strips before the stop line, inbound
+  for (let i = 0; i < 6; i++) { const x = GX + 1.0 + i * 0.32; poly([iso(x, HY0 + .12, .3), iso(x + .12, HY0 + .12, .3), iso(x + .12, g.RY - .08, .3), iso(x, g.RY - .08, .3)], 'rgba(240,200,90,' + (0.3 - i * 0.035).toFixed(3) + ')'); }
+  // lane arrows under the canopy
+  const arrow = (x, y, dir) => { const p = [[0, 0], [dir * 0.5, 0.18], [dir * 0.5, 0.07], [dir * 0.9, 0.07], [dir * 0.9, -0.07], [dir * 0.5, -0.07], [dir * 0.5, -0.18]]; poly(p.map(q => iso(x + q[0], y + q[1], .3)), white); };
+  arrow(GX - 1.6, g.RN, 1); arrow(GX + 1.6, g.RS, -1);
+  // a central island between the lanes, with bollards
+  box(GX - 1.1, g.RY - 0.06, 2.2, 0.12, 1.2, hex('#b8b4aa', '#57554f', night), { top: hex('#f0c040', '#6a5a20', night) });
+  for (const dx of [-1.05, 1.0]) box(GX + dx, g.RY - 0.05, 0.1, 0.1, 6, hex('#f0c040', '#6a5a20', night));
+}
+function drawApron(night) {
+  // outside the fence, south of the road: a kerbed sidewalk, then a planted verge to the sea wall
+  const g = W.geo, x0 = g.gateX + 1.0, x1 = g.W, sy = g.roadY0 + 1.8;
+  tileRect(x0, sy, x1 - x0, 0.06, 0.4, hex('#9aa0a6', '#454a50', night));
+  tileRect(x0, sy + 0.06, x1 - x0, 0.55, 0.34, hex('#7a8087', '#3a3f45', night));
+  for (let x = x0 + 0.6; x < x1; x += 0.6) tileRect(x, sy + 0.06, 0.03, 0.55, 0.36, 'rgba(0,0,0,.12)');
+  tileRect(x0, sy + 0.61, x1 - x0, g.H - 0.45 - sy - 0.61, 0.3, hex('#4d6b46', '#1c2a1c', night * 0.9));
+  for (let i = 0; i < 40; i++) { const px = x0 + hash('vg' + i) * (x1 - x0), py = sy + 0.8 + hash('vh' + i) * (g.H - sy - 1.4), q = iso(px, py, 0.3); ctx.fillStyle = 'rgba(120,160,100,' + (0.35 - night * 0.2).toFixed(2) + ')'; ctx.fillRect(q[0], q[1] - 2, 1, 2); }
+}
 function drawGate(night) {
-  const g = W.geo, gt = W.gate, dark = v => hex(v, shade(v, -60), night * 0.7);
-  const HY0 = g.roadY0, HY1 = g.roadY0 + 1.8, MID = g.RY, GX = g.gateX, st = W.snap ? W.snap.gate.state : 'closed';
-  poly([iso(GX - .72, HY0, .3), iso(GX - .58, HY0, .3), iso(GX - .58, MID, .3), iso(GX - .72, MID, .3)], 'rgba(238,241,244,.4)');
-  for (let i = 0; i < 5; i++) { const x = GX + 1 + i * .55; poly([iso(x, HY0 + .1, .3), iso(x + .3, HY0 + .1, .3), iso(x + .3, MID - .1, .3), iso(x, MID - .1, .3)], 'rgba(240,200,90,' + (.16 - i * .025).toFixed(3) + ')'); }
-  const PH = 40;
-  box(GX, HY0 - .42, .38, .38, PH, dark('#5c6268'), { top: dark('#767e86') });
-  box(GX, HY1 + .04, .38, .38, PH, dark('#5c6268'), { top: dark('#767e86') });
-  box(GX + .07, HY0 - .42, .24, HY1 - HY0 + .84, PH + 4, dark('#4a545d'), { z0: PH });
-  box(GX + .02, HY0 + .3, .34, .9, PH - 1, dark('#333b43'), { z0: PH - 13 });
-  const [sx, sy] = iso(GX + .19, HY0 + .75, PH - 5);
-  ctx.font = '700 7px ' + MONO; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,220,180,.9)';
-  ctx.fillText('EXTERNAL', sx, sy - 3.5); ctx.fillText('ACCESS', sx, sy + 4.5);
-  // the site lane: always open, it is how the harbour's own traffic moves
-  const [tx, ty] = iso(GX + .19, HY1 - .3, 9); ctx.font = '600 6.5px ' + MONO; ctx.fillStyle = 'rgba(160,200,220,.55)'; ctx.fillText('SITE', tx, ty);
-  // the boom spans the outside lane and rises only for a verified reachable service
-  const PX = GX - .2, PZ = 16, span = MID - HY0 - .15;
-  const hinge = iso(PX, MID, PZ), tipDown = iso(PX, MID - span, PZ), tipUp = iso(PX, MID, PZ + span * TH * .95);
-  const o = gt.boom, ease = o < .5 ? 2 * o * o : 1 - Math.pow(-2 * o + 2, 2) / 2;
-  const tip = [lerp(tipDown[0], tipUp[0], ease), lerp(tipDown[1], tipUp[1], ease)];
-  box(PX - .2, MID - .1, .42, .42, 15, dark('#4c565f'), { top: dark('#626e78') });
-  ctx.save(); ctx.lineCap = 'butt'; ctx.strokeStyle = '#c8433a'; ctx.lineWidth = 5.5; ctx.beginPath(); ctx.moveTo(hinge[0], hinge[1]); ctx.lineTo(tip[0], tip[1]); ctx.stroke();
-  ctx.strokeStyle = '#eef1f4';
-  for (let i = 0; i < 4; i++) { const t0 = .13 + i * .22, t1 = t0 + .1; ctx.beginPath(); ctx.moveTo(lerp(hinge[0], tip[0], t0), lerp(hinge[1], tip[1], t0)); ctx.lineTo(lerp(hinge[0], tip[0], t1), lerp(hinge[1], tip[1], t1)); ctx.stroke(); }
-  ctx.fillStyle = 'rgba(255,120,90,' + (gt.moving ? .4 + .6 * Math.abs(Math.sin(W.t * 9)) : .85) + ')'; ctx.beginPath(); ctx.arc(tip[0], tip[1], 2.4, 0, 6.3); ctx.fill(); ctx.restore();
-  // warning light: red while open, amber while something is bound and unverified, dark otherwise
-  const blink = Math.sin(W.t * 4.5) * .5 + .5, [lx, ly] = iso(GX + .19, HY0 - .23, PH + 8);
-  const lamp = st === 'open' ? [255, 70, 60] : st === 'watch' ? [255, 190, 80] : null;
-  if (gt.confirm > 0) { ctx.fillStyle = 'rgba(111,227,164,' + (.5 + .5 * Math.sin(W.t * 12)) + ')'; ctx.beginPath(); ctx.arc(lx + 10, ly + 4, 3.5, 0, 6.3); ctx.fill(); }
-  ctx.fillStyle = lamp ? 'rgba(' + lamp.join(',') + ',' + (.3 + blink * .7 * (st === 'open' ? 1 : .5)) + ')' : 'rgba(70,80,90,.9)';
-  ctx.beginPath(); ctx.arc(lx, ly, 4.5, 0, 6.3); ctx.fill();
-  if (lamp) { const rg = ctx.createRadialGradient(lx, ly, 2, lx, ly, 70); rg.addColorStop(0, 'rgba(' + lamp.join(',') + ',' + (.22 * blink) + ')'); rg.addColorStop(1, 'rgba(' + lamp.join(',') + ',0)'); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(lx, ly, 70, 0, 6.3); ctx.fill(); }
-  const f1 = iso(g.W + 14, g.RY, 10), fg = ctx.createRadialGradient(f1[0], f1[1], 4, f1[0], f1[1], 220);
+  const g = W.geo, gt = W.gate, dark = v => hex(v, shade(v, -60), night * 0.7), T = REDUCED ? 0 : W.t;
+  const HY0 = g.roadY0, HY1 = g.roadY0 + 1.8, GX = g.gateX, st = W.snap ? W.snap.gate.state : 'closed';
+  // each lane lifts for whatever is about to pass; the north lane also stands open while something is reachable
+  const approaching = (lane, dir) => [...W.trucks.filter(t => !t.queued), ...W.visitors, ...W.workers.values()].some(v => v.pos && Math.abs(v.pos[1] - lane) < 0.45 && (v.pos[0] - GX) * dir > -0.8 && (v.pos[0] - GX) * dir < 3.2);
+  W.gateArm = W.gateArm || { n: 0, s: 0 };
+  W.gateArm.n = lerp(W.gateArm.n, Math.max(gt.boom, approaching(g.RN, 1) ? 1 : 0), 0.1);
+  W.gateArm.s = lerp(W.gateArm.s, approaching(g.RS, -1) ? 1 : 0, 0.1);
+  const arm = (hx, hy, towards, e) => {
+    box(hx - 0.18, hy - 0.18, 0.36, 0.36, 14, dark('#4c565f'), { top: dark('#626e78') });
+    const len = Math.abs(towards - hy), h = iso(hx, hy, 12), down = iso(hx, towards, 12), up = iso(hx, hy, 12 + len * 30);
+    const ease = e < .5 ? 2 * e * e : 1 - Math.pow(-2 * e + 2, 2) / 2, tip = [lerp(down[0], up[0], ease), lerp(down[1], up[1], ease)];
+    ctx.lineCap = 'butt'; ctx.strokeStyle = '#c8433a'; ctx.lineWidth = 4.5; ctx.beginPath(); ctx.moveTo(h[0], h[1]); ctx.lineTo(tip[0], tip[1]); ctx.stroke();
+    ctx.strokeStyle = '#eef1f4'; for (let i = 0; i < 4; i++) { const t0 = .12 + i * .22, t1 = t0 + .1; ctx.beginPath(); ctx.moveTo(lerp(h[0], tip[0], t0), lerp(h[1], tip[1], t0)); ctx.lineTo(lerp(h[0], tip[0], t1), lerp(h[1], tip[1], t1)); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(255,120,90,.9)'; ctx.beginPath(); ctx.arc(tip[0], tip[1], 2, 0, 6.3); ctx.fill();
+  };
+  // posts on both kerbs and on the island, a deep canopy over both lanes
+  const PH = 34;
+  for (const [x, y] of [[GX - 0.9, HY0 - 0.3], [GX + 0.7, HY0 - 0.3], [GX - 0.9, HY1 + 0.1], [GX + 0.7, HY1 + 0.1]]) box(x, y, 0.2, 0.2, PH, dark('#6a737b'), { top: dark('#8a949c') });
+  arm(GX + 0.45, HY0 - 0.1, g.RY - 0.05, W.gateArm.n);        // inbound, hinge on the north kerb
+  arm(GX - 0.45, HY1 + 0.1, g.RY + 0.05, W.gateArm.s);        // outbound, hinge on the south kerb
+  // the canopy lights the lanes beneath it: pools on the road, not glare on the roof
+  for (const y of [g.RN, g.RS]) { const [lx, ly] = iso(GX - 0.1, y, 0.3); const rg = ctx.createRadialGradient(lx, ly, 2, lx, ly, 34); rg.addColorStop(0, 'rgba(255,236,200,' + (0.1 + night * 0.28).toFixed(2) + ')'); rg.addColorStop(1, 'rgba(255,236,200,0)'); ctx.fillStyle = rg; ctx.beginPath(); ctx.ellipse(lx, ly, 34, 17, 0, 0, 6.3); ctx.fill(); }
+  // a light steel frame with a translucent roof, so the barriers stay readable from above
+  ctx.save(); ctx.globalAlpha *= 0.55;
+  box(GX - 0.95, HY0 - 0.45, 1.75, HY1 - HY0 + 0.9, PH + 3, dark('#23313f'), { z0: PH, top: dark('#3b5670') });
+  ctx.restore();
+  for (const y of [HY0 - 0.45, HY1 + 0.33]) box(GX - 0.95, y, 1.75, 0.12, PH + 3.5, dark('#6a737b'), { z0: PH });
+  for (const x of [GX - 0.95, GX + 0.68]) box(x, HY0 - 0.45, 0.12, HY1 - HY0 + 0.9, PH + 3.5, dark('#6a737b'), { z0: PH });
+  box(GX + 0.68, HY0 - 0.45, 0.12, HY1 - HY0 + 0.9, PH + 6.5, dark('#f0a24b'), { z0: PH + 3.5 });
+  // fascia facing the outside: name, and the external-access panel
+  const [fx, fy] = iso(GX + 0.9, (HY0 + HY1) / 2, PH + 2.5);
+  ctx.save(); ctx.translate(fx, fy); ctx.transform(1, -0.5, 0, 1, 0, 0);
+  ctx.font = '700 6.5px ' + MONO; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(240,245,250,.9)'; ctx.fillText('HARBOUR GATE', 0, 2.4);
+  ctx.restore();
+  const open = st === 'open', watch = st === 'watch', [px, py] = iso(GX + 0.9, HY0 + 0.1, PH - 5);
+  ctx.save(); ctx.translate(px, py); ctx.transform(1, -0.5, 0, 1, 0, 0);
+  ctx.fillStyle = '#0b0f12'; ctx.fillRect(-15, -6, 30, 10);
+  ctx.font = '700 4.8px ' + MONO; ctx.textAlign = 'center';
+  ctx.fillStyle = open ? '#ff6a5e' : watch ? '#ffbe50' : '#5ee89a';
+  ctx.fillText(open ? 'EXT OPEN' : watch ? 'EXT BOUND' : 'EXT CLOSED', 0, 0.8); ctx.restore();
+  // warning lamp on the north post: red while reachable, amber while bound, dark otherwise
+  const blink = Math.sin(T * 4.5) * .5 + .5, [lx, ly] = iso(GX + 0.8, HY0 - 0.2, PH + 9);
+  const lamp = open ? [255, 70, 60] : watch ? [255, 190, 80] : null;
+  if (gt.confirm > 0) { ctx.fillStyle = 'rgba(111,227,164,' + (.5 + .5 * Math.sin(T * 12)) + ')'; ctx.beginPath(); ctx.arc(lx + 8, ly + 3, 3, 0, 6.3); ctx.fill(); }
+  ctx.fillStyle = lamp ? 'rgba(' + lamp.join(',') + ',' + (.3 + blink * .7 * (open ? 1 : .5)) + ')' : 'rgba(70,80,90,.9)';
+  ctx.beginPath(); ctx.arc(lx, ly, 3.8, 0, 6.3); ctx.fill();
+  if (lamp) { const rg = ctx.createRadialGradient(lx, ly, 2, lx, ly, 60); rg.addColorStop(0, 'rgba(' + lamp.join(',') + ',' + (.2 * blink) + ')'); rg.addColorStop(1, 'rgba(' + lamp.join(',') + ',0)'); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(lx, ly, 60, 0, 6.3); ctx.fill(); }
+  const f1 = iso(g.W + 16, g.RY, 10), fg = ctx.createRadialGradient(f1[0], f1[1], 4, f1[0], f1[1], 220);
   fg.addColorStop(0, 'rgba(150,175,195,.3)'); fg.addColorStop(1, 'rgba(150,175,195,0)'); ctx.fillStyle = fg; ctx.beginPath(); ctx.ellipse(f1[0], f1[1], 240, 100, 0, 0, 6.3); ctx.fill();
-  HITS.push({ kind: 'gate', ref: gt, poly: [iso(GX - 2.6, HY0 - .5, PH + 14), iso(GX + .5, HY0 - .5, PH + 14), iso(GX + .5, HY1 + 1.2, PH + 14), iso(GX + .5, HY1 + 1.2, -4), iso(GX - 2.6, HY1 + 1.2, -4), iso(GX - 2.6, HY0 - .5, -4)] });
+  HITS.push({ kind: 'gate', ref: gt, poly: [iso(GX - 1.1, HY0 - .5, PH + 8), iso(GX + 0.95, HY0 - .5, PH + 8), iso(GX + 0.95, HY1 + .5, 0), iso(GX - 1.1, HY1 + .5, 0)] });
 }
 
 function drawOffice(night) {
@@ -3627,6 +3852,7 @@ function hoverText(h) {
     case 'worker': return [r.w.name, (r.w.look === 'robot' ? 'agent' : r.w.class) + '  ·  ' + (r.stage === 'leave' ? 'leaving' : r.w.ports.map(p => ':' + p).join(' '))];
     case 'session': return [r.title || 'untitled session', r.tool + '  ·  ' + (r.project || '') + '  ·  live'];
     case 'pet': return [r.name + ' the ' + r.role, (r.mood || '') + '  ·  ' + (r.task && r.task.subject ? r.task.trigger.toLowerCase().replace(/_/g, ' ') : 'patrolling')];
+    case 'fleet': return [r.name, r.status === 'online' ? 'reporting · ' + (r.ports || 0) + ' ports' : 'last heard ' + ago(r.age)];
     case 'customs': { const sh = W.snap.ship; return ['Customs house', (sh.firewall_name || 'firewall') + ' · ' + (sh.firewall === true ? 'on' : sh.firewall === false ? 'off' : 'unknown') + (sh.firewall_stealth ? ' · stealth' : '')]; }
     case 'toll': return ['Toll plaza', 'three lanes each way, electronic: nobody stops'];
     case 'signal': return ['Traffic light', 'car park exit: ' + ((W.signal || {}).phase || 'main')];
@@ -3696,6 +3922,15 @@ function describe(h) {
       link: s.local_url && s.health !== 'nodata' && /^https?:/.test(s.url || '') ? s.local_url : /^https?:/.test(s.url || '') && s.health !== 'nodata' ? s.url : null,
       tui: s.exposure === 'reachable' ? 'portlist, then 2 for exposed' : s.leftover ? 'portlist, then 4 for leftovers' : s.risk_band === 'High' || s.risk_band === 'Critical' ? 'portlist, then 3 for attention' : 'portlist, then 1 for services'
     };
+  }
+  if (h.kind === 'fleet') {
+    const f = r, on = f.status === 'online';
+    return { kind: 'OTHER MACHINE', accent: on ? '#6fe3a4' : '#8fa4b4', title: f.name,
+      tags: [on ? solid('reporting', '#6fe3a4') : soft(f.status === 'stale' ? 'late' : 'silent'), soft(f.os || 'os unknown')],
+      meta: [['last heard', on ? 'just now' : ago(f.age)], ['address', f.address || '?'], ['listening', f.ports == null ? 'not reported' : String(f.ports)],
+        ['exposed', f.exposed == null ? 'not reported' : String(f.exposed)], ['high / critical', (f.high || 0) + ' / ' + (f.critical || 0)]],
+      sections: [['WHAT YOU SEE', ['A machine that reports to this Portboard, drawn as its own harbour on the horizon: one small building per listening port, a red lamp if anything there is exposed. Nothing here contacts it; this is its last report' + (on ? '.' : ', and it has been silent since, so the harbour is dark and in the fog.')]]],
+      cmds: [], tui: 'the dashboard, then Servers' };
   }
   if (h.kind === 'customs') {
     const sh = W.snap.ship, on = sh.firewall;
@@ -4065,6 +4300,9 @@ function renderLegend() {
     ['🚦', 'Traffic light', 'At the car park exit: leaving cars get a green phase only when one is waiting.'],
     ['🚜', 'Forklift', 'Takes pallets to services with connections open right now; parked when nothing is in use.'],
     ['🤖', 'Powered-down robot', 'An agent that started this service and has exited. It waits by the door, eyes dark, for as long as the service runs.'],
+    ['🌫', 'Other machines', 'Hosts that report to this Portboard, as harbours on the horizon. Dark and fogged once they stop reporting.'],
+    ['⏪', 'Replay (P)', 'Drag through recorded history to see what was listening then. Only listeners and their exposure are recorded; Live returns to now.'],
+    ['⌨', 'Keyboard', 'Tab reaches a list of everything in the harbour; Enter opens it, and the camera goes there.'],
     ['🧹', 'The groundskeeper', 'Sweeps up an old foundation once its service has been gone a while. The stop stays in the Timeline.'],
     ['🏚', 'Old foundations', 'Something stopped here. It stays for a while so a restart lands in the same lot.']];
   $('#lgBody').innerHTML = '<header><div><h2 id="lgT">What everything means</h2><p class="lead">Every building, light, line and pet here is a fact portlist measured. Click anything and it tells you which one.</p></div><button class="x" type="button" aria-label="Close">×</button></header>' +
@@ -4174,6 +4412,7 @@ document.addEventListener('keydown', e => {
   const k = e.key;
   if (k === 'Escape') { if ($('#legend').classList.contains('on')) toggleLegend(false); else if ($('#layers').classList.contains('on')) toggleLayers(false); else closeInspector(); }
   else if (k === 'f' || k === 'F') fullscreen();
+  else if (k === 'p' || k === 'P') openScrub();
   else if (k === '/') { e.preventDefault(); openSearch(true); }
   else if (k === '?') toggleLegend();
   else if (k === 't' || k === 'T') setTour(!W.cfg.tour);
@@ -4193,6 +4432,9 @@ $('#bSearch').onclick = () => openSearch(!$('#search').classList.contains('on'))
 $('#bLayers').onclick = () => toggleLayers();
 $('#bTour').onclick = () => setTour(!W.cfg.tour);
 $('#bFit').onclick = () => fit(true);
+$('#bPast').onclick = () => openScrub();
+$('#scrubLive').onclick = () => openScrub(false);
+$('#scrubRange').addEventListener('input', e => scrubTo(e.target.value));
 $('#bLegend').onclick = () => toggleLegend();
 $('#bFull').onclick = fullscreen;
 $('#oScreen').onclick = () => setScreen(!W.cfg.screen);
@@ -4202,7 +4444,7 @@ $('#legend').addEventListener('click', e => { if (e.target.id === 'legend') togg
 // ------------------------------------------------------------------ polling
 let polling = false;
 async function poll() {
-  if (polling) return; polling = true;
+  if (polling || W.past) return; polling = true;
   try {
     const r = await fetch(API + '?since=' + W.seq, { headers: { [HEADER]: TOKEN }, cache: 'no-store' });
     if (!r.ok) throw new Error(r.status === 403 ? 'this page\'s key is from an older run. Open the address the terminal printed.' : 'the scan answered ' + r.status);
@@ -4212,7 +4454,7 @@ async function poll() {
     if (first) { fit(false); pushLog('harbour scan complete: ' + doc.stats.services + ' services', '#6fe3a4', doc.at, 'scan'); for (const h of (doc.history || []).slice(0, 3).reverse()) pushLog(h.text, h.type === 'opened' ? '#6fe3a4' : '#8a7a68', h.ts, 'history'); }
     onEvents(doc.events || [], first);
     W.seq = doc.seq || W.seq;
-    renderPills(); renderMachine(); if ($('#attn').classList.contains('open')) renderDrawer(); else renderDrawerLabel();
+    renderPills(); renderMachine(); renderA11y(); if ($('#attn').classList.contains('open')) renderDrawer(); else renderDrawerLabel();
     refreshInspector();
     W.offline = false; W.lastOk = Date.now();
     $('#live').className = 'live'; $('#liveT').textContent = 'live · ' + hms(doc.at);

@@ -293,3 +293,28 @@ def test_remote_databases_are_islands_and_https_is_traffic():
     assert s["lighthouse"]["state"] == "dark"                                   # a database is not SSH
     d = world.Differ(); d.feed(snap([row()]))
     assert [e["trigger"] for e in d.feed(s)] == ["DB_SESSION_OPENED"]
+
+
+# ------------------------------------------------------------------ the past
+def test_reconstruct_walks_opens_and_closes_back():
+    now_rows = [row(port=3000, pid=1), row(port=5173, pid=2)]
+    events = [
+        {"ts": NOW - 10, "type": "opened", "port": 5173, "pid": 2, "service": "vite"},
+        {"ts": NOW - 20, "type": "closed", "port": 8080, "pid": 3, "service": "api", "exposure": "all"},
+        {"ts": NOW - 90, "type": "opened", "port": 8080, "pid": 3, "service": "api"},
+    ]
+    at30 = world.reconstruct(now_rows, events, NOW - 30)
+    assert [(x["port"], x["exposure"]) for x in at30] == [(3000, "loopback"), (8080, "all")]   # vite not yet, api still up
+    assert [x["port"] for x in world.reconstruct(now_rows, events, NOW - 5)] == [3000, 5173]  # the present
+    assert [x["port"] for x in world.reconstruct(now_rows, events, NOW - 100)] == [3000]       # before api opened
+
+
+def test_fleet_harbours_skip_this_machine_and_keep_the_quiet_ones():
+    hosts = [{"id": "127.0.0.1", "name": "127.0.0.1", "status": "gone"},
+             {"id": "me", "name": "mybox.local", "status": "online"},
+             {"id": "web-1", "name": "web-1", "status": "gone", "age": 99999, "ports": 12, "exposed": 2,
+              "os": {"pretty": "Ubuntu"}, "addresses": [{"ip": "10.0.0.5"}]},
+             {"id": "db-1", "name": "db-1", "status": "online", "ports": 4, "exposed": 0}]
+    out = world.fleet_harbours(hosts, "mybox")
+    assert [h["id"] for h in out] == ["db-1", "web-1"]         # online first; loopback and this machine left out
+    assert out[1]["status"] == "gone" and out[1]["address"] == "10.0.0.5"

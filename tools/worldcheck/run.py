@@ -116,8 +116,28 @@ def scripted(t):
 _differ = world.Differ()
 
 
+FLEET = [{"id": "web-1", "name": "web-1", "status": "online", "ports": 6, "exposed": 1, "os": "Ubuntu 24.04", "address": "10.0.0.5"},
+         {"id": "old-box", "name": "old-box", "status": "gone", "age": 90000, "ports": 3, "exposed": 0, "os": None, "address": None}]
+
+
+def past_payload(at):
+    # the past as history would give it: just two listeners, nothing else recorded
+    rows = [world._past_row({"port": 3000, "pid": 11, "service": "Node / Express", "exposure": "loopback"}),
+            world._past_row({"port": 5432, "pid": 12, "service": "PostgreSQL", "exposure": "all"})]
+    snap = world.build(rows, {}, [], {"engine": None, "reachable": False, "containers": []}, {}, {}, [], now=at)
+    doc = dict(snap)
+    doc.update(past={"at": at, "oldest": T0 - 3600, "before_history": False, "note": "Reconstructed."},
+               events=[], seq=_differ.seq, pets=world.plan_pets(snap, [], now=at), chatter=[], history=[], fleet=FLEET)
+    return doc
+
+
+def timeline():
+    return [{"ts": T0 - 3000, "type": "opened", "port": 3000, "text": "x"}, {"ts": T0 - 600, "type": "closed", "port": 9000, "text": "y"}]
+
+
 def payload(since=0, **_):
     snap = scripted(time.time() - T0)
+    snap["fleet"] = FLEET
     _differ.feed(snap)
     doc = dict(snap)
     doc["events"] = _differ.since(since)
@@ -130,6 +150,8 @@ def payload(since=0, **_):
 
 
 world.payload = payload
+world.past_payload = past_payload
+world.timeline = timeline
 
 
 # ------------------------------------------------------------------ the page-side sampler
@@ -186,9 +208,11 @@ FINAL = r"""
   out.crates = [...W.crates.values()].filter(k => !k.leaving).length;
   out.dormant = leftBehind().length;
   out.layout = layoutCheck();
+  out.a11y = document.querySelectorAll('#a11yList button').length;
+  out.a11yWant = out.buildings + 5 + out.islands + (d.fleet || []).length;
   const kinds = {}; for (const h of HITS) if (!kinds[h.kind]) kinds[h.kind] = h;
   out.inspectors = {};
-  for (const k of ['building', 'gate', 'ship', 'office', 'customs', 'lighthouse', 'pet', 'boat', 'car', 'container', 'toll', 'signal', 'dormant']) {
+  for (const k of ['building', 'gate', 'ship', 'office', 'customs', 'lighthouse', 'pet', 'boat', 'car', 'container', 'toll', 'signal', 'dormant', 'fleet']) {
     if (!kinds[k]) { out.inspectors[k] = 'no hit area'; continue; }
     openInspector(kinds[k]);
     const t = document.querySelector('#insp .ttl');
@@ -224,6 +248,14 @@ def main():
         page.wait_for_function("() => [...W.cars.values()].every(c => c.stage === 'parked')", timeout=60000)
         wc = page.evaluate("() => window.__wc")
         fin = page.evaluate(FINAL)
+        # replay: scrub back, the past harbour replaces the present; Live brings it back
+        page.evaluate("() => openScrub(true)")
+        page.wait_for_function("() => (W.timeline || []).length > 0", timeout=10000)
+        page.evaluate("() => { const sl = document.querySelector('#scrubRange'); const at = +sl.min + 60; sl.value = at; scrubTo(at); }")
+        page.wait_for_function("() => W.past && [...W.buildings.values()].filter(b => !b.leaving).length === 2", timeout=15000)
+        replay = page.evaluate("() => ({ chip: document.querySelector('#liveT').textContent, banner: document.querySelector('#banner').classList.contains('on'), cars: W.cars.size })")
+        page.evaluate("() => openScrub(false)")
+        page.wait_for_function("() => !W.past && [...W.buildings.values()].filter(b => !b.leaving).length === " + str(fin["buildings"]), timeout=15000)
         browser.close()
     srv.shutdown()
 
@@ -248,6 +280,9 @@ def main():
     check("props clear of lanes, bays and each other", not fin["layout"], str(fin["layout"]))
     bad = {k: v for k, v in fin["inspectors"].items() if v != "ok"}
     check("every entity kind opens an inspector", not bad, json.dumps(bad))
+    check("replay shows the past and labels it", replay["chip"] == "replay" and replay["banner"] and replay["cars"] == 0, json.dumps(replay))
+    check("Live returns to the present", True)
+    check("keyboard list covers the harbour", fin["a11y"] >= fin["a11yWant"], "%d buttons, want %d" % (fin["a11y"], fin["a11yWant"]))
     check("no console errors", not errors, "; ".join(errors[:3]))
     print("\n%d frames sampled. %s" % (wc["frames"], "ALL PASS" if not fails else "%d FAILED" % len(fails)))
     return 1 if fails else 0

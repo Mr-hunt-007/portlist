@@ -1111,6 +1111,27 @@ _last_snap = {"t": 0.0, "snap": None}
 _sess_cache = {"t": 0.0, "doc": None}
 
 
+def fleet_harbours(hosts, here=None):
+    """-> other machines that report to this one, as distant harbours.
+
+    From the fleet store's summaries: nothing is contacted. A host that has
+    stopped reporting stays on the horizon, dark, with how long ago it was seen.
+    """
+    out = []
+    here = (here or "").split(".")[0].lower()
+    for h in hosts or []:
+        ident = h.get("id") or ""
+        if ident in ("127.0.0.1", "localhost", "::1") or (here and (h.get("name") or "").split(".")[0].lower() == here):
+            continue
+        out.append({"id": ident, "name": h.get("name") or ident, "status": h.get("status"),
+                    "age": h.get("age"), "ports": h.get("ports"), "exposed": h.get("exposed"),
+                    "critical": h.get("critical"), "high": h.get("high"),
+                    "os": (h.get("os") or {}).get("pretty"),
+                    "address": ((h.get("addresses") or [{}])[0] or {}).get("ip")})
+    out.sort(key=lambda x: ({"online": 0, "stale": 1}.get(x["status"], 2), x["name"]))
+    return out[:5]
+
+
 def _self_cost():
     """What the scanner itself costs, from its own bookkeeping (no extra work)."""
     try:
@@ -1178,6 +1199,11 @@ def collect(force=False):
         conns = []
     snap = build(rows, host, groups, cdoc, sdoc, si, hist, outbound=outbound, conns=conns, traffic=traffic)
     snap["ship"]["self"] = _self_cost()
+    try:
+        from . import fleet as fleet_mod            # portboard only; portlist has no fleet
+        snap["fleet"] = fleet_harbours(fleet_mod.hosts(), (host or {}).get("hostname"))
+    except Exception:
+        snap["fleet"] = []
     try:
         snap["stdio_mcp"] = [{"name": x.get("name"), "pid": x.get("pid")} for x in scan.stdio_mcp()][:12]
     except Exception:
@@ -1249,6 +1275,93 @@ def payload(since=0, force=False, keep_fresh=False):
     doc["chatter"] = chatter(tasks, snap)
     doc["history"] = _history_feed(snap)
     return doc
+
+
+# ------------------------------------------------------------------ the past
+def reconstruct(now_rows, events, at):
+    """-> the listeners at time `at`, as far as the history can say.
+
+    Start from what is listening now and walk the recorded opens and closes
+    back to `at`: an open after `at` had not happened yet, a close after `at`
+    was still listening. Only port, process, service name and exposure are
+    recorded, so that is all a past harbour can show.
+    """
+    live = {}
+    for r in now_rows or []:
+        if r.get("quiet"):
+            continue
+        live[(r.get("port"), r.get("pid"))] = {"port": r.get("port"), "pid": r.get("pid"),
+                                               "service": r.get("service") or r.get("cmd") or "?",
+                                               "exposure": (r.get("exposure") or {}).get("level") or "loopback"}
+    for e in sorted(events or [], key=lambda e: -(e.get("ts") or 0)):
+        if (e.get("ts") or 0) <= at:
+            break
+        k = (e.get("port"), e.get("pid"))
+        if e.get("type") == "opened":
+            live.pop(k, None)
+        elif e.get("type") == "closed":
+            live[k] = {"port": e.get("port"), "pid": e.get("pid"), "service": e.get("service") or "?",
+                       "exposure": e.get("exposure") or "loopback"}
+    return sorted(live.values(), key=lambda x: (x["port"] or 0, x["pid"] or 0))
+
+
+def _past_row(x):
+    sid = None
+    try:
+        from . import catalog
+        for sig in catalog.SERVICES:
+            if sig.get("name") == x["service"]:
+                sid = sig["id"]
+                break
+    except Exception:
+        pass
+    level = x["exposure"]
+    return {"id": "%s-%s" % (x["port"], x["pid"]), "port": x["port"], "pid": x["pid"],
+            "cmd": x["service"], "cmdline": x["service"], "service": x["service"], "service_id": sid,
+            "exposure": {"level": level, "addrs": ["127.0.0.1"] if level == "loopback" else ["*"]},
+            "activity": {"known": False, "note": "use is not recorded for the past"},
+            "conns": 0, "health": "nodata", "risk": 0, "risk_band": "", "reasons": [],
+            "leftover": {"likely": False}, "quiet": False, "starter": {}, "origin": {"matched": "none"}}
+
+
+def past_payload(at):
+    """What /api/world?at= answers: the harbour at a moment in the recorded history."""
+    from . import scan, history
+    rows, host = scan.scan()
+    events = history.recent(100000)
+    oldest = min((e.get("ts") or 0 for e in events), default=None)
+    past = [_past_row(x) for x in reconstruct(rows, events, at)]
+    snap = build(past, {"hostname": (host or {}).get("hostname")}, [],
+                 {"engine": None, "reachable": False, "containers": [], "note": "containers are not recorded for the past"},
+                 {}, {"hostname": (host or {}).get("hostname")}, [], now=at)
+    # who started them was not recorded: say that, rather than calling them unknown
+    for sv in snap["services"]:
+        sv["origin"], sv["origin_why"], sv["origin_phrase"] = "unrecorded", "not recorded for the past", ""
+    snap["stats"] = _stats([x for x in snap["services"] if not x["system"]], snap["workers"], snap["yard"])
+    snap["conditions"] = conditions(snap)
+    doc = dict(snap)
+    doc["past"] = {"at": at, "oldest": oldest,
+                   "before_history": oldest is not None and at < oldest,
+                   "note": "Reconstructed from recorded opens and closes: listeners and their exposure only. "
+                           "Use, owners, sessions, traffic and containers are not recorded for the past."}
+    doc["events"], doc["seq"] = [], _differ.seq
+    doc["pets"] = plan_pets(snap, [], now=at)
+    doc["chatter"] = []
+    doc["history"] = []
+    doc["timeline"] = [{"ts": e.get("ts"), "type": e.get("type"), "port": e.get("port"), "text": e.get("text")}
+                       for e in events if e.get("type") in ("opened", "closed")][:2000]
+    return doc
+
+
+def timeline():
+    """Recorded opens and closes for the scrubber, newest first. Cheap: one file read."""
+    try:
+        from . import history
+        ev = history.recent(100000)
+    except Exception:
+        ev = []
+    return [{"ts": e.get("ts"), "type": e.get("type"), "port": e.get("port"), "text": e.get("text")}
+            for e in ev if e.get("type") in ("opened", "closed")][:2000]
 
 
 def _history_feed(snap):

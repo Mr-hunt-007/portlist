@@ -34,6 +34,8 @@ itself.
 | Highway and toll plaza | The causeway is a six-lane highway: three lanes each way, a median barrier, shoulders and lamps. Cars spread across the plaza's six booths; the arms lift as they approach and nobody stops. A gantry sign shows the real network rate and outbound host count |
 | Traffic light | At the car park exit. Leaving cars get a green phase only when one is waiting; amber between phases |
 | Forklift | Takes pallets to services with connections open right now, then returns; parked when nothing is in use |
+| The harbour gate | A checkpoint canopy over both lanes: in on the north lane, out on the south, each with its own barrier that lifts for the vehicle in front of it. The lit panel reads EXT OPEN, EXT BOUND or EXT CLOSED, and while something is reachable from outside the north barrier stands open and a red lamp blinks |
+| Other machines | Hosts that report to this Portboard (portboard only), as harbours on the horizon west of the lighthouse: one small building per listening port, a red lamp if anything there is exposed. A host that has stopped reporting stays, dark and fogged, with how long ago it was last heard |
 | The groundskeeper | Sweeps up an old foundation once its service has been gone 90 seconds. The stop stays in the Timeline |
 | Old foundations | Something that stopped here. Kept for a while so a restart lands in the same lot |
 | The lighthouse | SSH. Full beam while any SSH session is open, in or out; a steady lamp while a server listens with nobody connected; dark otherwise. Someone logged in to this machine arrives as a big ship and moors at the lighthouse |
@@ -150,10 +152,28 @@ on every scan.
 A short card explains the harbour once, with a tour, the legend, or nothing.
 It is remembered per browser.
 
+## Replay
+
+`P`, or the clock button, opens a scrubber over the recorded opens and closes
+(`~/.portlist/events.jsonl`, or portboard's own). Dragging it rebuilds the
+harbour as it stood then: `world.reconstruct()` starts from what is listening
+now and walks the history back. Only listeners and their exposure are recorded,
+so a past harbour has no use, owners, sessions, traffic or containers, and says
+so in a banner; origins read "not recorded", never "unknown". Live returns to now.
+`/api/world?at=<unix time>` and `/api/world?timeline=1` serve it.
+
+## Keyboard and screen readers
+
+Tab from the top reaches "Skip to the list of everything in the harbour": a
+list of buttons, one per building, island, container, car, other machine and
+landmark. Focus moves the camera there; Enter opens the same inspector a click
+does. On a phone the machine panel collapses to one line: cpu, memory, disk,
+time.
+
 ## Keys
 
 `F` full screen, `S` ambient mode (tour + captions, chrome fades), `T` tour,
-`/` find, `?` legend, `A` what needs a look, `L` light (the clock, day, dusk,
+`/` find, `P` replay, `?` legend, `A` what needs a look, `L` light (the clock, day, dusk,
 night), `0` whole harbour, `+` `-` zoom, `Esc` close.
 
 ## How it is built

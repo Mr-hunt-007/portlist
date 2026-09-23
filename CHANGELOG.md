@@ -36,6 +36,14 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   the process) and framework (read from the project's package.json or
   requirements). Agents wear theirs; the ship flies the OS's. A first-visit card
   explains the harbour once.
+- **Replay, other machines, keyboard access, phone panel, a real gate.** A
+  scrubber rebuilds the harbour at any recorded moment (listeners and exposure
+  only, and it says so). Machines reporting to Portboard appear as harbours on
+  the horizon, dark once silent. A skip link leads to a list of everything,
+  keyboard-reachable, opening the same inspectors. The phone gets a one-line
+  machine panel. The entrance is a two-lane checkpoint with a barrier per lane
+  and an EXT OPEN/CLOSED panel; trucks queue and use their own lanes, and
+  feeder ships wait for the berth.
 - **Checked in a real browser, in CI.** `tools/worldcheck/run.py` drives the
   page with a scripted machine and fails on any overlap, jump, off-road vehicle,
   grounded boat, wet pet, stale entity, dead inspector or console error. The car

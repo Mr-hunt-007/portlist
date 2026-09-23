@@ -256,6 +256,28 @@ def main():
         replay = page.evaluate("() => ({ chip: document.querySelector('#liveT').textContent, banner: document.querySelector('#banner').classList.contains('on'), cars: W.cars.size })")
         page.evaluate("() => openScrub(false)")
         page.wait_for_function("() => !W.past && [...W.buildings.values()].filter(b => !b.leaving).length === " + str(fin["buildings"]), timeout=15000)
+        # the newer pieces: spotlight, load weather, the beam holding an arriving ship, sound, a picture
+        extra = page.evaluate("""async () => {
+          const frames = n => new Promise(r => { let k = 0; const f = () => ++k >= n ? r() : requestAnimationFrame(f); requestAnimationFrame(f); });
+          const o = {};
+          const hb = HITS.find(h => h.kind === 'building'); openInspector(hb); await frames(40);
+          o.spot = W.spot > 0.6 && !!W.spotAt; closeInspector();
+          const keep = HIST.cpu.slice(); HIST.cpu.push(96, 97, 95, 98, 96, 97); await frames(240); o.rain = W.rain > 0.5 && W.storm;
+          HIST.cpu.length = 0; keep.forEach(v => HIST.cpu.push(v)); HIST.cpu.push(5, 6, 4, 5, 6, 5); await frames(30); o.clears = !W.storm;
+          const v = [...W.visitShips.values()][0]; if (v) { v.t = 0.1; await frames(20); o.beam = W.beamLock === true; } else o.beam = 'no ship';
+          W.cfg.sound = true; audioSync(); sfx('thud'); sfx('start'); sfx('purr'); o.sound = !!AU.ctx; W.cfg.sound = false; audioSync();
+          return o;
+        }""")
+        with page.expect_download(timeout=15000) as dl:
+            page.evaluate("() => snapshot()")
+        pic = dl.value
+        pic_path = os.path.join(os.environ.get("WORLDCHECK_OUT", "/tmp"), pic.suggested_filename)
+        pic.save_as(pic_path)
+        with open(pic_path, "rb") as fh:
+            head = fh.read(24)
+        extra["picture"] = head[:8] == b"\x89PNG\r\n\x1a\n" and int.from_bytes(head[16:20], "big") > 400
+        extra["pictureName"] = pic.suggested_filename
+        extra["captureOff"] = page.evaluate("() => W.capture === false")
         browser.close()
     srv.shutdown()
 
@@ -283,6 +305,11 @@ def main():
     check("replay shows the past and labels it", replay["chip"] == "replay" and replay["banner"] and replay["cars"] == 0, json.dumps(replay))
     check("Live returns to the present", True)
     check("keyboard list covers the harbour", fin["a11y"] >= fin["a11yWant"], "%d buttons, want %d" % (fin["a11y"], fin["a11yWant"]))
+    check("clicking something puts it in the spotlight", extra["spot"] is True)
+    check("sustained CPU brings rain, and it clears", extra["rain"] is True and extra["clears"] is True, json.dumps(extra))
+    check("the lighthouse holds an arriving ssh ship", extra["beam"] is True, str(extra["beam"]))
+    check("sound starts and stops without errors", extra["sound"] is True)
+    check("a picture downloads as a PNG", extra["picture"] and extra["captureOff"], extra["pictureName"])
     check("no console errors", not errors, "; ".join(errors[:3]))
     print("\n%d frames sampled. %s" % (wc["frames"], "ALL PASS" if not fails else "%d FAILED" % len(fails)))
     return 1 if fails else 0

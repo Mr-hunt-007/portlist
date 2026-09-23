@@ -305,6 +305,7 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.45} body.idle .pills{opac
       <button class="tool" type="button" id="bPast" title="Replay: the harbour at an earlier time (P)" aria-pressed="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.8"/><path d="M8 4.8V8l2.4 1.6"/><path d="M1.6 5.2 2.6 2.4 4.6 4.4"/></svg><span class="l">Replay</span></button>
       <button class="tool" type="button" id="bFit" title="Whole harbour (0)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg><span class="l">Fit</span></button>
       <button class="tool" type="button" id="bLegend" title="What everything means (?)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6"/><path d="M6.3 6.2a1.8 1.8 0 1 1 2.4 1.7c-.5.2-.7.6-.7 1.1v.5"/><circle cx="8" cy="11.6" r=".5" fill="currentColor"/></svg><span class="l">Legend</span></button>
+      <button class="tool" type="button" id="bShare" title="Save a picture of the harbour (K)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.8" y="4" width="12.4" height="9" rx="1.6"/><circle cx="8" cy="8.5" r="2.4"/><path d="M5.5 4l1-1.8h3L10.5 4"/></svg><span class="l">Picture</span></button>
       <button class="tool" type="button" id="bFull" title="Full screen (F)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg><span class="l">Full screen</span></button>
     </div>
   </div>
@@ -570,7 +571,7 @@ const W = {
   gate: { boom: 0, moving: false }, cranes: [],
   t: 0, highlight: null, hlLabel: '', sel: null, hovered: null, chat: [], chatAt: 0,
   offline: false, lastOk: 0, firstFrame: true,
-  cfg: Object.assign({ light: 'auto', labels: true, pets: true, lines: true, traffic: true, ruins: true, tour: false, screen: false }, store.get('cfg', {}))
+  cfg: Object.assign({ light: 'auto', labels: true, pets: true, lines: true, traffic: true, ruins: true, tour: false, screen: false, sound: false }, store.get('cfg', {}))
 };
 const cam = { x: 0, y: 0, zoom: 1, tx: null, ty: null, tz: null, userAt: 0 };
 
@@ -922,6 +923,7 @@ function onEvents(evs, quiet) {
     pushLog(ev.meaning, col, ev.ts, 'live');
     if (quiet) continue;
     const sub = ev.subject || '';
+    if (ev.trigger === 'SERVICE_STARTED') sfx('start'); else if (ev.trigger === 'SERVICE_STOPPED') sfx('stop');
     if (ev.trigger === 'SERVICE_STARTED') {
       const b = buildingById(sub.slice(8));
       if (b && b.build !== undefined && !b.truck) sendTruck(b);
@@ -1087,7 +1089,7 @@ function stepCranes(dt) {
         const ca = { crate: k, pos: [cr.gx + 1.0, setY + 0.275], leg: 0, axis: 'x', sign: 1, wheel: 0 };
         ca.path = route(ca.pos, [k.gx + 1.05, k.gy + 0.525]);
         W.carriers.push(ca);
-        cr.load = null; cr.job = null; f.stage = 'depart';
+        cr.load = null; cr.job = null; f.stage = 'depart'; sfx('thud');
       }
     }
   }
@@ -1431,10 +1433,60 @@ function draw() {
   drawLinks();
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.drawImage(vignette(), 0, 0, VW, VH);
+  drawWeather(night);
+  drawSpotlight();
   if (W.offline) { ctx.fillStyle = 'rgba(40,50,60,.35)'; ctx.fillRect(0, 0, VW, VH); }
   drawSigns();
+  if (W.capture) return;
   drawChat();
   drawHover();
+}
+
+// What you clicked stays in the light and the rest of the harbour steps back a
+// little. The spot follows the thing itself, found where it was drawn this frame.
+function drawSpotlight() {
+  const sel = W.sel, want = sel && !W.capture ? 1 : 0;
+  W.spot = lerp(W.spot || 0, want, 0.12);
+  if (W.spot < 0.01) return;
+  let hit = null;
+  if (sel) hit = HITS.find(h => sel.ref != null ? h.ref === sel.ref : h.kind === sel.kind);
+  if (hit) {
+    const xs = hit.poly.map(p => p[0]), ys = hit.poly.map(p => p[1]);
+    const [sx, sy] = toScreen((Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2);
+    const r = clamp(Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) * cam.zoom * 0.75, 60, 260);
+    W.spotAt = [lerp((W.spotAt || [sx])[0], sx, 0.3), lerp((W.spotAt || [0, sy])[1], sy, 0.3), lerp((W.spotAt || [0, 0, r])[2], r, 0.2)];
+  }
+  if (!W.spotAt) return;
+  const [x, y, r] = W.spotAt, g = ctx.createRadialGradient(x, y, r * 0.7, x, y, r * 2.4);
+  g.addColorStop(0, 'rgba(4,10,18,0)'); g.addColorStop(1, 'rgba(4,10,18,' + (0.34 * W.spot).toFixed(3) + ')');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
+}
+
+// Weather is the machine's own load: rain only while the CPU has stayed high,
+// caution tape on the deck while memory is nearly full. Clear otherwise.
+function loadWeather() {
+  const h = HIST.cpu.slice(-6);
+  if (h.length < 3) return 0;
+  const avg = h.reduce((a, b) => a + b, 0) / h.length;
+  const was = !!W.storm;
+  W.storm = W.storm ? avg >= 65 : avg >= 80;          // on at 80%, off again below 65%
+  if (W.storm !== was && W.snap) toast(W.storm ? 'Rain: the CPU has stayed above 80% (' + Math.round(avg) + '%)' : 'Clearing: the CPU has come back down', '#7fb2ff');
+  return W.storm ? 1 : 0;
+}
+const DROPS = Array.from({ length: 160 }, (_, i) => [hash('rx' + i), hash('ry' + i), 0.7 + hash('rs' + i) * 0.6]);
+function drawWeather(night) {
+  W.rain = lerp(W.rain || 0, W.past ? 0 : loadWeather(), 0.01);
+  if (W.rain < 0.02) return;
+  ctx.fillStyle = 'rgba(40,52,64,' + (0.22 * W.rain).toFixed(3) + ')'; ctx.fillRect(0, 0, VW, VH);
+  if (REDUCED) return;
+  const n = Math.round(160 * W.rain), T = W.t;
+  ctx.strokeStyle = 'rgba(190,210,228,' + (0.16 + 0.1 * night).toFixed(2) + ')'; ctx.lineWidth = 1; ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const [sx, sy, sp] = DROPS[i];
+    const x = ((sx * (VW + 200) + T * 90 * sp) % (VW + 200)) - 100, y = ((sy * (VH + 100) + T * 620 * sp) % (VH + 100)) - 50;
+    ctx.moveTo(x, y); ctx.lineTo(x - 4, y + 13);
+  }
+  ctx.stroke();
 }
 
 function drawGround(night) {
@@ -1837,8 +1889,18 @@ function drawHeadland(night) {
   if (K > 0.01 && L.state === 'guiding') {
     const act = W.head && W.head.s && (W.head.s.activity === 'busy' || W.head.s.activity === 'active');
     // the beam turns; brighter while somebody is connected
-    const ang = T * 0.9, strength = (0.25 + 0.55 * night) * (act ? 1 : 0.65) * K;
-    for (const off of [0, Math.PI]) {
+    // it turns; while someone is sailing in over SSH it swings round and holds on their ship
+    let tgt = null;
+    for (const v of W.visitShips.values()) if (!v.leaving && v.t < 1 && (!tgt || v.t < tgt.t)) tgt = v;
+    const now = performance.now() / 1000, dt = Math.min(0.1, now - (W.beamT || now)); W.beamT = now;
+    if (W.beamA == null) W.beamA = T * 0.9;
+    if (tgt && !REDUCED) {
+      const [vx, vy] = visitorPos(tgt), [px, py] = iso(vx + 0.9, vy - 1, 20);
+      const want = Math.atan2((py - ly) / 0.5, px - lx), diff = Math.atan2(Math.sin(want - W.beamA), Math.cos(want - W.beamA));
+      W.beamA += diff * Math.min(1, dt * 2.5); W.beamLock = true;
+    } else { W.beamA += REDUCED ? 0 : dt * 0.9; W.beamLock = false; }
+    const ang = W.beamA, strength = (0.25 + 0.55 * night) * (act || W.beamLock ? 1 : 0.65) * K;
+    for (const off of W.beamLock ? [0] : [0, Math.PI]) {
       const a = ang + off, len = 900, spread = 0.09;
       const bg = ctx.createLinearGradient(lx, ly, lx + Math.cos(a) * len, ly + Math.sin(a) * len * 0.5);
       bg.addColorStop(0, 'rgba(255,240,190,' + (0.45 * strength).toFixed(2) + ')'); bg.addColorStop(1, 'rgba(255,240,190,0)');
@@ -2828,7 +2890,7 @@ function drawCustoms(night) {
 }
 
 // ------------------------------------------------------------------ other machines
-// Hosts that report to this Portboard, as harbours far out on the horizon. From
+// Machines that report in to a fleet store, as harbours far out on the horizon. From
 // the fleet store only: nothing here contacts them. A host that has stopped
 // reporting stays, dark and in the fog, with how long ago it was last heard from.
 // just below the horizon (x + y about -19.5), west of the lighthouse; the SSH islands take the east
@@ -3213,7 +3275,40 @@ function drawBuilding(b, night) {
   else if (sh === 'dome' || sh === 'onion') windows(b, H - (sh === 'onion' ? 14 : 0), lit, flick, 2, 8, 0.25, 0.8);
   // door: shut when the verified path was refused
   const doorCol = s.exposure === 'unreachable' || s.failure === 'failed' ? 'rgba(80,40,38,.95)' : dusty ? 'rgba(24,21,18,.95)' : 'rgba(38,31,25,.95)';
-  if (!['lighthouse', 'tower', 'mast', 'onion'].includes(sh)) poly([iso(b.gx + 1.75, b.gy + b.d, 18), iso(b.gx + 2.2, b.gy + b.d, 18), iso(b.gx + 2.2, b.gy + b.d, 0), iso(b.gx + 1.75, b.gy + b.d, 0)], doorCol);
+  if (!['lighthouse', 'tower', 'mast', 'onion'].includes(sh)) {
+    poly([iso(b.gx + 1.75, b.gy + b.d, 18), iso(b.gx + 2.2, b.gy + b.d, 18), iso(b.gx + 2.2, b.gy + b.d, 0), iso(b.gx + 1.75, b.gy + b.d, 0)], doorCol);
+    // a lamp over the door: warm while it answers, guttering when long idle, out when it does not
+    if (H > 22 && s.failure !== 'failed') {
+      const [dx, dy] = iso(b.gx + 1.975, b.gy + b.d, 21), k = dusty ? 0.35 + 0.25 * Math.max(0, Math.sin(W.t * 1.3 + b.seed * 7)) : 1;
+      ctx.fillStyle = 'rgba(255,214,150,' + (0.55 * k + 0.35 * night * k).toFixed(2) + ')'; ctx.fillRect(dx - 2.2, dy - 1.6, 4.4, 2.4);
+      if (night > 0.25) { const rg = ctx.createRadialGradient(dx, dy + 12, 1, dx, dy + 12, 22); rg.addColorStop(0, 'rgba(255,206,140,' + (0.22 * night * k).toFixed(3) + ')'); rg.addColorStop(1, 'rgba(255,206,140,0)'); ctx.fillStyle = rg; ctx.beginPath(); ctx.ellipse(dx, dy + 12, 22, 14, 0, 0, 6.3); ctx.fill(); }
+    }
+  }
+  // a pale rim along the lit edges, so dark buildings read against dark tarmac
+  if (f && H > 8 && !['lighthouse', 'onion'].includes(sh)) {
+    const T0 = f.top, rimA = (0.16 + night * 0.12) * (dusty ? 0.5 : 1);
+    ctx.strokeStyle = 'rgba(236,228,210,' + rimA.toFixed(2) + ')'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(T0[3][0], T0[3][1]); ctx.lineTo(T0[2][0], T0[2][1]); ctx.lineTo(T0[1][0], T0[1][1]); ctx.stroke();
+    ctx.strokeStyle = 'rgba(236,228,210,' + (rimA * 0.55).toFixed(2) + ')';
+    const c0 = f.south[1], c1 = f.south[2]; ctx.beginPath(); ctx.moveTo(c0[0], c0[1]); ctx.lineTo(c1[0], c1[1]); ctx.stroke();
+  }
+  // left running by an agent that has gone: a meter on the wall, its disc turning as fast as the service is used
+  if (s.lights_left_on && H > 20) {
+    const spin = { busy: 9, active: 5, idle: 1.4, long_idle: 0.5 }[s.activity] || 1;
+    b.meter = (b.meter || 0) + (REDUCED ? 0 : spin * 0.016);
+    onEast(b.gx + b.w, b.gy + b.d - 0.95, 20, 0.62, 17, () => {
+      ctx.fillStyle = '#d7d2c6'; ctx.fillRect(0, 0, 1, 1);
+      ctx.strokeStyle = 'rgba(40,44,50,.8)'; ctx.lineWidth = 0.06; ctx.strokeRect(0, 0, 1, 1);
+      ctx.fillStyle = '#20262c'; ctx.fillRect(0.14, 0.62, 0.72, 0.22);
+      const w = (Math.sin(b.meter) + 1) / 2; ctx.fillStyle = '#c8433a'; ctx.fillRect(0.14 + w * 0.6, 0.62, 0.12, 0.22);
+      ctx.fillStyle = 'rgba(255,207,106,.9)'; ctx.beginPath(); ctx.arc(0.5, 0.32, 0.14, 0, 6.3); ctx.fill();
+    });
+  }
+  // two processes on one port: hazard striping along the berth in front
+  if (s.conflict && s.conflict.length && H > 8) {
+    const fl = b.flash > 0 ? 0.55 + 0.45 * Math.abs(Math.sin(W.t * 8)) : 0.8, n = 8;
+    for (let i = 0; i < n; i++) tileRect(b.gx + i * b.w / n, b.gy + b.d + 0.12, b.w / n, 0.22, 0.45, i % 2 ? 'rgba(24,24,24,' + fl + ')' : 'rgba(240,192,64,' + fl + ')');
+  }
   if (b.medal && H > 18) medallion(b, medZ, medSize, night);
   // cobwebs on a long-idle corner
   if (dusty) {
@@ -3331,9 +3426,13 @@ function drawSigns() {
     const sel = W.sel && W.sel.ref === b, hov = W.hovered && W.hovered.ref === b;
     const risky = s.risk_band === 'High' || s.risk_band === 'Critical';
     const fresh = W.t - (b.born || -99) < 25 && b.build !== undefined;
-    if (lvl === 0 && !(sel || hov || s.exposure === 'reachable' || s.failure === 'failed' || risky || fresh)) continue;
     const h = b._h === undefined ? b.h : b._h;
     const [x, y] = toScreen(...iso(b.gx + 1.5, b.gy + 1.5, h + (['lighthouse', 'tower'].includes(s.shape) ? 22 : 40)));
+    // zoomed out, the rest still carry a quiet port tag, placed only where there is room
+    if (lvl === 0 && !(sel || hov || s.exposure === 'reachable' || s.failure === 'failed' || risky || fresh)) {
+      add({ ref: b, x, y, pop: pop * 0.8, small: true, muted: true, label: ':' + s.port, dot: signState(s).c, ring: signState(s).ring, exposed: false, chips: [], marks: [], pri: 10 });
+      continue;
+    }
     const marks = [];
     if (s.lights_left_on) marks.push('bulb');
     if (s.origin === 'unknown' || s.origin === 'ambiguous') marks.push('?');
@@ -3363,7 +3462,7 @@ function drawSigns() {
     if (v._x == null) continue;
     const hov = W.hovered && W.hovered.ref === v, sel = W.sel && W.sel.ref === v;
     const [x, y] = toScreen(...iso(v._x + 0.9, v._y - 2.2, 64));
-    add({ kind: 'visitor-ssh', ref: v, x, y, pop: Math.min(1, v.t * 2), hov, sel, label: 'ssh from ' + v.o.raddr, dot: '#ffcf6a', exposed: v.o.scope === 'public', chips: [], marks: [], pri: hov || sel ? 100 : 85 });
+    add({ kind: 'visitor-ssh', ref: v, x, y, pop: Math.min(1, v.t * 2), hov, sel, label: W.capture ? 'ssh in' : 'ssh from ' + v.o.raddr, dot: '#ffcf6a', exposed: v.o.scope === 'public', chips: [], marks: [], pri: hov || sel ? 100 : 85 });
   }
   for (const c of W.cars.values()) {
     if (c.stage === 'queued') continue;
@@ -3371,13 +3470,13 @@ function drawSigns() {
     if (!(hov || sel) && lvl < 2) continue;
     if (c._wx == null) continue;
     const [x, y] = toScreen(...iso(c._wx, c._wy, 18));
-    add({ kind: 'car', ref: c, x, y, pop: 1, hov, sel, small: true, label: (c.e.apps[0] || '?') + ' · ' + (c.e.services[0] || c.e.ports[0] || ''), dot: c.col, exposed: false, chips: [appLogo(c.e.apps[0])].filter(Boolean), marks: [], pri: hov || sel ? 100 : 6 });
+    add({ kind: 'car', ref: c, x, y, pop: 1, hov, sel, small: true, label: W.capture ? (c.e.apps[0] || '?') : (c.e.apps[0] || '?') + ' · ' + (c.e.services[0] || c.e.ports[0] || ''), dot: c.col, exposed: false, chips: [appLogo(c.e.apps[0])].filter(Boolean), marks: [], pri: hov || sel ? 100 : 6 });
   }
   for (const bt of W.boats.values()) {
     if (bt._ix == null) continue;
     const hov = W.hovered && W.hovered.ref === bt, sel = W.sel && W.sel.ref === bt;
     const [x, y] = toScreen(...iso(bt._ix, bt._iy, 72));
-    add({ kind: 'boat', ref: bt, x, y, pop: bt.leaving ? bt.t : Math.min(1, 0.4 + bt.t), hov, sel, label: bt.o.target + ' · ' + (bt.o.kind === 'db' ? bt.o.service : 'ssh'), dot: bt.o.kind === 'db' ? '#6fe3a4' : '#7fb2ff', exposed: false, chips: bt.o.logo && LOGOS[bt.o.logo] ? [bt.o.logo] : [], marks: [], pri: hov || sel ? 100 : 45 });
+    add({ kind: 'boat', ref: bt, x, y, pop: bt.leaving ? bt.t : Math.min(1, 0.4 + bt.t), hov, sel, label: (W.capture ? 'remote' : bt.o.target) + ' · ' + (bt.o.kind === 'db' ? bt.o.service : 'ssh'), dot: bt.o.kind === 'db' ? '#6fe3a4' : '#7fb2ff', exposed: false, chips: bt.o.logo && LOGOS[bt.o.logo] ? [bt.o.logo] : [], marks: [], pri: hov || sel ? 100 : 45 });
   }
   if (W.snap) {
     const o = W.geo.office, hov = W.hovered && W.hovered.kind === 'office', live = (W.snap.sessions || []).filter(x => x.live).length;
@@ -3388,7 +3487,7 @@ function drawSigns() {
     if (f._wx == null) continue;
     const hov = W.hovered && W.hovered.ref === f, sel = W.sel && W.sel.ref === f;
     const [x, y] = toScreen(...iso(f._wx, f._wy, 70));
-    add({ kind: 'fleet', ref: f, x, y, pop: 1, hov, sel, label: f.name + ' · ' + (f.status === 'online' ? (f.ports || 0) + ' ports' : 'last heard ' + ago(f.age)),
+    add({ kind: 'fleet', ref: f, x, y, pop: 1, hov, sel, label: (W.capture ? 'another machine' : f.name) + ' · ' + (f.status === 'online' ? (f.ports || 0) + ' ports' : 'last heard ' + ago(f.age)),
       dot: f.status === 'online' ? ((f.exposed || 0) > 0 ? '#ff5f56' : '#6fe3a4') : '#5d6873', muted: f.status !== 'online', exposed: f.status === 'online' && (f.exposed || 0) > 0, chips: [], marks: [], pri: hov || sel ? 100 : 32 });
   }
   cands.sort((a, b) => b.pri - a.pri);
@@ -3486,6 +3585,16 @@ function drawShip(night) {
     box(X0 + 0.28, y, 1.05, 1.0, DECK + 4, dark('#5b6470'), { z0: DECK });
     if (full > 0) { const cc = ['#c9784a', '#4d7fa8', '#5aa08a'][i]; box(X0 + 0.34, y + 0.06, 0.92, 0.42, DECK + 4 + 11 * Math.min(1, full), dark(cc), { z0: DECK + 4 }); box(X0 + 0.34, y + 0.52, 0.92, 0.42, DECK + 4 + 11 * Math.min(1, full), dark(shade(cc, -22)), { z0: DECK + 4 }); }
   }
+  // memory nearly full: the cargo is taped off
+  if (mem != null && mem >= 85) {
+    const y0 = BOW + 2.35, y1 = BOW + 2.35 + 3 * 1.35, ring = [iso(X0 + 0.18, y0, DECK + 9), iso(X0 + 1.45, y0, DECK + 9), iso(X0 + 1.45, y1, DECK + 9), iso(X0 + 0.18, y1, DECK + 9)];
+    const sway = REDUCED ? 0 : Math.sin(W.t * 2.2) * 1.2;
+    for (const [dash, col] of [[[], '#f0c040'], [[4, 4], '#1a1a1a']]) {
+      ctx.save(); ctx.setLineDash(dash); ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.beginPath();
+      ring.forEach((p, i) => i ? ctx.quadraticCurveTo((ring[i - 1][0] + p[0]) / 2, (ring[i - 1][1] + p[1]) / 2 + 2 + sway, p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+      ctx.quadraticCurveTo((ring[3][0] + ring[0][0]) / 2, (ring[3][1] + ring[0][1]) / 2 + 2 + sway, ring[0][0], ring[0][1]); ctx.stroke(); ctx.restore();
+    }
+  }
   box(X0 + 0.2, STERN - 1.45, 1.2, 1.15, DECK + 16, dark('#c3c9ce'), { z0: DECK });
   box(X0 + 0.3, STERN - 1.35, 1.0, 0.95, DECK + 30, dark('#d5dbe0'), { z0: DECK + 16 });
   poly([iso(X0 + 0.35, STERN - 0.4, DECK + 28), iso(X0 + 1.25, STERN - 0.4, DECK + 28), iso(X0 + 1.25, STERN - 0.4, DECK + 22), iso(X0 + 0.35, STERN - 0.4, DECK + 22)], 'rgba(255,214,140,' + (0.35 + night * 0.5) + ')');
@@ -3498,7 +3607,7 @@ function drawShip(night) {
   ctx.fillStyle = 'rgba(240,162,75,.92)'; ctx.beginPath(); ctx.moveTo(mx, my - 30); ctx.lineTo(mx + 11 + Math.sin(W.t * 3) * 2, my - 26); ctx.lineTo(mx, my - 22); ctx.closePath(); ctx.fill();
   const [nx, ny] = iso(X1 - 0.1, STERN - 1.2, 12);
   ctx.font = '600 6.5px ' + MONO; ctx.fillStyle = 'rgba(226,238,246,.65)'; ctx.textAlign = 'center';
-  ctx.fillText('MV ' + String(W.snap ? W.snap.ship.name : 'PORTLIST').toUpperCase().slice(0, 16), nx + 6, ny);
+  ctx.fillText('MV ' + String(W.snap && !W.capture ? W.snap.ship.name : 'HARBOUR').toUpperCase().slice(0, 16), nx + 6, ny);
   ctx.restore();
   HITS.push({ kind: 'ship', ref: null, poly: [iso(X0, BOW, DECK + 40 + bob), iso(X1, BOW, DECK + 40 + bob), iso(X1, STERN, bob), iso(X0, STERN, bob)] });
 }
@@ -3646,6 +3755,23 @@ function drawGate(night) {
   ctx.fillStyle = lamp ? 'rgba(' + lamp.join(',') + ',' + (.3 + blink * .7 * (open ? 1 : .5)) + ')' : 'rgba(70,80,90,.9)';
   ctx.beginPath(); ctx.arc(lx, ly, 3.8, 0, 6.3); ctx.fill();
   if (lamp) { const rg = ctx.createRadialGradient(lx, ly, 2, lx, ly, 60); rg.addColorStop(0, 'rgba(' + lamp.join(',') + ',' + (.2 * blink) + ')'); rg.addColorStop(1, 'rgba(' + lamp.join(',') + ',0)'); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(lx, ly, 60, 0, 6.3); ctx.fill(); }
+  // verified reachable from outside, and only then: a rotary beacon on the canopy
+  // sweeping the approach, and the road outside washed in its light
+  if (open) {
+    const [bx, by] = iso(GX - 0.1, g.RY, PH + 7), a = REDUCED ? 0.4 : T * 3.2;
+    const face = (Math.cos(a) + 1) / 2;                               // brightest as it faces the road out
+    const [wx, wy] = iso(GX + 5, g.RY, 0.3), wash = ctx.createRadialGradient(wx, wy, 6, wx, wy, 150);
+    wash.addColorStop(0, 'rgba(255,60,50,' + (0.05 + 0.13 * face).toFixed(3) + ')'); wash.addColorStop(1, 'rgba(255,60,50,0)');
+    ctx.fillStyle = wash; ctx.beginPath(); ctx.ellipse(wx, wy, 170, 70, 0, 0, 6.3); ctx.fill();
+    if (!REDUCED) for (const off of [0, Math.PI]) {
+      const d = a + off, len = 150, sp = 0.2, bg = ctx.createLinearGradient(bx, by, bx + Math.cos(d) * len, by + Math.sin(d) * len * 0.5);
+      bg.addColorStop(0, 'rgba(255,70,60,.32)'); bg.addColorStop(1, 'rgba(255,70,60,0)');
+      ctx.fillStyle = bg; ctx.beginPath(); ctx.moveTo(bx, by);
+      ctx.lineTo(bx + Math.cos(d - sp) * len, by + Math.sin(d - sp) * len * 0.5); ctx.lineTo(bx + Math.cos(d + sp) * len, by + Math.sin(d + sp) * len * 0.5); ctx.closePath(); ctx.fill();
+    }
+    ctx.fillStyle = '#3a4048'; ctx.fillRect(bx - 4, by - 1, 8, 3);
+    ctx.fillStyle = 'rgba(255,' + Math.round(60 + 40 * face) + ',50,.95)'; ctx.beginPath(); ctx.ellipse(bx, by - 2, 3.6, 4.2, 0, Math.PI, 0); ctx.fill();
+  }
   const f1 = iso(g.W + 16, g.RY, 10), fg = ctx.createRadialGradient(f1[0], f1[1], 4, f1[0], f1[1], 220);
   fg.addColorStop(0, 'rgba(150,175,195,.3)'); fg.addColorStop(1, 'rgba(150,175,195,0)'); ctx.fillStyle = fg; ctx.beginPath(); ctx.ellipse(f1[0], f1[1], 240, 100, 0, 0, 6.3); ctx.fill();
   HITS.push({ kind: 'gate', ref: gt, poly: [iso(GX - 1.1, HY0 - .5, PH + 8), iso(GX + 0.95, HY0 - .5, PH + 8), iso(GX + 0.95, HY1 + .5, 0), iso(GX - 1.1, HY1 + .5, 0)] });
@@ -3673,9 +3799,12 @@ function drawOffice(night) {
 }
 
 // ------------------------------------------------------------------ characters
-function charBase(pos, size) {
+const ROLE_COL = { guard: '#ff5f56', inspector: '#f0a24b', janitor: '#6fe3a4', mechanic: '#7fb2ff', courier: '#e6d38a' };
+function charBase(pos, size, ring) {
   const [x, y] = iso(pos[0], pos[1], 0);
   ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(x, y, 9 * size, 4.2 * size, 0, 0, 6.3); ctx.fill();
+  // a faint ring in their own colour, so small figures stand out on dark ground
+  if (ring) { ctx.strokeStyle = ring; ctx.globalAlpha *= 0.45; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(x, y, 11 * size, 5.4 * size, 0, 0, 6.3); ctx.stroke(); ctx.globalAlpha /= 0.45; }
   return [x, y];
 }
 function drawBot(x, y, color, accent, face, bob, paused) {
@@ -3704,7 +3833,7 @@ function drawHuman(x, y, color, face, bob, phase, paused) {
   ctx.restore();
 }
 function drawWorker(e) {
-  const w = e.w || {}, [x, y] = charBase(e.pos, 1), paused = e.pause > 0;
+  const w = e.w || {}, [x, y] = charBase(e.pos, 1, e.color), paused = e.pause > 0;
   const bob = paused ? Math.sin(e.phase) * .8 : Math.abs(Math.sin(e.phase)) * 2.2;
   if (w.look === 'robot') { drawBot(x, y, e.color, e.accent, e.face || 1, bob, paused); const lg = AGENT_LOGO[w.kind] || appLogo(w.name); if (lg) logoChip(lg, x + 4.5 * (e.face || 1), y - bob - 15.5, 4.2); }
   else drawHuman(x, y, e.color, e.face || 1, bob, e.phase, paused);
@@ -3723,7 +3852,7 @@ function drawOfficeBot(s, i) {
   HITS.push({ kind: 'session', ref: s, poly: [[x - 12, y - 48], [x + 12, y - 48], [x + 12, y + 4], [x - 12, y + 4]] });
 }
 function drawPet(p) {
-  const [x, y] = charBase(p.pos, .8), moving = p.stage === 'walk' || (p.path && p.leg < p.path.length);
+  const [x, y] = charBase(p.pos, .8, ROLE_COL[p.role]), moving = p.stage === 'walk' || (p.path && p.leg < p.path.length);
   const bob = moving ? Math.abs(Math.sin(p.phase * 2)) * 1.6 : Math.sin(p.phase * .6) * .5;
   ctx.save(); ctx.translate(x, y - bob); ctx.scale(p.face || 1, 1);
   const sit = !moving && (p.mood === 'sleepy' || p.mood === 'calm' && p.role === 'janitor');
@@ -3740,7 +3869,7 @@ function drawPet(p) {
   ctx.fillStyle = '#141a20'; const eye = p.mood === 'sleepy' ? .9 : 1.7;
   ctx.beginPath(); ctx.ellipse(5, hy - .5, 1.1, eye, 0, 0, 6.3); ctx.fill(); ctx.beginPath(); ctx.ellipse(8.6, hy - .5, 1.1, eye, 0, 0, 6.3); ctx.fill();
   // role marks: a collar colour per job, so you can tell the guard from the janitor
-  ctx.strokeStyle = { guard: '#ff5f56', inspector: '#f0a24b', janitor: '#6fe3a4', mechanic: '#7fb2ff', courier: '#e6d38a' }[p.role]; ctx.lineWidth = 1.6;
+  ctx.strokeStyle = ROLE_COL[p.role]; ctx.lineWidth = 1.6;
   ctx.beginPath(); ctx.arc(6, hy + 4, 3.5, .3, 2.8); ctx.stroke();
   ctx.restore();
   if (p.note > 0) {
@@ -3758,7 +3887,11 @@ function drawPet(p) {
   if (p.stage === 'notice') { glyph = t.emotion === 'alert' ? '!' : '?'; col = t.emotion === 'alert' ? '#ff5f56' : '#dbeaf5'; }
   else if (p.note > 0) { glyph = '✎'; col = '#ffd9a8'; }
   else if (p.stage === 'react' || p.stage === 'stay' || (p.stage === 'patrol' && p.wait > 0)) { const e = EMO[p.mood] || EMO.calm; glyph = e[0]; col = e[1]; }
-  if (glyph && !(p.stage === 'patrol' && p.mood === 'calm' && Math.sin(W.t * .5 + p.phase) < .3)) bubble(x + 6, y - 34, glyph, col);
+  if (p.purr != null && W.t - p.purr < 1.8) {
+    const k = (W.t - p.purr) / 1.8;
+    ctx.globalAlpha = 1 - k; ctx.fillStyle = '#ff8fa3'; ctx.font = '700 11px ' + SANS; ctx.textAlign = 'center';
+    ctx.fillText('♥', x + 6 + Math.sin(k * 9) * 3, y - 30 - k * 22); ctx.font = '600 8px ' + MONO; ctx.fillStyle = '#ffd6de'; ctx.fillText('prr', x - 8, y - 26 - k * 12); ctx.globalAlpha = 1;
+  } else if (glyph && !(p.stage === 'patrol' && p.mood === 'calm' && Math.sin(W.t * .5 + p.phase) < .3)) bubble(x + 6, y - 34, glyph, col);
   HITS.push({ kind: 'pet', ref: p, poly: [[x - 12, y - 30], [x + 14, y - 30], [x + 14, y + 4], [x - 12, y + 4]] });
   p._sx = x; p._sy = y;
 }
@@ -3929,7 +4062,7 @@ function describe(h) {
       tags: [on ? solid('reporting', '#6fe3a4') : soft(f.status === 'stale' ? 'late' : 'silent'), soft(f.os || 'os unknown')],
       meta: [['last heard', on ? 'just now' : ago(f.age)], ['address', f.address || '?'], ['listening', f.ports == null ? 'not reported' : String(f.ports)],
         ['exposed', f.exposed == null ? 'not reported' : String(f.exposed)], ['high / critical', (f.high || 0) + ' / ' + (f.critical || 0)]],
-      sections: [['WHAT YOU SEE', ['A machine that reports to this Portboard, drawn as its own harbour on the horizon: one small building per listening port, a red lamp if anything there is exposed. Nothing here contacts it; this is its last report' + (on ? '.' : ', and it has been silent since, so the harbour is dark and in the fog.')]]],
+      sections: [['WHAT YOU SEE', ['A machine that reports in here, drawn as its own harbour on the horizon: one small building per listening port, a red lamp if anything there is exposed. Nothing here contacts it; this is its last report' + (on ? '.' : ', and it has been silent since, so the harbour is dark and in the fog.')]]],
       cmds: [], tui: 'the dashboard, then Servers' };
   }
   if (h.kind === 'customs') {
@@ -4290,21 +4423,28 @@ function renderLegend() {
     ['◉', 'Logos', 'The service, what it runs on and what it was built with. The runtime comes from the process, the framework from the project\'s package.json or requirements. Marks from Simple Icons (CC0); they belong to their owners.'],
     ['🛃', 'Customs house', 'By the gate: this machine\'s firewall. Lit with a green flag while it is on, dark with a red flag when it is off, blinds down in stealth mode.'],
     ['🧱', 'Walls and fence', 'Sea walls on every edge that meets water, a security fence on the landward side with the gate as the only way through, and barriers where roads end.'],
-    ['🗼', 'The lighthouse', 'SSH. Full beam while any SSH session is open, in or out; a steady lamp while a server listens with nobody connected; dark otherwise. Someone logged in to this machine arrives as a big ship and moors here.'],
+    ['🗼', 'The lighthouse', 'SSH. Full beam while any SSH session is open, in or out; a steady lamp while a server listens with nobody connected; dark otherwise. Someone logged in to this machine arrives as a big ship and moors here, and the beam holds on it as it comes in.'],
     ['🅿', 'The car park', 'Outside the gate: every machine your apps are talking to right now, one car each, labelled with the app. They drive in and out over the causeway.'],
-    ['🏝', 'Islands and boats', 'Each machine you hold an SSH or database session to is an island on the horizon, with its logo. A small boat runs out to it and back for as long as the session is open: SSH boats from the lighthouse, database boats from the east quay.'],
+    ['🏝', 'Islands and boats', 'Each machine you hold an SSH or database session to is an island on the horizon, with its logo. A small boat runs out to it and back for as long as the session is open: SSH boats from a jetty on the quay, database boats from the east quay, never from the lighthouse rocks.'],
     ['🖥', 'The machine panel', 'CPU, memory, disk and network as the terminal\'s system view shows them, with the samples this page has received. Click its title to fold it.'],
-    ['🌙', 'Sky and sea', 'The sun and moon follow your clock and the moon shows tonight\'s real phase. Waves, clouds, buoys and gulls are scenery and mean nothing.'],
+    ['🌙', 'Sky and sea', 'The sun and moon follow your clock and the moon shows tonight\'s real phase. Waves, clouds, buoys and gulls are scenery and mean nothing. Rain is not: it is the CPU.'],
     ['🏮', 'Street lamps', 'On after dark, by the clock.'],
     ['🛣', 'Toll plaza and sign', 'Arrivals are let onto the causeway one at a time and pass the toll at a crawl, so a burst never jams the car park. The sign overhead shows the real network rate and outbound host count.'],
     ['🚦', 'Traffic light', 'At the car park exit: leaving cars get a green phase only when one is waiting.'],
     ['🚜', 'Forklift', 'Takes pallets to services with connections open right now; parked when nothing is in use.'],
     ['🤖', 'Powered-down robot', 'An agent that started this service and has exited. It waits by the door, eyes dark, for as long as the service runs.'],
-    ['🌫', 'Other machines', 'Hosts that report to this Portboard, as harbours on the horizon. Dark and fogged once they stop reporting.'],
+    ['🌫', 'Other machines', 'Machines that report in here, as harbours on the horizon. Dark and fogged once they stop reporting.'],
     ['⏪', 'Replay (P)', 'Drag through recorded history to see what was listening then. Only listeners and their exposure are recorded; Live returns to now.'],
     ['⌨', 'Keyboard', 'Tab reaches a list of everything in the harbour; Enter opens it, and the camera goes there.'],
     ['🧹', 'The groundskeeper', 'Sweeps up an old foundation once its service has been gone a while. The stop stays in the Timeline.'],
-    ['🏚', 'Old foundations', 'Something stopped here. It stays for a while so a restart lands in the same lot.']];
+    ['🏚', 'Old foundations', 'Something stopped here. It stays for a while so a restart lands in the same lot.'],
+    ['🔴', 'Rotary beacon at the gate', 'Only while a service is verified reachable from outside: it sweeps the approach and washes the road red. Bound but unverified gets the amber lamp, never this.'],
+    ['🔌', 'Meter on the wall', 'The agent that started this has exited and the service still runs. The disc turns as fast as the service is used.'],
+    ['⚠', 'Hazard stripes', 'In front of a building whose port another process also holds.'],
+    ['🌧', 'Rain', 'The CPU has stayed above 80%. It clears once it is back below 65%.'],
+    ['🚧', 'Tape on the deck', 'Memory is 85% full or more.'],
+    ['🔊', 'Sound (M)', 'Off until you turn it on. The water, a chime when a service starts, a clonk when one stops, a thud when a container is set down. Made in the page, no files.'],
+    ['📷', 'Picture (K)', 'Saves a PNG of the harbour with its counts. Host names, addresses and the chat are left out, and nothing is uploaded.']];
   $('#lgBody').innerHTML = '<header><div><h2 id="lgT">What everything means</h2><p class="lead">Every building, light, line and pet here is a fact portlist measured. Click anything and it tells you which one.</p></div><button class="x" type="button" aria-label="Close">×</button></header>' +
     '<div class="lgrid">' + L.map(l => '<div class="li"><div class="sym">' + l[0] + '</div><div><b>' + esc(l[1]) + '</b><span>' + esc(l[2]) + '</span></div></div>').join('') + '</div>' +
     '<div class="rule">Presentation is allowed to vary: which way a pet walks, where it sits. Meaning never is: nothing is exposed, owned, risky or new here unless portlist measured it.</div>';
@@ -4313,10 +4453,10 @@ function renderLegend() {
 function toggleLegend(on) { const el = $('#legend'); on = on == null ? !el.classList.contains('on') : on; if (on) renderLegend(); el.classList.toggle('on', on); if (on) el.querySelector('.x').focus(); }
 
 // ------------------------------------------------------------------ controls
-const LAYERS = [['labels', 'Signs'], ['pets', 'Pets'], ['lines', 'Who started what'], ['traffic', 'Traffic'], ['ruins', 'Old foundations']];
+const LAYERS = [['labels', 'Signs'], ['pets', 'Pets'], ['lines', 'Who started what'], ['traffic', 'Traffic'], ['ruins', 'Old foundations'], ['sound', 'Sound']];
 function renderLayers() {
   $('#layerOpts').innerHTML = LAYERS.map(([k, l]) => '<button class="opt" type="button" role="switch" data-k="' + k + '" aria-checked="' + !!W.cfg[k] + '">' + l + '<span class="sw"></span></button>').join('');
-  $('#layerOpts').querySelectorAll('.opt').forEach(b => b.onclick = () => { W.cfg[b.dataset.k] = !W.cfg[b.dataset.k]; saveCfg(); renderLayers(); });
+  $('#layerOpts').querySelectorAll('.opt').forEach(b => b.onclick = () => { W.cfg[b.dataset.k] = !W.cfg[b.dataset.k]; saveCfg(); renderLayers(); if (b.dataset.k === 'sound') audioSync(); });
   $('#lightSeg').querySelectorAll('button').forEach(b => { b.setAttribute('aria-pressed', W.cfg.light === b.dataset.l); b.onclick = () => { W.cfg.light = b.dataset.l; saveCfg(); renderLayers(); }; });
   $('#oScreen').setAttribute('aria-checked', !!W.cfg.screen);
   $('#bTour').setAttribute('aria-pressed', !!W.cfg.tour);
@@ -4378,7 +4518,7 @@ cv.addEventListener('pointerdown', e => {
 });
 cv.addEventListener('pointerup', e => {
   touches.delete(e.pointerId);
-  if (ptr.down && !ptr.moved) { const h = hitAt(ptr.x, ptr.y); h ? openInspector(h) : closeInspector(); }
+  if (ptr.down && !ptr.moved) { const h = hitAt(ptr.x, ptr.y); if (h && h.kind === 'pet') { h.ref.purr = W.t; sfx('purr'); } h ? openInspector(h) : closeInspector(); }
   if (!touches.size) { ptr.down = false; if (performance.now() - (ptr.lt || 0) > 80) { cam.vx = 0; cam.vy = 0; } }
 });
 cv.addEventListener('pointercancel', e => { touches.delete(e.pointerId); ptr.down = false; });
@@ -4423,6 +4563,8 @@ document.addEventListener('keydown', e => {
   else if (k === '-') zoomAt(VW / 2, VH / 2, 0.87);
   else if (k === 'a' || k === 'A') toggleDrawer();
   else if (k === 'h' || k === 'H') document.body.classList.toggle('bare');
+  else if (k === 'm' || k === 'M') { W.cfg.sound = !W.cfg.sound; saveCfg(); renderLayers(); audioSync(); toast('Sound ' + (W.cfg.sound ? 'on' : 'off'), '#7fb2ff'); }
+  else if (k === 'k' || k === 'K') snapshot();
 });
 function toggleDrawer(on) { const el = $('#attn'); on = on == null ? !el.classList.contains('open') : on; el.classList.toggle('open', on); $('#attnBtn').setAttribute('aria-expanded', on); if (on) renderDrawer(); }
 function toggleLayers(on) { const el = $('#layers'); on = on == null ? !el.classList.contains('on') : on; el.classList.toggle('on', on); $('#bLayers').setAttribute('aria-expanded', on); if (on) renderLayers(); }
@@ -4437,9 +4579,87 @@ $('#scrubLive').onclick = () => openScrub(false);
 $('#scrubRange').addEventListener('input', e => scrubTo(e.target.value));
 $('#bLegend').onclick = () => toggleLegend();
 $('#bFull').onclick = fullscreen;
+$('#bShare').onclick = () => snapshot();
 $('#oScreen').onclick = () => setScreen(!W.cfg.screen);
 $('#q').addEventListener('input', runSearch);
 $('#legend').addEventListener('click', e => { if (e.target.id === 'legend') toggleLegend(false); });
+
+// ------------------------------------------------------------------ sound
+// Off until you turn it on (M, or Layers). Made here with WebAudio: no files,
+// no network. The water is always there; every other sound is a real event.
+const AU = { ctx: null, bed: null };
+function audioSync() {
+  if (!W.cfg.sound) { if (AU.bed) { AU.bed.gain.setTargetAtTime(0, AU.ctx.currentTime, 0.4); } return; }
+  try {
+    if (!AU.ctx) AU.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (AU.ctx.state === 'suspended') AU.ctx.resume();
+    if (!AU.bed) {
+      const a = AU.ctx, len = a.sampleRate * 4, buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+      let last = 0; for (let i = 0; i < len; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
+      const src = a.createBufferSource(); src.buffer = buf; src.loop = true;
+      const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420;
+      const g = a.createGain(); g.gain.value = 0;
+      const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = 0.11; lg.gain.value = 0.018; lfo.connect(lg); lg.connect(g.gain); lfo.start();
+      src.connect(lp); lp.connect(g); g.connect(a.destination); src.start();
+      AU.bed = g;
+    }
+    AU.bed.gain.setTargetAtTime(0.035, AU.ctx.currentTime, 0.8);
+  } catch (e) { W.cfg.sound = false; }
+}
+function tone(type, f0, f1, dur, vol, delay) {
+  const a = AU.ctx, t = a.currentTime + (delay || 0), o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+function sfx(kind) {
+  if (!W.cfg.sound || !AU.ctx || W.past || document.hidden) return;
+  if (AU.ctx.state === 'suspended') AU.ctx.resume();
+  const now = AU.ctx.currentTime; AU.last = AU.last || {};
+  if (now - (AU.last[kind] || -9) < 0.35) return;           // a burst of twenty starts is one chime, not twenty
+  AU.last[kind] = now;
+  if (kind === 'start') { tone('sine', 660, 660, 0.35, 0.04); tone('sine', 880, 880, 0.5, 0.035, 0.12); }
+  else if (kind === 'stop') { tone('triangle', 220, 150, 0.3, 0.05); }
+  else if (kind === 'thud') { tone('sine', 90, 42, 0.4, 0.12); tone('square', 60, 40, 0.08, 0.02); }
+  else if (kind === 'purr') { for (let i = 0; i < 6; i++) tone('sawtooth', 48, 44, 0.07, 0.012, i * 0.075); }
+}
+window.addEventListener('pointerdown', () => { if (W.cfg.sound && (!AU.ctx || AU.ctx.state === 'suspended')) audioSync(); });
+
+// ------------------------------------------------------------------ picture
+// A PNG of the harbour as it is, made in the page and saved by the browser.
+// Nothing is uploaded. Host names, addresses and the chat are left out of it.
+function snapshot() {
+  if (!W.snap) return;
+  W.capture = true;
+  try { draw(); } finally { W.capture = false; }
+  const src = cv, D = DPR, st = W.snap.stats || {}, band = 64 * D;
+  const out = document.createElement('canvas'); out.width = src.width; out.height = src.height + band;
+  const x = out.getContext('2d');
+  x.drawImage(src, 0, 0);
+  x.fillStyle = '#0b1622'; x.fillRect(0, src.height, out.width, band);
+  x.fillStyle = 'rgba(240,162,75,.9)'; x.fillRect(0, src.height, out.width, 2 * D);
+  const facts = [[st.services, 'listening'], [st.active, 'in use'], [st.idle, 'idle'], [st.exposed, 'reachable from outside', st.exposed ? '#ff6a5e' : null],
+    [st.left, 'left running after an agent exited', st.left ? '#ffcf6a' : null], [st.abandoned, 'look left over'], [st.containers, 'containers'], [st.agents, 'agents at work']]
+    .filter(f => f[0] != null);
+  x.textBaseline = 'middle'; let px = 20 * D; const cy = src.height + band / 2 + 1 * D;
+  x.font = '700 ' + 15 * D + 'px ' + SANS; x.fillStyle = '#f2ece0'; x.fillText('My harbour', px, cy - 9 * D);
+  x.font = '500 ' + 10.5 * D + 'px ' + MONO; x.fillStyle = '#84a8bf'; x.fillText(new Date().toLocaleString() + ' · portlist --world', px, cy + 10 * D);
+  px += 260 * D;
+  for (const [n, l, c] of facts) {
+    if (px > out.width - 140 * D) break;
+    x.font = '700 ' + 18 * D + 'px ' + MONO; x.fillStyle = c || '#e3eef6'; x.fillText(String(n), px, cy - 8 * D);
+    const nw = x.measureText(String(n)).width;
+    x.font = '500 ' + 10 * D + 'px ' + SANS; x.fillStyle = '#9fb6c6'; x.fillText(l, px, cy + 11 * D);
+    px += Math.max(nw, x.measureText(l).width) + 26 * D;
+  }
+  out.toBlob(b => {
+    if (!b) { toast('Could not make the picture', '#ff6a5e'); return; }
+    const a = document.createElement('a'), d = new Date(), z = n => String(n).padStart(2, '0');
+    a.href = URL.createObjectURL(b); a.download = 'harbour-' + d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '-' + z(d.getHours()) + z(d.getMinutes()) + '.png';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast('Picture saved. Host names and addresses are left out', '#6fe3a4');
+  }, 'image/png');
+}
 
 // ------------------------------------------------------------------ polling
 let polling = false;

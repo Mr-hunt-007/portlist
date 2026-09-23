@@ -35,15 +35,21 @@ itself.
 | Traffic light | At the car park exit. Leaving cars get a green phase only when one is waiting; amber between phases |
 | Forklift | Takes pallets to services with connections open right now, then returns; parked when nothing is in use |
 | The harbour gate | A checkpoint canopy over both lanes: in on the north lane, out on the south, each with its own barrier that lifts for the vehicle in front of it. The lit panel reads EXT OPEN, EXT BOUND or EXT CLOSED, and while something is reachable from outside the north barrier stands open and a red lamp blinks |
-| Other machines | Hosts that report to this Portboard (portboard only), as harbours on the horizon west of the lighthouse: one small building per listening port, a red lamp if anything there is exposed. A host that has stopped reporting stays, dark and fogged, with how long ago it was last heard |
+| Other machines | Machines that report in to a fleet store, where there is one (standalone portlist has none), as harbours on the horizon west of the lighthouse: one small building per listening port, a red lamp if anything there is exposed. A host that has stopped reporting stays, dark and fogged, with how long ago it was last heard |
 | The groundskeeper | Sweeps up an old foundation once its service has been gone 90 seconds. The stop stays in the Timeline |
 | Old foundations | Something that stopped here. Kept for a while so a restart lands in the same lot |
-| The lighthouse | SSH. Full beam while any SSH session is open, in or out; a steady lamp while a server listens with nobody connected; dark otherwise. Someone logged in to this machine arrives as a big ship and moors at the lighthouse |
+| The lighthouse | SSH. Full beam while any SSH session is open, in or out; a steady lamp while a server listens with nobody connected; dark otherwise. Someone logged in to this machine arrives as a big ship and moors at the lighthouse, and the beam swings round and holds on it as it comes in |
 | Customs house | By the gate: this machine's firewall, read from its own settings. Lit with a green flag while it is on, dark with a red flag when it is off, blinds down in stealth mode. The gate stays a separate measurement: a firewall that is on can still let a service through |
 | Walls, fence, barriers | Sea walls on every edge that meets water, a security fence on the landward side with the gate as the only way through, a parapet on the south wall, barriers where a road would run into the sea, and a causeway carrying the road to the mainland. Structure, not data |
 | Islands and boats | Every machine you hold an SSH or database session to (MongoDB, PostgreSQL, MySQL, Redis, Elasticsearch...) is an island on the horizon with its logo. A small boat shuttles out and back while the session is open: SSH from a jetty between the third and fourth piers, databases from the water east of the last pier. Never from the lighthouse, whose rocks would sink it |
 | The car park | Outside the gate: every machine your apps are talking to right now (HTTPS, push and so on), one car per remote host, labelled with the app. A new host drives in over the causeway, a finished one drives out |
 | System quarter | Small sheds beside the office for services portlist files as system (AirPlay, Handoff, editor helpers). Drawn so nothing listening is hidden, never counted, never at the gate, never a pet's job |
+| Rain | The CPU has stayed above 80% over the last few samples; it clears once it is back under 65%. A note says so when it starts and stops |
+| Tape on the deck | Memory is 85% full or more |
+| Rotary beacon on the gate | Only while a service is verified reachable from outside: it sweeps the approach and washes the road red |
+| Meter on a wall | The agent that started this service has exited and it still runs; the disc turns as fast as the service is used |
+| Hazard stripes | In front of a building whose port another process also holds |
+| Door lamp | Warm while the service answers, guttering when long idle, out when it does not answer |
 | Sky and sea | The sun and moon follow the real clock and the moon shows tonight's real phase, with its light on the water. Stars, clouds, the distant town, buoys, whitecaps, surf and gulls are scenery and mean nothing; the gulls glide, beat their wings now and then and cast a shadow on the water. Street lamps come on after dark |
 
 ## The pets
@@ -136,9 +142,9 @@ read from the same scan. Click its title to fold it.
 ## What it costs
 
 There is one scanner per process, always. `/api/world` reads the scan every
-other view reads, cached and shared. In portboard the server's own on-demand
-refresh keeps it current (a change reaches the page in about six seconds), and
-the terminal's `W` key reuses the terminal's scan. Only standalone
+other view reads, cached and shared. Where a server already refreshes the scan
+on demand, that refresh keeps it current (a change reaches the page in about
+six seconds), and the terminal's `W` key reuses the terminal's scan. Only standalone
 `portlist --world`, where nothing else is scanning, runs its own keeper: every 2 seconds for 20 seconds after
 anything changes, and every 4 seconds while nothing does; it stops 30 seconds
 after the last poll. Measured on an M4 with 14 services: about 2.6% of one core
@@ -155,7 +161,7 @@ It is remembered per browser.
 ## Replay
 
 `P`, or the clock button, opens a scrubber over the recorded opens and closes
-(`~/.portlist/events.jsonl`, or portboard's own). Dragging it rebuilds the
+(`~/.portlist/events.jsonl`). Dragging it rebuilds the
 harbour as it stood then: `world.reconstruct()` starts from what is listening
 now and walks the history back. Only listeners and their exposure are recorded,
 so a past harbour has no use, owners, sessions, traffic or containers, and says
@@ -170,11 +176,21 @@ landmark. Focus moves the camera there; Enter opens the same inspector a click
 does. On a phone the machine panel collapses to one line: cpu, memory, disk,
 time.
 
+## Spotlight, sound and pictures
+
+Whatever you click stays lit and the rest of the harbour steps back a little,
+following the thing as it moves. `M` turns on sound (off by default,
+remembered): the water, a chime when a service starts, a clonk when one stops,
+a thud when a container is set down. It is made in the page with WebAudio, no
+files, and a burst of starts is one chime. `K`, or the camera button, saves a
+PNG of the harbour with a strip of its counts, for sharing: host names,
+addresses and the pets' chat are left out, and nothing is uploaded.
+
 ## Keys
 
 `F` full screen, `S` ambient mode (tour + captions, chrome fades), `T` tour,
 `/` find, `P` replay, `?` legend, `A` what needs a look, `L` light (the clock, day, dusk,
-night), `0` whole harbour, `+` `-` zoom, `Esc` close.
+night), `M` sound, `K` picture, `0` whole harbour, `+` `-` zoom, `Esc` close.
 
 ## How it is built
 

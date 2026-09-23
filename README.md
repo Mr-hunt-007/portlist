@@ -195,6 +195,7 @@ O               open it in a browser    f   a port that is free now, and not
                 (ctrl+enter too, where      spoken for by anything later
                 the terminal sends it)  a   animation      V   vibe mode
 0-9             views                   r   rescan now     ?   keys    q  quit
+                                        W   the living harbour, in a browser
 ```
 
 macOS never delivers Cmd+Enter to a terminal program, so `O` is the binding that
@@ -312,6 +313,25 @@ so both surfaces describe the machine with one vocabulary.
 
 Narrow terminals get the same graph as headed groups, because that is what a
 tree looks like when it runs out of width.
+
+## The living harbour
+
+```
+portlist --world        # or -world, or W inside the terminal
+```
+
+Every port on this machine as a harbour, in a browser, full screen: a second
+screen you can glance at. Each listening service is a building shaped by what it
+is (a lighthouse for SSH, tanks for Postgres and Mongo, a dome for a local model,
+a mast for MCP), the gate out of the harbour opens only when portlist actually
+connected from the network and got in, agents are robots that walk out when they
+exit and leave a bulb burning over whatever they left running, and five cats go
+and look at whatever matters most. Click anything and it says which measurement
+put it there.
+
+Loopback only, read-only, one file, no dependencies. `--windowed` for a normal
+tab, `--no-open` to print the address. What every object means, the pets' jobs
+and the rules are in [docs/WORLD.md](docs/WORLD.md).
 
 ## Vibe mode
 

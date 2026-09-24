@@ -999,6 +999,7 @@ function onEvents(evs, quiet) {
       for (const b of W.buildings.values()) if (b.s && b.s.port === ev.evidence.port) b.flash = 4;
     } else if (ev.trigger === 'REACHABILITY_VERIFIED' || ev.trigger === 'SERVICE_EXTERNALLY_REACHABLE') {
       W.gate.confirm = 2.4;
+      if (!W.past) sendSurvey(buildingById(sub.slice(8)));
     }
     if (ev.trigger === 'SERVICE_STARTED') {
       // the agent or terminal that started it walks over to it
@@ -1018,6 +1019,17 @@ function sendTruck(b) {
   // in on the north lane (westbound), out on the south lane (eastbound): never head on.
   // A burst waits out on the highway and is let through the gate one at a time.
   const t = { b, id: 'truck-' + b.key, pos: [g.W + 18, g.RN], leg: 0, wait: 0, axis: 'x', sign: -1, wheel: 0, queued: true };
+  t.path = [[g.EX, g.RN]].concat(route([g.EX, g.RN], [b.gx + 1.2, b.gy + 3.5]).slice(1));
+  W.trucks.push(t);
+}
+// portlist's own check: when it connects to a service from this machine's
+// network address and gets in, a small survey van comes in through the gate,
+// stops at that building's door, and goes back out. The one vehicle that is
+// portlist itself.
+function sendSurvey(b) {
+  const g = W.geo;
+  if (!b || W.trucks.some(t => t.survey && t.b === b)) return;
+  const t = { b, survey: true, id: 'survey-' + b.key, pos: [g.W + 18, g.RN], leg: 0, wait: 0, axis: 'x', sign: -1, wheel: 0, queued: true };
   t.path = [[g.EX, g.RN]].concat(route([g.EX, g.RN], [b.gx + 1.2, b.gy + 3.5]).slice(1));
   W.trucks.push(t);
 }
@@ -1119,13 +1131,13 @@ function stepTrucks(dt) {
     if (t.queued) continue;
     if (t.wait > 0) {
       t.wait -= dt;
-      if (t.wait <= 0) { t.b.delivered = true; t.going = 'out'; t.v = 0; t.path = route(t.pos, [g.EX, g.RS]).concat([[g.W + 22, g.RS]]); t.leg = 0; }
+      if (t.wait <= 0) { if (!t.survey) t.b.delivered = true; t.going = 'out'; t.v = 0; t.path = route(t.pos, [g.EX, g.RS]).concat([[g.W + 22, g.RS]]); t.leg = 0; }
       continue;
     }
     t.wheel += dt * 9;
     if (drive(t, dt, 2.6)) {
       if (t.going === 'out') { W.trucks.splice(i, 1); continue; }
-      t.wait = 2.6;
+      t.wait = t.survey ? 1.6 : 2.6;
     }
   }
 }
@@ -3399,7 +3411,9 @@ function drawBuilding(b, night) {
   {
     const since = (typeof s.first_seen === 'number' ? s.first_seen : null) || (s.memory && s.memory.since);
     const days = since ? (Date.now() / 1000 - since) / 86400 : 0;
-    const wear = clamp((days - 1) / 6, 0, 1) * (s.activity === 'busy' || s.activity === 'active' ? 0.35 : 1);
+    // kept up by use: the journal's share of samples in use, or failing that, whether it is in use now
+    const used = s.record && s.record.samples >= 6 ? s.record.busy_share : (s.activity === 'busy' || s.activity === 'active' ? 0.65 : 0);
+    const wear = clamp((days - 1) / 6, 0, 1) * (1 - 0.8 * used);
     if (wear > 0.05 && f && H > 16 && !['lighthouse', 'onion', 'dome'].includes(sh)) for (let k = 0; k < 6; k++) {
       const u = 0.08 + hash(b.key + 'st' + k) * 0.84, L = 8 + hash(b.key + 'sl' + k) * 16, face = k % 2;
       const top = face ? iso(b.gx + b.w, b.gy + u * b.d, H - 1) : iso(b.gx + u * b.w, b.gy + b.d, H - 1);
@@ -3789,6 +3803,7 @@ function wheels(v) {
 }
 function drawTruck(t, night) {
   const fogA = clamp(1 - (t.pos[0] - (W.geo.W + 12)) / 6, 0, 1); if (fogA <= 0) return;
+  if (t.survey) return drawSurvey(t, night, fogA);
   ctx.save(); ctx.globalAlpha *= fogA;
   const dark = v => hex(v, shade(v, -60), night * 0.7), v = vehicleBox(t, 2.4, 1.0), { ax, s, bw, bd, x0, y0 } = v;
   shadow(x0, y0, bw, bd);
@@ -3806,6 +3821,22 @@ function drawTruck(t, night) {
   ctx.restore();
   ctx.restore();
   HITS.push({ kind: 'truck', ref: t, poly: [iso(x0, y0, 34), iso(x0 + bw, y0, 34), iso(x0 + bw, y0 + bd, 0), iso(x0, y0 + bd, 0)] });
+}
+function drawSurvey(t, night, fogA) {
+  // a white van with a blue stripe and a small dish on the roof
+  ctx.save(); ctx.globalAlpha *= fogA;
+  const dark = v => hex(v, shade(v, -60), night * 0.7), v = vehicleBox(t, 1.3, 0.62), { ax, s, bw, bd, x0, y0 } = v;
+  shadow(x0, y0, bw, bd); wheels(v);
+  box(x0, y0, bw, bd, 15, dark('#eef1f4'), { z0: 2.5, top: dark('#dfe5ea'), outline: 'rgba(0,0,0,.2)' });
+  if (ax === 'x') tileRect(x0, y0 + bd - 0.02, bw, 0.02, 8, '#3a78c8'); else tileRect(x0 + bw - 0.02, y0, 0.02, bd, 8, '#3a78c8');
+  const fx = ax === 'x' ? (s > 0 ? x0 + bw : x0) : x0 + bw / 2, fy = ax === 'y' ? (s > 0 ? y0 + bd : y0) : y0 + bd / 2;
+  const [wx, wy] = iso(fx, fy, 11); ctx.fillStyle = 'rgba(150,200,235,.8)'; ctx.fillRect(wx - 3, wy - 3, 6, 4);
+  const [dx, dy] = iso(x0 + bw / 2, y0 + bd / 2, 17), a = REDUCED ? 0 : W.t * 2;
+  ctx.strokeStyle = '#9aa4ab'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(dx, dy); ctx.lineTo(dx, dy - 5); ctx.stroke();
+  ctx.fillStyle = '#f4f6f8'; ctx.beginPath(); ctx.ellipse(dx, dy - 6, 4, 2, a % 6.3, 0, 6.3); ctx.fill();
+  if (t.wait > 0) { ctx.fillStyle = 'rgba(111,227,164,' + (0.5 + 0.5 * Math.sin(W.t * 10)) + ')'; ctx.beginPath(); ctx.arc(dx, dy - 10, 2, 0, 6.3); ctx.fill(); }
+  ctx.restore();
+  HITS.push({ kind: 'truck', ref: t, poly: [iso(x0, y0, 22), iso(x0 + bw, y0, 22), iso(x0 + bw, y0 + bd, 0), iso(x0, y0 + bd, 0)] });
 }
 function drawCarrier(ca, night) {
   const dark = v => hex(v, shade(v, -60), night * 0.7), v = vehicleBox(ca, 2.3, 1.15), { bw, bd, x0, y0 } = v;
@@ -4175,7 +4206,7 @@ function hoverText(h) {
     case 'gate': { const g = W.snap.gate; return ['External access gate', g.state === 'open' ? g.reachable.length + ' reachable from outside' : g.state === 'watch' ? 'bound, not verified' : 'closed']; }
     case 'ship': return ['MV ' + W.snap.ship.name, 'this machine  ·  ' + (W.snap.ship.os || '')];
     case 'office': return ['Harbour master', (W.snap.sessions || []).filter(s => s.live).length + ' live coding sessions'];
-    case 'truck': return ['Delivery for :' + (r.b.s && r.b.s.port), r.b.delivered ? 'unloaded, heading out' : 'a service just started'];
+    case 'truck': return r.survey ? ['portlist\'s own check', 'connected to :' + (r.b.s && r.b.s.port) + ' from the network and got in'] : ['Delivery for :' + (r.b.s && r.b.s.port), r.b.delivered ? 'unloaded, heading out' : 'a service just started'];
     case 'ruin': return ['Old foundation', ':' + r.port + ' ' + r.name + ' stopped ' + dur(Date.now() / 1000 - r.left_at) + ' ago'];
     case 'visitor': return ['Outside visitor', 'a real connection from beyond this machine'];
     case 'cart': return ['Local traffic', 'a loopback connection between two services'];
@@ -4222,7 +4253,7 @@ function describe(h) {
       kind: 'SERVICE', accent: a.c, title: s.name, tags,
       logos: [logoOf(s)].concat(badgesOf(s)).filter(Boolean).map(k => [k, k === s.runtime ? 'runtime' : k === s.framework ? 'framework' : 'service']),
       meta: [['port', ':' + s.port]].concat(s.local_name ? [['name', s.local_name + '.localhost']] : []).concat([['process', (s.cmd || '?') + (s.pid != null ? '  pid ' + s.pid : '')]]).concat([ ['project', s.project || s.dir || 'none'],
-        ['bind', s.bind || '?'], ['reachability', s.exposure_why], ['activity', s.activity_why], ['cpu', s.cpu == null ? 'not measured' : s.cpu + '% of a core, which sets the chimney'], ['origin', s.origin_phrase || s.origin_why],
+        ['bind', s.bind || '?'], ['reachability', s.exposure_why], ['activity', s.activity_why], ['cpu', s.cpu == null ? 'not measured' : s.cpu + '% of a core, which sets the chimney'], ['record', s.record ? 'seen on ' + s.record.days + ' day' + (s.record.days === 1 ? '' : 's') + ', in use in ' + Math.round(s.record.busy_share * 100) + '% of ' + s.record.samples + ' journal samples' : 'not in the journal yet'], ['origin', s.origin_phrase || s.origin_why],
         ['owner', s.owner_name ? s.owner_name + (s.owner_alive === false ? ' (exited)' : s.owner_alive ? ' (running)' : '') : 'nobody on record'],
         ['runtime', s.runtime && LOGOS[s.runtime] ? LOGOS[s.runtime].t + ', from the process' : 'not recognised'],
         ['framework', s.framework && LOGOS[s.framework] ? LOGOS[s.framework].t + ', ' + s.framework_why : 'none found in the project'],
@@ -4398,6 +4429,8 @@ function describe(h) {
     meta: [['stopped', hms(r.left_at) + ' (' + dur(Date.now() / 1000 - r.left_at) + ' ago)']], sections: [['WHAT YOU SEE', ['Something listened here and stopped. The foundation stays for a while so a restart lands in the same lot.']]], cmds: [] };
   if (h.kind === 'yard') return { kind: 'CONTAINER YARD', accent: '#ffcf6a', title: r.engine ? 'Yard closed' : 'No container engine', tags: [soft(r.engine || 'none')], meta: [], sections: [['WHY', [r.note || '']]], cmds: [] };
   if (h.kind === 'disk') return { kind: 'STORAGE', accent: '#ffcf6a', title: 'Disk ' + W.snap.ship.disk_pct + '% full', tags: [], meta: [], sections: [['WHAT YOU SEE', ['Drums pile up at the yard edge in proportion to how full the system disk is.']]], cmds: ['df -h /'] };
+  if (h.kind === 'truck' && r.survey) return { kind: 'PORTLIST\'S OWN CHECK', accent: '#3a78c8', title: 'Survey at :' + r.b.s.port, tags: [soft(r.going === 'out' ? 'done, leaving' : 'on the way in')], meta: [['service', r.b.s.name], ['what it found', r.b.s.exposure_why || 'reachable']],
+    sections: [['WHY', ['portlist connected to this service from the machine\'s own network address and was let in. That is what "reachable from outside" means here, and this van is that check: it drives in through the gate, stops at the door, and leaves.']]], cmds: [] };
   if (h.kind === 'truck') return { kind: 'DELIVERY', accent: '#c9a24a', title: ':' + r.b.s.port + ' ' + r.b.s.name, tags: [soft(r.b.delivered ? 'unloaded' : 'inbound')], meta: [], sections: [['WHY', ['This service started while the page was open, so its building is brought in and put up. The truck uses the site lane, never the external-access lane.']]], cmds: [] };
   if (h.kind === 'visitor') return { kind: 'OUTSIDE VISITOR', accent: '#ff5f56', title: 'Connection from outside', tags: [], meta: [], sections: [['WHY', ['Portlist counted an established connection to this service from an address beyond this machine.']]], cmds: [] };
   if (h.kind === 'cart') return { kind: 'LOCAL TRAFFIC', accent: '#9fd6b4', title: 'Loopback connection', tags: [], meta: [], sections: [['WHY', ['One service here has a connection open to another. Portlist recorded both ends.']]], cmds: [] };
@@ -4646,6 +4679,8 @@ function renderLegend() {
     ['🌧', 'Rain', 'The CPU has stayed above 80%. It clears once it is back below 65%.'],
     ['🚧', 'Tape on the deck', 'Memory is 85% full or more.'],
     ['🔊', 'Sound (M)', 'Off until you turn it on. The water, a chime when a service starts, a clonk when one stops, a thud when a container is set down. Made in the page, no files.'],
+    ['🚐', 'Survey van', 'portlist\'s own check: it connected to a service from this machine\'s network address and got in. The van drives to that door and leaves.'],
+    ['📓', 'The journal', 'Every ten minutes, what each service was doing, kept two weeks. Replay shows use and owners from it, and weathering follows how much a building is really used.'],
     ['〰', 'Pipes', 'A service that depends on another is joined to it by a conduit along the roads. It flows while both are in use.'],
     ['🌬', 'The harbour\'s mood', 'Calm, busy or under pressure, from the machine\'s own figures. Wind, whitecaps and smoke follow it; the machine panel says why.'],
     ['📖', 'Stories', 'When a few events in a row mean one thing (an agent arrived and started a server, a stack came up, something keeps restarting), a card says so once.'],

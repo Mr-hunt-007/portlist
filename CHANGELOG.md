@@ -6,6 +6,14 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **Harbour: a journal across days, and portlist's own check.** Every ten
+  minutes while the harbour is watched, one compact line (names, activity,
+  exposure, owner, counts; no command lines or paths; two weeks kept) goes to
+  `harbour-journal.jsonl`, written from the snapshot the page already has.
+  Replay fills the past with use and owners from it; each service gets a record
+  across days, and weathering follows how much it is really used. When portlist
+  verifies a service is reachable from outside, a white survey van drives in
+  through the gate to its door and back: the one vehicle that is portlist.
 - **Harbour: relationships, mood, memory and stories.** Services that depend on
   each other are joined by pipes that flow while both are in use. One mood for
   the whole harbour (calm, busy, under pressure) drives wind, whitecaps and

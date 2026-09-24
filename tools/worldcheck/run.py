@@ -322,6 +322,12 @@ def main():
           document.querySelector('.tab[data-tab="today"]').click(); toggleDrawer(true); await new Promise(r => setTimeout(r, 1500));
           o.today = /Since midnight/.test(document.querySelector('#attnBody').textContent);
           document.querySelector('.tab[data-tab="attn"]').click();
+          // portlist's own check: the survey van drives in to the exposed service's door and back out
+          const ex = W.snap.services.find(s => s.exposure === 'reachable' && !s.system);
+          onEvents([{ trigger: 'SERVICE_EXTERNALLY_REACHABLE', subject: 'service:' + ex.id, meaning: 'check', priority: 100, ts: Date.now() / 1000, evidence: {} }], false);
+          const vst = new Set(); const vUntil = performance.now() + 60000;
+          while (performance.now() < vUntil) { await frames(3); const v = W.trucks.find(t => t.survey); if (!v) { if (vst.size) break; continue; } vst.add(v.queued ? 'queued' : v.wait > 0 ? 'door' : v.going === 'out' ? 'out' : 'in'); }
+          o.survey = ['in', 'door', 'out'].every(k => vst.has(k)) && !W.trucks.some(t => t.survey);
           document.querySelector('#oGame').click(); o.gameOn = W.cfg.drama && W.cfg.sound;
           document.querySelector('#oGame').click(); o.gameOff = !W.cfg.drama && !W.cfg.sound;
           W.cfg.sound = true; audioSync(); sfx('thud'); sfx('start'); sfx('purr'); sfx('horn'); sfx('thunder'); o.sound = !!AU.ctx; W.cfg.sound = false; audioSync();
@@ -421,6 +427,7 @@ def main():
     check("a chain of events is told as a story", extra["story"] is True)
     check("compare with an hour ago marks what is new", extra["ghost"] is True)
     check("the Today tab tells the day so far", extra["today"] is True)
+    check("a verified exposure sends portlist's survey van to the door and back", extra["survey"] is True)
     check("game mode turns drama and sound on together, and off", extra["gameOn"] is True and extra["gameOff"] is True)
     check("sandbox: a port collision lands, labelled", extra["simCollide"] is True)
     check("drama: the collision starts a brawl", extra["brawl"] is True)

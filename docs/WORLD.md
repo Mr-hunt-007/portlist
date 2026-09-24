@@ -57,6 +57,7 @@ itself.
 | Pipes along the roads | A service that depends on another, from the scan's own dependency list, joined to it door to door by a conduit. It carries a flow while both are in use and lies quiet otherwise. Loopback traffic between them still drives as carts |
 | The harbour's mood | One state for the whole place from the machine's figures: calm, busy (CPU from 40%, 200 KB/s on the network, 20 outbound connections or 4 services in use) or under pressure (CPU 80%, memory 85%, disk 92%). The wind, the whitecaps and the drift of the smoke follow it together, and the machine panel says which and why |
 | Weathering | A building that has stood for days streaks down its walls, less so one in daily use: how long it has been there, from the recorded history |
+| A white survey van | portlist's own check: when it connects to a service from this machine's network address and gets in, the van comes in through the gate to that building's door, pauses and leaves |
 | A count on a car's roof | One remote host carrying four or more connections |
 | Sky and sea | The sun and moon follow the real clock and the moon shows tonight's real phase, with its light on the water. Stars, clouds, the distant town, buoys, whitecaps, surf and gulls are scenery and mean nothing; the gulls glide, beat their wings now and then and cast a shadow on the water. Street lamps come on after dark |
 
@@ -171,10 +172,29 @@ It is remembered per browser.
 `P`, or the clock button, opens a scrubber over the recorded opens and closes
 (`~/.portlist/events.jsonl`). Dragging it rebuilds the
 harbour as it stood then: `world.reconstruct()` starts from what is listening
-now and walks the history back. Only listeners and their exposure are recorded,
-so a past harbour has no use, owners, sessions, traffic or containers, and says
-so in a banner; origins read "not recorded", never "unknown". Live returns to now.
+now and walks the history back. Where the harbour's journal has a record within
+twenty minutes, the past harbour also gets each service's use, owner and
+connection count as the journal found them, and the banner names the time.
+Otherwise it has listeners and exposure only and says so; origins read "not
+recorded", never "unknown". Sessions, traffic and containers are never
+recorded for the past. Live returns to now.
 `/api/world?at=<unix time>` and `/api/world?timeline=1` serve it.
+
+## The journal
+
+The opens and closes say when things came and went. The journal says what they
+were doing. Every ten minutes while the harbour is being looked at, it appends
+one line to `harbour-journal.jsonl` beside the history: each listener's port,
+name, activity, exposure, owner (when known) and connection count, the
+machine's CPU, memory and disk, and how many hosts and containers there were.
+About 380 bytes a record; two weeks are kept. No command lines, directories or
+addresses. It is written from the snapshot the page already has, never from a
+scan of its own.
+
+Replay reads it back, and every service gets its **record** across days: on
+how many days it was seen and what share of samples found it in use (in its
+inspector). Weathering follows that record: a building that has stood for days
+and is rarely used streaks down its walls; one kept in use stays clean.
 
 ## Keyboard and screen readers
 

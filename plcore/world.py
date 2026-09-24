@@ -1330,7 +1330,133 @@ def payload(since=0, force=False, keep_fresh=False):
     doc["pets"] = tasks
     doc["chatter"] = chatter(tasks, snap)
     doc["history"] = _history_feed(snap)
+    journal_note(doc)
     return doc
+
+
+# ------------------------------------------------------------------ the journal
+# The history records opens and closes. The journal records, every ten minutes
+# while the harbour is being looked at, what each listener was doing: in use or
+# idle, exposed or not, who started it. Compact, local, kept for two weeks, and
+# written from the snapshot already built for the page, never from a scan of
+# its own. Replay reads it back, and each service gets its record across days.
+JOURNAL_EVERY = 600
+JOURNAL_KEEP = 14 * 86400
+_journal = {"loaded": False, "recs": [], "at": 0.0, "summary": {}}
+
+
+def _journal_path():
+    from . import history
+    return os.path.join(os.path.dirname(history.EVENTS), "harbour-journal.jsonl")
+
+
+def journal_entry(snap, now):
+    """-> one compact record of the harbour as it is. Names and counts only:
+    no command lines, no directories, no addresses."""
+    svc = []
+    for s in snap.get("services") or []:
+        if s.get("system"):
+            continue
+        owner = s.get("owner_name") if s.get("origin") in ("known", "recorded") else None
+        svc.append([s.get("port"), (s.get("name") or "?")[:40], s.get("activity"), s.get("exposure"),
+                    owner, bool(s.get("owner_ai")), s.get("conns") or 0])
+    ship = snap.get("ship") or {}
+    return {"ts": round(now, 1), "s": svc[:80],
+            "m": [ship.get("load_pct"), ship.get("mem_pct"), ship.get("disk_pct")],
+            "t": len(snap.get("traffic") or []),
+            "c": sum(1 for c in (snap.get("yard") or {}).get("containers") or [] if c.get("running"))}
+
+
+def journal_summary(recs):
+    """-> {(port, name): {days, busy_share, samples}} across the journal: on how
+    many different days a service was seen, and what share of the samples found
+    it in use."""
+    out = {}
+    for r in recs:
+        day = time.strftime("%Y-%m-%d", time.localtime(r.get("ts") or 0))
+        for e in r.get("s") or []:
+            k = (e[0], e[1])
+            m = out.setdefault(k, {"days": set(), "busy": 0, "samples": 0})
+            m["days"].add(day)
+            m["samples"] += 1
+            if e[2] in ("busy", "active"):
+                m["busy"] += 1
+    return {k: {"days": len(v["days"]), "busy_share": round(v["busy"] / v["samples"], 2), "samples": v["samples"]}
+            for k, v in out.items()}
+
+
+def _journal_load():
+    if _journal["loaded"]:
+        return
+    _journal["loaded"] = True
+    recs, cutoff = [], time.time() - JOURNAL_KEEP
+    try:
+        with open(_journal_path()) as f:
+            for ln in f:
+                try:
+                    r = json.loads(ln)
+                except ValueError:
+                    continue
+                if (r.get("ts") or 0) >= cutoff:
+                    recs.append(r)
+    except OSError:
+        pass
+    _journal["recs"] = recs
+    _journal["at"] = recs[-1]["ts"] if recs else 0.0
+    _journal["summary"] = journal_summary(recs)
+
+
+def journal_note(snap, now=None):
+    """Record the harbour if ten minutes have passed since the last record, and
+    put each service's record across days on it. Cheap between records."""
+    now = now or time.time()
+    try:
+        _journal_load()
+        if now - _journal["at"] >= JOURNAL_EVERY:
+            rec = journal_entry(snap, now)
+            path = _journal_path()
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            recs = [r for r in _journal["recs"] if r["ts"] >= now - JOURNAL_KEEP] + [rec]
+            if len(recs) < len(_journal["recs"]) + 1:            # something aged out: rewrite
+                with open(path, "w") as f:
+                    f.writelines(json.dumps(r, separators=(",", ":")) + "\n" for r in recs)
+            else:
+                with open(path, "a") as f:
+                    f.write(json.dumps(rec, separators=(",", ":")) + "\n")
+            _journal.update(recs=recs, at=now, summary=journal_summary(recs))
+    except Exception:
+        return
+    summ = _journal["summary"]
+    for s in snap.get("services") or []:
+        s["record"] = summ.get((s.get("port"), (s.get("name") or "?")[:40]))
+
+
+def journal_near(at, within=1200):
+    """-> the journal record closest to `at`, if one is within twenty minutes."""
+    _journal_load()
+    best = min(_journal["recs"], key=lambda r: abs(r["ts"] - at), default=None)
+    return best if best and abs(best["ts"] - at) <= within else None
+
+
+def enrich_past(services, rec):
+    """Fill a reconstructed past harbour with what the journal saw near then:
+    activity, owner and connection count, by port and name. -> how many matched."""
+    if not rec:
+        return 0
+    when = time.strftime("%H:%M", time.localtime(rec["ts"]))
+    by = {(e[0], e[1]): e for e in rec.get("s") or []}
+    n = 0
+    for sv in services:
+        e = by.get((sv.get("port"), (sv.get("name") or "?")[:40]))
+        if not e:
+            continue
+        n += 1
+        sv["activity"], sv["activity_why"] = e[2] or sv.get("activity"), "as the journal found it at " + when
+        sv["conns"] = e[6]
+        if e[4]:
+            sv["owner_name"], sv["owner_ai"] = e[4], e[5]
+            sv["origin"], sv["origin_why"] = "recorded", "started by " + e[4] + ", as the journal found it at " + when
+    return n
 
 
 # ------------------------------------------------------------------ the past
@@ -1393,13 +1519,19 @@ def past_payload(at):
     # who started them was not recorded: say that, rather than calling them unknown
     for sv in snap["services"]:
         sv["origin"], sv["origin_why"], sv["origin_phrase"] = "unrecorded", "not recorded for the past", ""
+    rec = journal_near(at)
+    matched = enrich_past(snap["services"], rec)
     snap["stats"] = _stats([x for x in snap["services"] if not x["system"]], snap["workers"], snap["yard"])
     snap["conditions"] = conditions(snap)
     doc = dict(snap)
     doc["past"] = {"at": at, "oldest": oldest,
                    "before_history": oldest is not None and at < oldest,
-                   "note": "Reconstructed from recorded opens and closes: listeners and their exposure only. "
-                           "Use, owners, sessions, traffic and containers are not recorded for the past."}
+                   "note": ("Reconstructed from recorded opens and closes, with use and owners from the "
+                            "harbour's journal at %s. Sessions, traffic and containers are not recorded for the past."
+                            % time.strftime("%H:%M", time.localtime(rec["ts"]))) if matched else
+                           "Reconstructed from recorded opens and closes: listeners and their exposure only. "
+                           "Use, owners, sessions, traffic and containers are not recorded for the past.",
+                   "journal": bool(matched)}
     doc["events"], doc["seq"] = [], _differ.seq
     doc["pets"] = plan_pets(snap, [], now=at)
     doc["chatter"] = []

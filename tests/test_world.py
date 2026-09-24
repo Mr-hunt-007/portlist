@@ -335,3 +335,21 @@ def test_memory_counts_only_what_the_history_records():
     mem = world.memory_of([{"port": 3000}, {"port": 5432}], hist, now=max(NOW, midnight + 200))
     assert mem[3000] == {"opens_today": 2, "stops_today": 1, "exposed_before": 2, "since": midnight - 86400 * 3}
     assert 5432 not in mem and 9999 not in mem           # nothing recorded is not zero, it is absent
+
+
+def test_journal_records_names_and_counts_and_replay_reads_it_back():
+    snap = {"services": [
+        {"port": 3000, "name": "Next.js", "activity": "busy", "exposure": "local", "origin": "known",
+         "owner_name": "Claude Code", "owner_ai": True, "conns": 4, "system": False, "cmdline": "secret --token x", "dir": "/home/me"},
+        {"port": 5000, "name": "AirPlay", "activity": "idle", "system": True}],
+        "ship": {"load_pct": 12, "mem_pct": 50, "disk_pct": 40}, "traffic": [1, 2], "yard": {"containers": [{"running": True}]}}
+    rec = world.journal_entry(snap, NOW)
+    assert rec["s"] == [[3000, "Next.js", "busy", "local", "Claude Code", True, 4]]    # system sheds left out
+    assert "secret" not in json.dumps(rec) and "/home" not in json.dumps(rec)            # no command lines or paths
+    later = dict(rec, ts=NOW + 86400, s=[[3000, "Next.js", "idle", "local", None, False, 0]])
+    summ = world.journal_summary([rec, later])
+    assert summ[(3000, "Next.js")] == {"days": 2, "busy_share": 0.5, "samples": 2}
+    past = [{"port": 3000, "name": "Next.js", "activity": "unmeasured", "origin": "unrecorded"}, {"port": 9, "name": "x"}]
+    assert world.enrich_past(past, rec) == 1
+    assert past[0]["activity"] == "busy" and past[0]["owner_name"] == "Claude Code" and past[0]["origin"] == "recorded"
+    assert world.enrich_past(past, None) == 0                                            # no journal near then: unchanged

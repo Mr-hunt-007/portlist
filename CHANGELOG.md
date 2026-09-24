@@ -6,6 +6,17 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **Harbour: under 10% of a browser thread at rest.** The frame rate is now a
+  budget in frames per second, not a share of the display's refreshes, so a
+  120 Hz screen costs the same as 60: 60 while you use it, 8 at rest with
+  something travelling, 5 with nothing travelling. At rest the next frame is
+  booked on a timer, so the browser sleeps between frames; any touch draws at
+  once. Physics runs in 0.05 s steps however long the frame. Colour maths is
+  remembered. Measured in Chrome at rest: 9.0-9.3% of the main thread (from
+  23.1%), heap 6-8 MB. The README and the site now show the harbour (a GIF and
+  a still, both from the scripted demo machine), and no longer claim portlist
+  has no server or never stops anything: `--world` listens on 127.0.0.1, and
+  stopping is opt-in and confirmed.
 - **Harbour: lighter on the laptop, and a demo.** At rest the page draws at
   half rate: measured with the GPU, idle main thread 23.1% to 15.7%, heap
   5.5 MB. A ground cache was tried and dropped (no time saved, ~20 MB held).

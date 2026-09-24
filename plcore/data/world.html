@@ -469,8 +469,12 @@ function rgb(c) {
   return [+m[0], +m[1], +m[2]];
 }
 function toHex(a) { return '#' + a.map(v => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0')).join(''); }
-function hex(c1, c2, t) { const a = rgb(c1), b = rgb(c2); return toHex([lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]); }
-function shade(c, amt) { return toHex(rgb(c).map(v => v + amt)); }
+// Colour maths is asked the same questions thousands of times a frame, so the
+// answers are kept. Blends are taken in 1/128 steps: no eye can tell.
+const COLM = new Map();
+function remember(k, f) { let v = COLM.get(k); if (v === undefined) { if (COLM.size > 6000) COLM.clear(); v = f(); COLM.set(k, v); } return v; }
+function hex(c1, c2, t) { t = Math.round(t * 128) / 128; return remember(c1 + '>' + c2 + '@' + t, () => { const a = rgb(c1), b = rgb(c2); return toHex([lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]); }); }
+function shade(c, amt) { return remember(c + '~' + amt, () => toHex(rgb(c).map(v => v + amt))); }
 function pip(pt, poly) {
   let inside = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
@@ -5876,19 +5880,48 @@ $('#wClose').onclick = welcomed;
 $('#wLegend').onclick = () => { welcomed(); toggleLegend(true); };
 $('#wGo').onclick = () => { welcomed(); setTour(true); tourAt = 0; toast('Tour on. Press T to stop, S for the second-screen mode', '#7fb2ff'); };
 let last = performance.now(), reported = false;
-// Battery: at rest (camera still, nobody touching it for five seconds, no
-// tour) the harbour runs at half the display's rate. Everything in it moves
-// slowly enough that nobody can tell; the laptop can.
-function atRest() { return GC.still > 30 && performance.now() - (W.touchedAt || 0) > 5000 && !W.cfg.tour; }
-function loop(now) {
-  requestAnimationFrame(loop);
-  W.skip = !W.skip;
-  if (W.skip && atRest()) return;
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  W.frames = (W.frames || 0) + 1;
-  try { step(dt); draw(); } catch (err) { if (!reported) { reported = true; console.error('harbour frame error:', err); } }
+// Battery. The frame rate is a budget in frames per second, not a share of the
+// display's refreshes, so a 120 Hz screen costs the same as a 60 Hz one:
+//   in use (touched in the last four seconds, camera moving, tour)   60
+//   at rest, something travelling (a vehicle, boat, train, worker)   8
+//   at rest, nothing travelling (only water, gulls and smoke)         5
+// Nothing in the harbour moves fast enough at rest for the difference to show.
+function atRest() { return GC.still > 20 && performance.now() - (W.touchedAt || 0) > 4000 && !W.cfg.tour; }
+function travelling() {
+  if (W.trucks.some(t => !t.queued) || W.carriers.length || W.feeders.length || W.train || W.visitors.length || W.carts.length) return true;
+  if (W.bulker && W.bulker.stage !== 'load') return true;
+  for (const c of W.cars.values()) if (c.stage !== 'parked') return true;
+  for (const v of W.vessels.values()) if (v.stage !== 'moored') return true;
+  for (const b of W.boats.values()) if (b.moving) return true;
+  for (const e of W.workers.values()) if (e.stage !== 'work' || !(e.pause > 0)) return true;
+  for (const v of W.visitShips.values()) if (v.t < 1 || v.leaving) return true;
+  return !!(W.fork && W.fork.stage !== 'park') || !!(W.cleaner && W.cleaner.stage !== 'wait');
 }
-['pointermove', 'pointerdown', 'wheel', 'keydown'].forEach(ev => window.addEventListener(ev, () => { W.touchedAt = performance.now(); }, { passive: true }));
+function frameBudget() { return !atRest() ? 60 : travelling() ? 8 : 5; }
+// At rest the next frame is booked with a timer, so the browser sleeps between
+// frames instead of waking at every refresh to be told there is nothing to do.
+// Input cancels the wait and draws at once.
+let restTimer = 0;
+function schedule() {
+  W.budget = frameBudget();
+  if (W.budget >= 60) { requestAnimationFrame(loop); return; }
+  const wait = Math.max(0, 1000 / W.budget - (performance.now() - (W.drawnAt || 0)));
+  restTimer = setTimeout(() => { restTimer = 0; requestAnimationFrame(loop); }, wait);
+}
+function wakeFrames() { if (restTimer) { clearTimeout(restTimer); restTimer = 0; requestAnimationFrame(loop); } }
+function loop(now) {
+  if (now - (W.drawnAt || 0) < 1000 / 60 - 2) { requestAnimationFrame(loop); return; }   // never above 60, even at 120 Hz
+  W.drawnAt = now;
+  // physics in steps of at most 0.05 s, however long the frame: a slow frame
+  // must not let one vehicle jump through another
+  let dt = Math.min(0.5, (now - last) / 1000);
+  try { while (dt > 1e-4) { const h = Math.min(0.05, dt); step(h); dt -= h; } } catch (err) { if (!reported) { reported = true; console.error('harbour step error:', err); } }
+  last = now;
+  W.frames = (W.frames || 0) + 1;
+  try { draw(); } catch (err) { if (!reported) { reported = true; console.error('harbour frame error:', err); } }
+  schedule();
+}
+['pointermove', 'pointerdown', 'wheel', 'keydown'].forEach(ev => window.addEventListener(ev, () => { W.touchedAt = performance.now(); wakeFrames(); }, { passive: true }));
 requestAnimationFrame(loop);
 poll();
 setInterval(() => { if (!document.hidden) poll(); }, 2000);

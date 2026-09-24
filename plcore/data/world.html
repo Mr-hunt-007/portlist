@@ -657,6 +657,7 @@ function geometry(cols, rows, nCrates) {
   const perRow = Math.max(5, Math.ceil(Math.max(1, nCrates) / 2));
   g.yardX0 = 1.6; g.yardX1 = Math.min(g.EX - 1.2, Math.max(15, 1.6 + 2.8 * perRow + 0.3));
   g.yardCap = Math.floor((g.yardX1 - 1.9) / 2.8) * 2;
+  g.yardTarget = nCrates;
   g.HY = [0.9].concat(g.lanes, [g.RS]);
   g.BAND = g.HY.slice(0, -1).map((_, i) => g.VX.map(x => i < g.HY.length - 2 ? 1 : (x > g.yardX0 - 0.2 && x < g.yardX1 + 0.2 ? 0 : 1)));
   g.slot = i => ({ gx: g.bx(i % cols), gy: g.rowY(Math.floor(i / cols)) });
@@ -764,7 +765,9 @@ function sync(doc) {
   const maxSlot = Math.max(-1, ...Object.entries(W.slots).filter(([k]) => live.has(k)).map(([, v]) => v), ...W.ruins.map(r => r.slot));
   const rows = Math.max(2, Math.ceil((maxSlot + 1) / W.cols));
   const nCr = (doc.yard.containers || []).length;
-  if (!W.geo || rows !== W.rows || W.geo.yardCap < nCr) {
+  // The road limits yardCap. Once laid out for an overflowing inventory,
+  // polling the same inventory must not reset the camera every two seconds.
+  if (!W.geo || rows !== W.rows || (W.geo.yardCap < nCr && W.geo.yardTarget < nCr)) {
     W.rows = rows; W.geo = geometry(W.cols, rows, nCr);
     buildCranes();
     for (const e of [...W.workers.values(), ...W.pets.values()]) e.path = null;

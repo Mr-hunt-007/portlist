@@ -516,6 +516,15 @@ third-party packages on any platform otherwise, ever.
 - [Security](SECURITY.md) - what it reads, what it never sends
 - [Contributing](CONTRIBUTING.md)
 
+## Contributors
+
+<a href="https://github.com/Cipher-Sage007"><img src="https://github.com/Cipher-Sage007.png?size=80" width="48" height="48" alt="Cipher-Sage007" align="left"></a>
+
+**[Cipher-Sage007](https://github.com/Cipher-Sage007)**. Huge thanks and kudos
+for everything behind the living harbour. It would not look or feel like this
+without you.
+<br clear="left">
+
 MIT.
 
 ---

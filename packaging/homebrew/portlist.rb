@@ -11,8 +11,8 @@ class Portlist < Formula
 
   desc "Every port on this machine, and where it came from"
   homepage "https://mr-hunt-007.github.io/portlist/"
-  url "https://github.com/Mr-hunt-007/portlist/archive/refs/tags/v1.2.tar.gz"
-  sha256 "01ecf212fa4085aea0e479e2f93cf6aa1751a62374805238e9958c54a40c613f"
+  url "https://github.com/Mr-hunt-007/portlist/archive/refs/tags/v1.3.tar.gz"
+  sha256 "dae7def6df248f66b64ddf1f1bf34813a11c4c8842fadb429deea1a4fc5d8626"
   license "MIT"
   head "https://github.com/Mr-hunt-007/portlist.git", branch: "main"
 
@@ -23,7 +23,7 @@ class Portlist < Formula
   end
 
   test do
-    assert_match "portlist 1.2", shell_output("#{bin}/portlist --version")
+    assert_match "portlist 1.3", shell_output("#{bin}/portlist --version")
     # --keys prints and exits without touching the terminal, so it is the one
     # part of a curses program that is honest to assert on in a sandbox.
     assert_match "services", shell_output("#{bin}/portlist --keys")

@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.12.0.schema.json
 
 PackageIdentifier: Mr-hunt-007.portlist
-PackageVersion: "1.2"
+PackageVersion: "1.3"
 PackageLocale: en-US
 Publisher: Portlist contributors
 PublisherUrl: https://github.com/Mr-hunt-007

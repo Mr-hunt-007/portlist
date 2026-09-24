@@ -6,6 +6,15 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **Harbour: lighter on the laptop, and a demo.** At rest the page draws at
+  half rate: measured with the GPU, idle main thread 23.1% to 15.7%, heap
+  5.5 MB. A ground cache was tried and dropped (no time saved, ~20 MB held).
+  Sounds at most one per 150 ms; a burst of closing connections drains the
+  car park at 0.45 s spacing. Arrow keys pan, 1-9 open ports, the live chip
+  says what it reads and how often. Replay's "not recorded" wording is now
+  tested. `docs/harbour.gif` (1.7 MB, from the scripted machine) heads the
+  README's harbour section, and the README no longer claims there is no web
+  view.
 - **Harbour: a journal across days, and portlist's own check.** Every ten
   minutes while the harbour is watched, one compact line (names, activity,
   exposure, owner, counts; no command lines or paths; two weeks kept) goes to

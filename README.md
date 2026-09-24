@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>Every port on this machine, and where it came from.</strong><br>
-  A terminal program. No web UI, no dashboard, no server, no dependencies.
+  A terminal program, with an optional harbour view in the browser (<code>--world</code>). No dependencies.
 </p>
 
 <p align="center">
@@ -316,6 +316,8 @@ tree looks like when it runs out of width.
 
 ## The living harbour
 
+<p align="center"><img src="docs/harbour.gif" alt="The living harbour: services as buildings, a delivery truck for a new dev server, the lighthouse guiding an inbound SSH ship, the coal train for downloads, the gate open for a service reachable from outside" width="960"></p>
+
 ```
 portlist --world        # or -world, or W inside the terminal
 ```
@@ -329,7 +331,8 @@ exit and leave a bulb burning over whatever they left running, and five cats go
 and look at whatever matters most. Click anything and it says which measurement
 put it there.
 
-Loopback only, read-only, one file, no dependencies. `--windowed` for a normal
+Loopback only, one file, no dependencies. It only reads, unless you switch on
+stopping in its Play panel (off on every load, and each stop is confirmed). `--windowed` for a normal
 tab, `--no-open` to print the address. What every object means, the pets' jobs
 and the rules are in [docs/WORLD.md](docs/WORLD.md).
 

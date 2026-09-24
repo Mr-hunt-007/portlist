@@ -148,6 +148,19 @@ average), memory (with swap), disk and network, each with a sparkline of the
 samples this page has received. The same figures as the terminal's system view,
 read from the same scan. Click its title to fold it.
 
+## What it costs in the browser
+
+At rest (the camera still, nobody touching it for five seconds, no tour) the
+page draws at half the display's rate; everything in it moves slowly enough
+that the difference cannot be seen. Measured with the GPU drawing the canvas,
+1440x900 at 2x, idle: main thread 15.7% (23.1% before the half rate), script
+12.9%, JS heap 5.5 MB. A screen-sized cache for the ground was tried and
+dropped: with the GPU it saved no time and would have held about 20 MB. Hidden
+tabs neither draw nor poll. Sounds are at most one every 150 ms, and a burst of
+the same kind is one sound. A burst of closing connections empties the car
+park quickly: past a five-second backlog, cars leave 0.45 s apart instead of
+1.3 s. Arrow keys pan; 1 to 9 open the ports in order.
+
 ## What it costs
 
 There is one scanner per process, always. `/api/world` reads the scan every
@@ -288,7 +301,7 @@ outbound, and to public IPs.
 
 `F` full screen, `S` ambient mode (tour + captions, chrome fades), `T` tour,
 `/` find, `P` replay, `?` legend, `A` what needs a look, `L` light (the clock, day, dusk,
-night), `M` sound, `K` picture, `G` play, `C` compare with an hour ago, `0` whole harbour, `+` `-` zoom, `Esc` close.
+night), `M` sound, `K` picture, `G` play, `C` compare with an hour ago, arrows pan, `1`-`9` open the ports in order, `0` whole harbour, `+` `-` zoom, `Esc` close.
 
 ## How it is built
 

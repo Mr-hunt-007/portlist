@@ -353,3 +353,17 @@ def test_journal_records_names_and_counts_and_replay_reads_it_back():
     assert world.enrich_past(past, rec) == 1
     assert past[0]["activity"] == "busy" and past[0]["owner_name"] == "Claude Code" and past[0]["origin"] == "recorded"
     assert world.enrich_past(past, None) == 0                                            # no journal near then: unchanged
+
+
+def test_replay_without_a_journal_says_not_recorded_never_unknown(monkeypatch):
+    from plcore import scan, history
+    now_rows = [{"port": 3000, "pid": 1, "service": "Next.js", "exposure": {"level": "loopback"}}]
+    events = [{"ts": NOW - 50, "type": "opened", "port": 3000, "pid": 1, "service": "Next.js", "exposure": "loopback"}]
+    monkeypatch.setattr(scan, "scan", lambda force=False: (now_rows, {"hostname": "box"}))
+    monkeypatch.setattr(history, "recent", lambda n=200: events)
+    monkeypatch.setattr(world, "journal_near", lambda at, within=1200: None)
+    doc = world.past_payload(NOW - 10)
+    svc = [s for s in doc["services"] if not s["system"]]
+    assert svc and all(s["origin"] == "unrecorded" for s in svc)
+    assert "not recorded" in doc["past"]["note"].lower() and not doc["past"]["journal"]
+    assert "unknown" not in json.dumps([s["origin"] for s in svc])

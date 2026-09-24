@@ -290,8 +290,7 @@ def _scan_now(force=False):
         # What each of these could reach if it were taken. Exposure says who can
         # get in; this says what is behind the door.
         stdio_pids = [pid for pid, p_ in procs.items()
-                      if any(re.search(pat, p_.get("cmdline") or "")
-                             for pat in mcp_mod.STDIO_PATTERNS)]
+                      if mcp_mod.mentions_stdio(p_.get("cmdline") or "")]
         dirs_for_stdio = collect.cwds(stdio_pids) if stdio_pids else {}
 
         try:
@@ -1036,11 +1035,12 @@ def remote_endpoints(limit=40):
         g = groups.setdefault(key, {
             "address": c["raddr"].strip("[]"), "alias": c.get("remote_alias"),
             "scope": c["scope"], "local": c["scope"] == "loopback",
-            "ports": {}, "processes": {}, "count": 0, "ssh": False,
+            "ports": {}, "kinds": {}, "processes": {}, "count": 0, "ssh": False,
             "notable": False, "tone": "grey"})
         g["count"] += 1
         g["alias"] = g["alias"] or c.get("remote_alias")
         g["ports"].setdefault(c["rport"], c.get("remote_service"))
+        g["kinds"].setdefault(c["rport"], c.get("kind"))
         if c.get("notable"):
             g["notable"] = True
             g["tone"] = c["tone"] if g.get("tone") != "red" else "red"
@@ -1056,7 +1056,7 @@ def remote_endpoints(limit=40):
             "local": g.get("local", False),
             "count": g["count"], "ssh": g["ssh"],
             "notable": g["notable"], "tone": g["tone"],
-            "ports": [{"port": p, "service": s} for p, s in ports],
+            "ports": [{"port": p, "service": s, "kind": g["kinds"].get(p)} for p, s in ports],
             "services": sorted({s for _, s in ports if s}),
             "processes": sorted(g["processes"].values(), key=lambda x: x["name"]),
             # only offered for hosts you can actually name; scanning needs a login

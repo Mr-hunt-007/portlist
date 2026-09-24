@@ -42,6 +42,8 @@ keys
   A                      inside vibe mode: whether the scene changes by itself
   V                      vibe mode: the ambient screen. Any key comes back, and
                          it drifts in on its own after 30 idle seconds
+  W                      the living harbour in your browser (the same as
+                         portlist --world, served from this session)
   r                      rescan now
   ?                      this list
   q                      quit
@@ -62,6 +64,16 @@ def main(argv=None):
                    help="draw this picture behind the vibe scenes (PNG only). "
                         "Pass an empty string to clear it. Off until you set it, "
                         "and `b` inside vibe mode tunes how strongly it shows.")
+    p.add_argument("--world", "-world", action="store_true",
+                   help="open the living harbour: every port as a building, in a "
+                        "browser, full screen, for a second screen. Loopback only, "
+                        "read-only, served until ctrl-c")
+    p.add_argument("--world-port", type=int, default=0, metavar="N",
+                   help="port for --world on 127.0.0.1 (default: any free one)")
+    p.add_argument("--no-open", action="store_true",
+                   help="with --world: print the address, open nothing")
+    p.add_argument("--windowed", action="store_true",
+                   help="with --world: a normal browser tab rather than full screen")
     args = p.parse_args(argv)
 
     if args.keys:
@@ -91,6 +103,10 @@ def main(argv=None):
         return 0
     if args.data_dir:
         os.environ["PORTLIST_DATA"] = args.data_dir
+    if args.world:
+        from . import worldserve
+        return worldserve.run(port=args.world_port, open_it=not args.no_open,
+                              fullscreen=not args.windowed)
 
     try:
         from . import tui

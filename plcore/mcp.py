@@ -265,6 +265,44 @@ PATH_FLAG = re.compile(
     r"storage[\w-]*|dir|cwd|config)[= ]\S+")
 
 
+# A process's command line does not change, and a machine runs the same few
+# hundred of them scan after scan. Deciding "is this an MCP server" once per
+# command line, rather than once per scan, took two thirds of the regex work
+# out of every scan. Bounded, so a machine that spawns endless unique commands
+# cannot grow it without limit.
+_CLASS = {}
+
+
+def _classify(cmd):
+    """-> (matched pattern or None, the command with path flags removed)."""
+    hit = _CLASS.get(cmd)
+    if hit is not None:
+        return hit
+    if any(re.search(x, cmd) for x in STDIO_EXCLUDE):
+        hit = (None, cmd)
+    else:
+        subject = PATH_FLAG.sub("", cmd)
+        hit = (next((pat for pat in STDIO_PATTERNS if re.search(pat, subject)), None), subject)
+    if len(_CLASS) > 5000:
+        _CLASS.clear()
+    _CLASS[cmd] = hit
+    return hit
+
+
+_ANY = {}
+
+
+def mentions_stdio(cmd):
+    """Does any stdio-MCP pattern appear anywhere in this command line? Cached."""
+    v = _ANY.get(cmd)
+    if v is None:
+        v = any(re.search(pat, cmd) for pat in STDIO_PATTERNS)
+        if len(_ANY) > 5000:
+            _ANY.clear()
+        _ANY[cmd] = v
+    return v
+
+
 def find_stdio(procs, listening_pids, exclude_pids=()):
     """MCP servers that hold no socket. Invisible to every port scanner.
 
@@ -282,19 +320,14 @@ def find_stdio(procs, listening_pids, exclude_pids=()):
         cmd = p.get("cmdline") or ""
         if not cmd or pid in listening_pids or pid in skip:
             continue
-        if any(re.search(x, cmd) for x in STDIO_EXCLUDE):
-            continue
-        # Match on what is being run, not on paths handed to it.
-        subject = PATH_FLAG.sub("", cmd)
-        for pattern in STDIO_PATTERNS:
-            if re.search(pattern, subject):
-                hits[pid] = {
-                    "pid": pid, "ppid": p.get("ppid"), "user": p.get("user"),
-                    "name": _stdio_name(subject), "cmdline": cmd[:200],
-                    "uptime": p.get("uptime"), "matched": pattern,
-                    "parent": _parent_name(p.get("ppid"), procs),
-                }
-                break
+        pattern, subject = _classify(cmd)
+        if pattern:
+            hits[pid] = {
+                "pid": pid, "ppid": p.get("ppid"), "user": p.get("user"),
+                "name": _stdio_name(subject), "cmdline": cmd[:200],
+                "uptime": p.get("uptime"), "matched": pattern,
+                "parent": _parent_name(p.get("ppid"), procs),
+            }
 
     # A launcher (npm exec @foo/mcp) and the binary it starts are one server.
     # Keep the outermost, and say how many processes it turned into.

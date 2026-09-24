@@ -150,11 +150,16 @@ read from the same scan. Click its title to fold it.
 
 ## What it costs in the browser
 
-At rest (the camera still, nobody touching it for five seconds, no tour) the
-page draws at half the display's rate; everything in it moves slowly enough
-that the difference cannot be seen. Measured with the GPU drawing the canvas,
-1440x900 at 2x, idle: main thread 15.7% (23.1% before the half rate), script
-12.9%, JS heap 5.5 MB. A screen-sized cache for the ground was tried and
+The frame rate is a budget in frames per second, so a 120 Hz screen costs
+the same as a 60 Hz one: 60 while you use it (touched in the last four
+seconds, the camera moving, a tour), 8 at rest while a vehicle, boat, train
+or worker is travelling, 5 at rest with nothing travelling. At rest the next
+frame is booked on a timer, so the browser sleeps between frames; any touch
+draws at once. Physics always runs in steps of at most 0.05 s, so a slow frame
+never lets one vehicle jump through another. Measured in Chrome, 1440x900 at
+2x, at rest: main thread 9.0-9.3% (23.1% when it drew every refresh), heap
+6 to 8 MB. Pixel density made no difference; the cost is the number of
+frames. A screen-sized cache for the ground was tried and
 dropped: with the GPU it saved no time and would have held about 20 MB. Hidden
 tabs neither draw nor poll. Sounds are at most one every 150 ms, and a burst of
 the same kind is one sound. A burst of closing connections empties the car

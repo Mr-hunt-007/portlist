@@ -180,9 +180,11 @@ guessing.
 
 ## What it will not do
 
-- It never stops, kills or restarts anything. The detail pane prints the command
-  and you run it.
-- It opens no listening socket. A tool for watching what is listening should not
-  add to the list.
+- It never stops, kills or restarts anything on its own. The detail pane prints
+  the command and you run it. The harbour can stop a process only after you
+  switch stopping on in its Play panel (off on every load) and confirm each one.
+- The terminal opens no listening socket. A tool for watching what is listening
+  should not add to the list. `--world` is the exception you ask for: one server
+  on 127.0.0.1, with a per-run key, gone when you close it.
 - It sends nothing anywhere. There is no telemetry, no update check and no
   network code beyond connecting to this host.

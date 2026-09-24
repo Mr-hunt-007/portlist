@@ -30,6 +30,10 @@
 Twelve things are listening. You started three of them today and you cannot name
 the rest.
 
+Or see the same scan as a harbour on a second screen, with `portlist --world`:
+
+<p align="center"><a href="#the-living-harbour"><img src="docs/harbour.jpg" alt="The living harbour, from a scripted demo machine: services as buildings, the lighthouse for SSH, the coal train for downloads, the gate open for a service reachable from outside" width="820"></a></p>
+
 ## What problem does it solve
 
 `lsof -i` and `netstat` answer *what is bound to this port*. That was the whole
@@ -279,8 +283,10 @@ this week's quota" is answerable:
 Live sessions are matched to running agent processes by working directory. Where
 several agents share one directory it says so rather than guessing.
 
-**Prompts never leave the machine.** portlist has no server and no network code
-at all, so there is nowhere for them to go. Account details are narrower still:
+**Prompts never leave the machine.** portlist sends nothing anywhere and has no
+network code that reaches beyond this host, so there is nowhere for them to go.
+(The optional harbour, `--world`, serves one page on 127.0.0.1 only, and shows
+session titles, never prompts.) Account details are narrower still:
 the plan and the organisation, never the address or the account id.
 
 It never reads a whole transcript either - they reach eight megabytes. The head
@@ -474,16 +480,20 @@ motion would make the prettiest part of the program the one lying to you.
 - **Which container holds the port**, and which compose project it belongs to.
 - **A port that is free** now and not spoken for by anything you run later.
 
-## It never stops anything
+## It never stops anything on its own
 
-The detail pane prints the command; you run it. There is no kill key, no daemon,
-and nothing here writes to another machine.
+The terminal prints the command; you run it. There is no kill key, no daemon,
+and nothing here writes to another machine. The one exception is opt-in: the
+harbour's Play panel has a **stopping** switch, off on every page load. With it
+on, each stop asks first, then sends SIGTERM to that process, and only if a
+fresh scan shows it still on that port.
 
 It does open sockets, and it is worth being exact about which. It connects
 *outward* to the ports on this machine to see what answers, and it binds a
 candidate port for a moment to check it is free, then closes it. Neither ever
-calls `listen()`, so portlist has no port of its own and nothing can connect
-to it.
+calls `listen()`, so the terminal has no port of its own and nothing can
+connect to it. `portlist --world` is the only thing that listens: one server on
+127.0.0.1, gone when you close it, answering only with the per-run key.
 
 ## Where its data lives
 

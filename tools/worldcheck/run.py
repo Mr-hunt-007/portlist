@@ -364,16 +364,18 @@ def main():
           o.bulkerInfo = [...bstages].join('>') + ' load ' + bload.toFixed(2) + ' digger ' + [...digs].join(',');
           // the coal train: a download starts it; it comes in, tips its wagons and backs out
           const real = sync; sync = d => { d.ship.net_rx = 600000; real(d); }; W.snap.ship.net_rx = 600000; W.trainWait = 0;
-          const stages = new Set(); let maxV = 0, lastX = null, jump = 0;
+          const stages = new Set(); let maxV = 0, lastX = null, lastT = 0, jump = 0;
           const until = performance.now() + 120000;
           while (performance.now() < until && !(stages.has('out') && !W.train)) {
             await frames(2);
             if (W.digger && W.digger.mode === 'trim' && ['dig', 'carry', 'dump'].includes(W.digger.phase)) o.trimmed = true;
-            if (W.train) { stages.add(W.train.stage); maxV = Math.max(maxV, W.train.v); if (lastX != null) jump = Math.max(jump, Math.abs(W.train.x - lastX)); lastX = W.train.x; o.wagons = W.train.n; }
+            // a jump is movement faster than the train can go
+            // measured on the simulation's own clock: frames at rest are sparse, not the train fast
+            if (W.train) { const now = W.t; stages.add(W.train.stage); maxV = Math.max(maxV, W.train.v); if (lastX != null && now > lastT) jump = Math.max(jump, Math.abs(W.train.x - lastX) / (now - lastT)); if (now > lastT) { lastX = W.train.x; lastT = now; } o.wagons = W.train.n; }
           }
           sync = real;
-          o.train = ['in', 'tip', 'out'].every(k => stages.has(k)) && !W.train && maxV <= 3.21 && jump < 0.3 && W.coal > 0;
-          o.trainInfo = [...stages].join('>') + ' v' + maxV.toFixed(2) + ' jump' + jump.toFixed(3) + ' wagons ' + o.wagons;
+          o.train = ['in', 'tip', 'out'].every(k => stages.has(k)) && !W.train && maxV <= 3.21 && jump <= 3.3 && W.coal > 0;
+          o.trainInfo = [...stages].join('>') + ' v' + maxV.toFixed(2) + ' fastest ' + jump.toFixed(2) + ' tiles/s wagons ' + o.wagons;
           return o;
         }""")
         n0 = len(errors)

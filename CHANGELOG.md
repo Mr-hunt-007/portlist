@@ -2,7 +2,7 @@
 
 Dates are the day the work landed. Versions follow [semver](https://semver.org/).
 
-## Unreleased - 2026-09-23
+## 1.3 - 2026-09-24
 
 ### Added
 

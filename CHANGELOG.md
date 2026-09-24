@@ -91,6 +91,8 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   on start, a clonk on stop, a thud when a container lands. `K` saves a PNG with
   a strip of real counts, host names, addresses and chat left out, nothing
   uploaded. The harness checks all of it (23 checks).
+- **Kudos.** Thanks to [@Cipher-Sage007](https://github.com/Cipher-Sage007) for
+  everything behind the living harbour.
 - **The living harbour.** `portlist --world` (also `-world`, and `W` inside the
   terminal) opens the machine as an isometric harbour in a browser, full screen
   in a Chromium app window, for a second screen. Buildings are services, shaped

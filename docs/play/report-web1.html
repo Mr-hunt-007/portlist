@@ -1,0 +1,68 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>portlist report: web-1</title><style>
+:root{--paper:#F2EFE7;--paper2:#EAE6DC;--ink:#14110E;--soft:#2A2724;--grey:#6E6A63;--faint:#9A958C;--rule:#D8D3C7;
+--shu:#C8452F;--warn:#A86F12;--ok:#4E7A3A;--disp:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+--sans:-apple-system,"Segoe UI",system-ui,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#171513;--paper2:#201d1a;--ink:#EDE8DE;--soft:#D5CFC3;--grey:#A39C90;
+--faint:#7D776C;--rule:#34302b;--shu:#EE6A4F;--warn:#E0A84A;--ok:#93B872}}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 var(--sans)}
+.wrap{max-width:1060px;margin:0 auto;padding:40px 28px 60px}
+.meta{font:11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+header{border-bottom:2px solid var(--ink);padding-bottom:18px}
+h1{font:800 44px/1.05 var(--disp);margin:6px 0 10px;letter-spacing:-.02em}h1 span{color:var(--shu)}
+.verdict{font:600 21px/1.35 var(--disp);max-width:46ch;margin:22px 0 0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:0;border-top:1px solid var(--rule);margin:26px 0 0}
+.tile{padding:14px 12px 12px 0;border-bottom:1px solid var(--rule)}.tile b{display:block;font:700 34px/1 var(--disp)}
+.tile small{font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--grey)}
+.tile.bad b{color:var(--shu)}.tile.warn b{color:var(--warn)}
+h2{font:700 24px/1.2 var(--disp);margin:46px 0 4px}h2+p{margin:0 0 14px;color:var(--grey)}
+.card{border-top:1px solid var(--ink);padding:14px 0 12px;display:grid;grid-template-columns:120px 1fr;gap:4px 18px}
+.card .port{font:700 26px/1 var(--disp)}.card.bad .port{color:var(--shu)}.card.warn .port{color:var(--warn)}
+.card .svc{font-weight:600}.card dl{margin:6px 0 0;display:grid;grid-template-columns:110px 1fr;gap:2px 12px;font-size:14px}
+.card dt{font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding-top:3px}.card dd{margin:0}
+.card ul{margin:8px 0 0;padding-left:18px}.card li{color:var(--warn)}.card li.bad{color:var(--shu)}
+code,.mono{font:12.5px var(--mono)}code{background:var(--paper2);padding:1px 5px;word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th{font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;
+color:var(--faint);text-align:left;border-bottom:1px solid var(--ink);padding:6px 8px 6px 0}
+td{border-bottom:1px solid var(--rule);padding:7px 8px 7px 0;vertical-align:top}td.p{font:600 13px var(--mono)}
+tr.bad td.p,tr.bad .r{color:var(--shu)}tr.warn td.p,tr.warn .r{color:var(--warn)}.dim{color:var(--grey)}
+.scroll{overflow-x:auto}.group{margin:0 0 14px}.group h3{font:600 16px var(--disp);margin:0 0 4px}
+.group h3 em{font:12px var(--mono);font-style:normal;color:var(--grey);margin-left:8px}.ai{color:var(--shu)}
+.method{border-top:1px solid var(--rule);margin-top:46px;padding-top:14px;color:var(--grey);font-size:13.5px}
+.method li{margin:0 0 6px}footer{margin-top:30px;font:11px var(--mono);color:var(--faint)}
+@media print{body{background:#fff}.wrap{padding:0}.card{break-inside:avoid}}
+@media (max-width:640px){.card{grid-template-columns:1fr}.card dl{grid-template-columns:90px 1fr}h1{font-size:34px}}
+</style></head><body><div class="wrap">
+<header><div class="meta">portlist report &middot; 21 Sep 2026 14:13 &middot; Ubuntu 24.04</div>
+<h1>web-1<span>.</span></h1>
+<p class="verdict">6 listening. 4 reachable from beyond this machine; 2 at high or critical risk.</p>
+<div class="tiles">
+<div class="tile "><b>6</b><small>listening</small></div>
+<div class="tile bad"><b>4</b><small>reachable, verified</small></div>
+<div class="tile warn"><b>4</b><small>beyond loopback</small></div>
+<div class="tile bad"><b>2</b><small>high or critical</small></div>
+<div class="tile "><b>0</b><small>left over</small></div>
+<div class="tile "><b>0</b><small>started by AI</small></div>
+<div class="tile "><b>0</b><small>AI starter exited</small></div>
+</div></header>
+<h2>What needs a look</h2><p>Each line below is a measurement, not a rating. Unknown origin is not on this list: unknown is not the same as dangerous.</p>
+<div class="card bad"><div class="port">:5432</div><div><div class="svc">PostgreSQL</div><dl><dt>service</dt><dd>PostgreSQL <span class='dim'>pid 900, postgres</span></dd><dt>started</dt><dd>40d 0h ago by systemd</dd><dt>chain</dt><dd>systemd (1) → postgres (900)</dd><dt>reachable</dt><dd>All interfaces <span class='dim'>0.0.0.0</span></dd><dt>command</dt><dd><code>postgres -D /var/lib/postgresql/16/main</code></dd><dt>stop it</dt><dd><code>portlist kill 5432</code></dd></dl><ul><li class="bad">reachable from beyond this machine: portlist connected on 203.0.113.20 (eth0) and got in</li><li class="bad">risk 88 Critical: a database reachable from the internet; a connection from a public address right now</li><li class="">using 1.6 GB of memory</li></ul></div></div>
+<div class="card bad"><div class="port">:4444</div><div><div class="svc">unknown</div><dl><dt>service</dt><dd>unknown <span class='dim'>pid 3777, deploy</span></dd><dt>started</dt><dd>2d 0h ago by nobody on record</dd><dt>chain</dt><dd>systemd (1) → sh (3770) → kworkerd (3777)</dd><dt>reachable</dt><dd>All interfaces <span class='dim'>0.0.0.0</span></dd><dt>command</dt><dd><code>kworkerd -p 4444</code></dd><dt>stop it</dt><dd><code>portlist kill 4444</code></dd></dl><ul><li class="bad">reachable from beyond this machine: portlist connected on 203.0.113.20 (eth0) and got in</li><li class="bad">risk 64 High: an unrecognised program reachable from the internet; runs from /tmp</li><li class="">its executable is no longer on disk (/tmp/.x/kworkerd), deleted or replaced since it started</li><li class="">a library injection variable is set: LD_PRELOAD</li></ul></div></div>
+<div class="card bad"><div class="port">:443</div><div><div class="svc">nginx</div><dl><dt>service</dt><dd>nginx <span class='dim'>pid 1200, root</span></dd><dt>started</dt><dd>40d 0h ago by systemd</dd><dt>chain</dt><dd>systemd (1) → nginx (1200)</dd><dt>reachable</dt><dd>All interfaces <span class='dim'>0.0.0.0</span></dd><dt>command</dt><dd><code>nginx: master process /usr/sbin/nginx</code></dd><dt>stop it</dt><dd><code>portlist kill 443</code></dd></dl><ul><li class="bad">reachable from beyond this machine: portlist connected on 203.0.113.20 (eth0) and got in</li><li class="">running as root</li></ul></div></div>
+<div class="card bad"><div class="port">:22</div><div><div class="svc">OpenSSH</div><dl><dt>service</dt><dd>OpenSSH <span class='dim'>pid 800, root</span></dd><dt>started</dt><dd>90d 1h ago by systemd</dd><dt>chain</dt><dd>systemd (1) → sshd (800)</dd><dt>reachable</dt><dd>All interfaces <span class='dim'>0.0.0.0</span></dd><dt>command</dt><dd><code>sshd: /usr/sbin/sshd -D</code></dd><dt>stop it</dt><dd><code>portlist kill 22</code></dd></dl><ul><li class="bad">reachable from beyond this machine: portlist connected on 203.0.113.20 (eth0) and got in</li><li class="">running as root</li><li class="">running for 90d 1h</li></ul></div></div>
+<h2>Everything listening</h2><p>6 services.</p>
+<div class="scroll"><table><tr><th>Port</th><th>Service</th><th>Project</th><th>Reachable</th><th>Risk</th><th>Started by</th><th>Last used</th><th>Up</th></tr>
+<tr class="bad"><td class="p">:22</td><td>OpenSSH</td><td>-</td><td class="r">All interfaces</td><td class="r">20 Low</td><td class="">systemd</td><td>now</td><td class="dim">90d 1h</td></tr>
+<tr class="bad"><td class="p">:443</td><td>nginx</td><td>-</td><td class="r">All interfaces</td><td class="r">30 Low</td><td class="">systemd</td><td>now</td><td class="dim">40d 0h</td></tr>
+<tr class="bad"><td class="p">:4444</td><td>unknown</td><td>-</td><td class="r">All interfaces</td><td class="r">64 High</td><td class="">unknown</td><td>never seen</td><td class="dim">2d 0h</td></tr>
+<tr class="bad"><td class="p">:5432</td><td>PostgreSQL</td><td>-</td><td class="r">All interfaces</td><td class="r">88 Critical</td><td class="">systemd</td><td>now</td><td class="dim">40d 0h</td></tr>
+<tr class="ok"><td class="p">:6379</td><td>Redis</td><td>-</td><td class="r">Localhost only</td><td class="r">12 Info</td><td class="">systemd</td><td>now</td><td class="dim">40d 0h</td></tr>
+<tr class="ok"><td class="p">:8080</td><td>Node / Express</td><td>api</td><td class="r">Localhost only</td><td class="r">12 Info</td><td class="">PM2</td><td>now</td><td class="dim">12d 0h</td></tr>
+</table></div>
+<h2>Who started what</h2><p>From the process ancestry and the launch ledger, recorded when portlist first saw each service. It is never inferred from whatever holds the port now.</p>
+<div class="group"><h3 class="">systemd<em>4 services</em></h3><div class="mono dim">:22 OpenSSH   :443 nginx   :5432 PostgreSQL   :6379 Redis</div></div>
+<div class="group"><h3 class="">unknown origin<em>1 service</em></h3><div class="mono dim">:4444 unknown</div></div>
+<div class="group"><h3 class="">PM2<em>1 service</em></h3><div class="mono dim">:8080 Node / Express</div></div>
+<div class="method"><b>How this was measured</b><ul><li><b>Reachable</b>: portlist connected to each port from this machine's own network addresses. That proves the local network can reach it; it is not a scan from the internet, and it says nothing about a router forwarding ports.</li><li><b>Started by</b>: the process ancestry and environment variable names (never their values), recorded the first time portlist saw the service.</li><li><b>Left over</b>: a guess from measured use, age and whether its starter is still running, with the reasons listed. Portlist never stops anything on the strength of it.</li><li><b>Risk</b>: a score over the reasons shown with each service, which are the part to read.</li><li>Command lines are shown with anything that looks like a secret masked. <code>portlist report --redact</code> takes them out altogether.</li></ul></div>
+<footer>made by portlist 1.3 on this machine; nothing was sent anywhere to make it</footer></div></body></html>

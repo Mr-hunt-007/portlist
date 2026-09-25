@@ -9,7 +9,10 @@
 - `portlist --list --exposed | --leftovers | --attention`: filtered listings
 - `portlist 3000 --short` / `--tree`: the chain that started it
 - Exit codes: 0 fine, 1 warnings, 2 nothing matched, 3 another user's process, 4 unusable question, 5 internal error
-- It never stops a process on its own; it prints the command. It sends nothing off the machine.
+- `portlist kill 3000 --yes`: stop it the right way (docker stop, brew services, launchctl, systemctl, or SIGTERM), then check it stayed stopped; `--dry-run` to see how
+- `portlist cleanup --json`: what looks left over, with the evidence and how each would be stopped; `--yes` stops them
+- `portlist report -o file.html [--redact]`: the machine as one self-contained HTML page
+- It stops nothing without a yes (`--yes` in scripts; a pipe is never asked). It sends nothing off the machine.
 
 ## Links
 

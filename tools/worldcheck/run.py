@@ -163,8 +163,14 @@ SAMPLER = r"""
 (() => {
   const R = window.__wc = { overlaps: [], teleports: [], offRoad: [], grounded: [], petsWet: 0, frames: 0 };
   const last = new Map();
+  let t0 = performance.now();
   (function f() {
     R.frames++;
+    // A jump is a car moving too far in one frame. When the machine running the
+    // check stalls, one frame can span half a second and a car at normal speed
+    // covers that ground honestly, so frame pairs that far apart are not judged.
+    const now = performance.now(), smooth = now - t0 < 120;
+    t0 = now;
     const g = W.geo;
     if (g) {
       const onSurface = p => (p[0] >= g.gateX - 0.2 && p[0] <= g.W + 0.2 && p[1] >= 0 && p[1] <= g.roadY0 + 1.9)
@@ -177,7 +183,7 @@ SAMPLER = r"""
       for (const c of W.cars.values()) {
         if (c.stage === 'queued') { last.delete(c.key); continue; }
         const q = last.get(c.key);
-        if (q && Math.hypot(c.pos[0] - q[0], c.pos[1] - q[1]) > 0.3) R.teleports.push(c.key);
+        if (smooth && q && Math.hypot(c.pos[0] - q[0], c.pos[1] - q[1]) > 0.3) R.teleports.push(c.key);
         last.set(c.key, c.pos.slice());
         if (!onSurface(c.pos)) R.offRoad.push(c.pos.map(v => +v.toFixed(1)));
       }
@@ -342,7 +348,9 @@ def main():
           simulate('convoy'); await frames(20); o.convoy = [...W.crates.values()].filter(k => k.c && k.c.status === 'simulated').length === 3;
           simulate('storm'); await frames(10); o.simStorm = W.storm === true;
           simulate('memory'); await frames(5); o.simMemory = W.snap.ship.mem_pct === 92;
-          W.train = null; simulate('train'); await frames(5); o.simTrain = !!W.train;
+          W.train = null; simulate('train');
+          for (let k = 0; k < 120 && !W.train; k++) await frames(1);      // up to ~2s, not a fixed five frames
+          o.simTrain = !!W.train;
           simulate('boats'); await frames(10); o.simBoats = [...W.vessels.values()].filter(v => v.key.startsWith('sim-boat-')).length === 5;
           const c = W.snap.services.find(s => s.sim); settle(c.pid, c.port); await frames(10);
           o.settled = !W.snap.services.some(s => s.pid === c.pid);

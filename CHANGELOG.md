@@ -6,6 +6,41 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Added
 
+- **`portlist kill`**. `portlist kill 3000` (or a name, or `--pid`) shows what
+  is listening, who started it, whether the network can reach it and how it
+  should be stopped, then asks. Measured supervisors are stopped through their
+  manager instead of by signal: `docker stop` for a port a container publishes,
+  `brew services stop` for a Homebrew service, `launchctl bootout` for a launchd
+  job, `systemctl stop` for a systemd unit (read from the process's cgroup); a
+  PM2 app is named and left to PM2. After the stop it scans again and reports if
+  something brought the port straight back. `--yes`, `--force` (SIGKILL after
+  five seconds), `--dry-run`. A pipe is never asked a question, so a script
+  must say `--yes`. The harbour's stop button now goes through the same checks.
+
+- **`portlist cleanup`**. Walks every listener that looks left over, the one
+  the network can reach first, showing the evidence (unused for how long,
+  started by which agent, whether that session has exited) and asking: `y`
+  stop, `n` keep, `k` keep and stop calling it a leftover, `a` stop the rest,
+  `q` quit. `--idle HOURS` also offers anything unused that long; `--dry-run`
+  and `--json` stop nothing.
+
+- **`portlist report`**. The machine's listeners as one self-contained HTML
+  page (no scripts, nothing fetched): a one-line verdict, what needs a look and
+  why, everything listening, who started what, containers, and how each thing
+  was measured, including what was not (reachability is from this machine's
+  own addresses, not the internet). Secrets in command lines are masked;
+  `--redact` removes host and user names, addresses, project names, paths and
+  command lines.
+
+- **Agent adapters.** Every coding agent and editor portlist recognises is now
+  one file in `plcore/adapters/`, and the ancestry patterns, environment names,
+  agent processes and transcript readers are all built from them. Adding an
+  agent is one file (see CONTRIBUTING). New: **Gemini CLI** and **OpenCode**
+  are recognised as the agent that started a service.
+
+- The README leads with the question and the answer: the list, then
+  `portlist 8787`, then kill, cleanup and report. The playground runs all three.
+
 - **One answer, then exit.** `portlist 3000`, `portlist node`, `portlist --pid
   812` explain a listener without opening the views: who started it and the
   chain that did, the project, reachability, use, risk and warnings, and the
@@ -44,6 +79,10 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   harbour's own differ. The page is restyled in the site's paper and ink.
 
 ### Fixed
+
+- The harbour check no longer calls a car moving honestly across a stalled
+  frame a jump, and waits for the simulated train rather than five frames: a
+  CI runner that froze for five minutes had failed both.
 
 - Harbour camera kept its focus when the container yard overflows (#11), public
   visitors are counted only at the port they reached (#12), and a service bound

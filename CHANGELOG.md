@@ -2,6 +2,28 @@
 
 Dates are the day the work landed. Versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **One answer, then exit.** `portlist 3000`, `portlist node`, `portlist --pid
+  812` explain a listener without opening the views: who started it and the
+  chain that did, the project, reachability, use, risk and warnings, and the
+  command to stop it. `--short` and `--tree` show the chain, `--warnings` only
+  what deserves a look, `--json` all of it; `--list` prints everything once,
+  with `--exposed`, `--leftovers` or `--attention`. Exit codes 0 to 5 say what
+  a script needs. New measured warnings: running as root, an executable deleted
+  since it started, a library injection variable, over 1 GB of memory, up more
+  than 90 days, started three or more times today. Shell completion for bash,
+  zsh and fish (`--completion`). All from the same scan the views read.
+
+### Fixed
+
+- Harbour camera kept its focus when the container yard overflows (#11), public
+  visitors are counted only at the port they reached (#12), and a service bound
+  to one network address is probed and verified on that address (#13). Thanks
+  to @Brams-s.
+
 ## 1.3 - 2026-09-24
 
 ### Added

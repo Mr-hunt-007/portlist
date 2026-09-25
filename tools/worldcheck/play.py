@@ -68,7 +68,8 @@ def main():
         check("a stopped process's building comes down", start == 1)
 
         pg.evaluate("() => pick('web1')")
-        pg.wait_for_function("() => document.querySelector('#harbour').contentWindow.eval('W.buildings.size') > 0", timeout=20000)
+        # the frame reloads for the new machine: until its page is up there is nothing to ask
+        pg.wait_for_function("() => { try { return document.querySelector('#harbour').contentWindow.eval('W.buildings.size') > 0 } catch (e) { return false } }", timeout=20000)
         type_("kill 1200")
         type_("echo $?")
         out = pg.inner_text("#out")

@@ -6,10 +6,10 @@ name: Living harbour
 on:
   push:
     branches: [ "main" ]
-    paths: [ "plcore/world*.py", "plcore/data/world.html", "tools/worldcheck/**", ".github/workflows/world.yml" ]
+    paths: [ "plcore/world*.py", "plcore/data/world.html", "plcore/explain.py", "docs/play/**", "tools/gen_playground.py", "tools/worldcheck/**", ".github/workflows/world.yml" ]
   pull_request:
     branches: [ "main" ]
-    paths: [ "plcore/world*.py", "plcore/data/world.html", "tools/worldcheck/**", ".github/workflows/world.yml" ]
+    paths: [ "plcore/world*.py", "plcore/data/world.html", "plcore/explain.py", "docs/play/**", "tools/gen_playground.py", "tools/worldcheck/**", ".github/workflows/world.yml" ]
 
 jobs:
   harbour:
@@ -27,3 +27,9 @@ jobs:
         python -m playwright install --with-deps chromium
     - name: Check the harbour
       run: python tools/worldcheck/run.py
+    - name: The playground is built from the current code
+      run: |
+        python tools/gen_playground.py
+        git diff --exit-code docs/play/ || { echo "docs/play is stale: run python tools/gen_playground.py and commit"; exit 1; }
+    - name: Check the playground
+      run: python tools/worldcheck/play.py

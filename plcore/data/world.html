@@ -390,6 +390,12 @@ body.idle .tools{opacity:.28} body.idle #attn{opacity:.8} body.idle .pills{opaci
 <script>
 "use strict";
 const TOKEN = "__TOKEN__";
+// Served by portlist, the key above is filled in. Opened inside the website's
+// playground it is not, and the page asks the playground for a simulated
+// machine instead. (Spelled in two halves so the server's key swap cannot touch it.)
+const DEMO = TOKEN.startsWith('__TO' + 'KEN') && window.parent !== window && typeof window.parent.playFeed === 'function';
+// in the playground the tutorial sits at the bottom: the machine panel starts folded there
+if (DEMO) try { const c = JSON.parse(localStorage.getItem('pl-world-cfg') || '{}'); if (c.machineMin == null) localStorage.setItem('pl-world-cfg', JSON.stringify(Object.assign(c, { machineMin: true, drawer: false }))); } catch (e) { }
 const API = "/api/world";
 const HEADER = "X-Portlist-Token";
 const TW = 64, TH = 32;
@@ -5253,6 +5259,7 @@ function actsFor(s) {
   });
 }
 async function stopLive(pid, port, force) {
+  if (DEMO) { window.parent.playKill(pid, force); return; }
   const s = W.snap.services.find(x => x.pid === pid && x.port === port);
   const what = (s ? s.name + ' ' : '') + ':' + port + ' (pid ' + pid + ')';
   if (!confirm((force ? 'Force-stop ' : 'Stop ') + what + '?\n\nThis sends ' + (force ? 'SIGKILL (kill -9): it cannot clean up.' : 'SIGTERM: it may take a moment to shut down.'))) return;
@@ -5836,9 +5843,13 @@ let polling = false;
 async function poll() {
   if (polling || W.past || W.sandbox) return; polling = true;
   try {
-    const r = await fetch(API + '?since=' + W.seq, { headers: { [HEADER]: TOKEN }, cache: 'no-store' });
-    if (!r.ok) throw new Error(r.status === 403 ? 'this page\'s key is from an older run. Open the address the terminal printed.' : 'the scan answered ' + r.status);
-    const doc = await r.json();
+    let doc;
+    if (DEMO) { doc = window.parent.playFeed(W.seq); if (!doc) return; }
+    else {
+      const r = await fetch(API + '?since=' + W.seq, { headers: { [HEADER]: TOKEN }, cache: 'no-store' });
+      if (!r.ok) throw new Error(r.status === 403 ? 'this page\'s key is from an older run. Open the address the terminal printed.' : 'the scan answered ' + r.status);
+      doc = await r.json();
+    }
     const first = !W.snap;
     sync(doc);
     if (first && W.openDrawer) { W.openDrawer = false; toggleDrawer(true, true); }
@@ -5848,7 +5859,7 @@ async function poll() {
     renderPills(); renderMachine(); renderA11y(); if ($('#attn').classList.contains('open')) renderDrawer(); else renderDrawerLabel();
     refreshInspector();
     W.offline = false; W.lastOk = Date.now();
-    $('#live').className = 'live'; $('#liveT').textContent = 'live · ' + hms(doc.at);
+    $('#live').className = 'live'; $('#liveT').textContent = DEMO ? 'simulated machine' : 'live · ' + hms(doc.at);
     $('#live').title = 'Reading ' + API + ' on ' + location.host + ' every 2 s, from the scan this ' + (location.port ? 'server' : 'page') + ' already runs. Last answer ' + hms(doc.at) + '.';
     $('#banner').classList.remove('on');
   } catch (err) {
@@ -5877,7 +5888,7 @@ setTimeout(() => document.body.classList.add('hinted'), 14000);
 makeGulls();
 renderLayers();
 if (W.cfg.screen || /[?&]screen=1/.test(location.search)) setScreen(true);
-if (!store.get('welcomed', false) && !W.cfg.screen) setTimeout(() => { if (!store.get('welcomed', false) && !W.welcomedNow) $('#welcome').classList.add('on'); }, 1600);
+if (!DEMO && !store.get('welcomed', false) && !W.cfg.screen) setTimeout(() => { if (!store.get('welcomed', false) && !W.welcomedNow) $('#welcome').classList.add('on'); }, 1600);
 function welcomed() { W.welcomedNow = true; store.set('welcomed', true); $('#welcome').classList.remove('on'); }
 $('#wClose').onclick = welcomed;
 $('#wLegend').onclick = () => { welcomed(); toggleLegend(true); };

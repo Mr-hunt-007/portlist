@@ -58,6 +58,18 @@ def main():
         start = harbour("[...W.buildings.values()].filter(b => b.s && b.s.port === 8787).length")
         for c in ("lsof -i :8787", "portlist 8787", "portlist 8787 --short", "portlist --list --leftovers", "kill 4412", "portlist"):
             type_(c)
+        # the program itself: the recorded screens, after the stop
+        scr = lambda: pg.inner_text("#scr")
+        check("the program opens on Services, with every view in the bar",
+              "PORTLIST" in scr() and all(v in scr() for v in ("0 Dashboard", "5 Agents", "7 Sessions", "9 Graph")))
+        check("a stopped service is gone from the program's views", ":8787" not in scr())
+        pg.keyboard.press("5")
+        check("the agents view counts MCP servers that hold no port", "stdio MCP" in scr())
+        pg.keyboard.press("7")
+        check("the sessions view lists transcripts", "WHAT IT WAS ABOUT" in scr() and "open right now" in scr())
+        pg.keyboard.press("Shift+V")
+        check("V opens the ambient screen", "P O R T L I S T" in scr())
+        pg.keyboard.press("x")
         pg.keyboard.press("4")
         pg.keyboard.press("q")
         pg.wait_for_function("() => document.querySelector('#harbour').contentWindow.eval(\"[...W.buildings.values()].filter(b => b.s && b.s.port === 8787 && !b.leaving).length\") === 0", timeout=15000)
@@ -66,6 +78,11 @@ def main():
         check("lsof only says who holds the port", "python3" in out and "(LISTEN)" in out)
         check("the tutorial reaches its end", pg.evaluate("() => tour.step") == 6, str(pg.evaluate("() => tour.step")))
         check("a stopped process's building comes down", start == 1)
+
+        # life around the services: a beat passes, a container starts, a third submarine surfaces
+        pg.wait_for_function("() => S.beat >= 1", timeout=20000)
+        pg.wait_for_function("() => document.querySelector('#harbour').contentWindow.eval('W.subs ? W.subs.size : 0') >= 3", timeout=15000)
+        check("MCP servers surface as submarines, and the loop moves on", True)
 
         pg.evaluate("() => pick('web1')")
         # the frame reloads for the new machine: until its page is up there is nothing to ask

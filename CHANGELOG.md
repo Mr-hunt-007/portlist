@@ -17,6 +17,15 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   than 90 days, started three or more times today. Shell completion for bash,
   zsh and fish (`--completion`). All from the same scan the views read.
 
+- **A playground on the website.** [Try it in your browser](https://mr-hunt-007.github.io/portlist/play/):
+  a simulated developer laptop and a staging server, a terminal that runs
+  `portlist 8787`, `--short`, `--list`, `lsof` and `kill`, and the real harbour
+  beside it, so stopping a process takes its building down. A guided tutorial
+  walks from `lsof` to the answer. Everything it shows is computed by portlist's
+  own code (`tools/gen_playground.py`) from made-up machines; the harbour page
+  is the real one, asking the playground for its data when it is not served by
+  portlist. `llms.txt` for agents.
+
 ### Fixed
 
 - Harbour camera kept its focus when the container yard overflows (#11), public

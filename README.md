@@ -30,6 +30,9 @@
 Twelve things are listening. You started three of them today and you cannot name
 the rest.
 
+**[Try it in your browser](https://mr-hunt-007.github.io/portlist/play/)**: a simulated
+laptop with a guided tutorial, no install.
+
 Or see the same scan as a harbour on a second screen, with `portlist --world`:
 
 <p align="center"><a href="#the-living-harbour"><img src="docs/harbour.jpg" alt="The living harbour, from a scripted demo machine: services as buildings, the lighthouse for SSH, the coal train for downloads, the gate open for a service reachable from outside" width="820"></a></p>

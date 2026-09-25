@@ -2,6 +2,15 @@
 
 Dates are the day the work landed. Versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+- **The README shows the program instead of describing it.** The text screens
+  are replaced by pictures of the dashboard, the sessions view, the graph and
+  vibe mode, drawn by portlist itself for the playground's simulated machines
+  (`tools/readme_shot.py`), so they never show a real machine and stay true to
+  the program when it changes. The simulated risk reasons now carry their
+  points, as the real risk model reports them.
+
 ## 1.4 - 2026-09-25
 
 ### Added

@@ -31,6 +31,8 @@ import sys
 import threading
 import time
 
+from . import containers as container_mod
+
 SCHEMA = "portlist/world/1"
 
 # ------------------------------------------------------------------ families
@@ -449,6 +451,57 @@ def _scrub(text, limit=90):
     return text[:limit - 1] + "..." if len(text) > limit else text
 
 
+def _listener_name(row):
+    """Display name and provenance from this row only, never from the port number.
+
+    A container is used only when the scan attached it to this listener; the
+    name is container-reported, not a protocol or origin verification.
+    """
+    def useful(value):
+        if isinstance(value, str):
+            value = re.sub(r"[\x00-\x1f\x7f]", " ", value)
+        name = _scrub(value, 68).strip()
+        if not name or name.lower() in ("unknown", "unidentified", "unidentified listener"):
+            return ""
+        return "" if set(name) == {"?"} else name
+
+    service = useful(row.get("service"))
+    if row.get("name_source") == "recorded":
+        return (service or "Unidentified listener", "recorded",
+                "display name from recorded listener history; process and protocol not verified for the past")
+    if service and row.get("service_id"):
+        return service, "catalog", "service identified by the scan's catalog evidence"
+    if service and row.get("pid") is not None:
+        return service, "script", "script name from the listening process; protocol not verified"
+
+    container = row.get("container")
+    if isinstance(container, dict):
+        compose = useful(container.get("service"))
+        name = compose or useful(container.get("name"))
+        if name:
+            label = "compose service" if compose else "container name"
+            return name, "container", "container-reported %s; protocol not verified" % label
+
+    cmd = useful(row.get("cmd")) if row.get("pid") is not None else ""
+    if cmd and isinstance(container, dict) and any(
+            proxy in cmd.lower() for proxy in container_mod.PROXIES):
+        cmd = ""
+    if cmd:
+        return cmd, "process", "listening process name; protocol not verified"
+    return "Unidentified listener", "unidentified", "no trustworthy service or process name"
+
+
+def _attached_container_field(container, field, limit):
+    """A bounded display value from a container already attached by the scan."""
+    if not isinstance(container, dict) or not isinstance(container.get(field), str):
+        return None
+    text = re.sub(r"[\x00-\x1f\x7f]", " ", container[field])
+    text = _scrub(text, limit - 2).strip()
+    if not text or text.lower() in ("unknown", "<none>") or set(text) == {"?"}:
+        return None
+    return text
+
+
 # ------------------------------------------------------------------ build
 def build(rows, host=None, groups=None, containers=None, sessions=None,
           sysinfo=None, history=None, now=None, outbound=None, conns=None, traffic=None):
@@ -483,10 +536,12 @@ def build(rows, host=None, groups=None, containers=None, sessions=None,
         left = bool(g) and g.get("alive") is False and g.get("key") != "unknown"
         peers = [p for p in by_port.get(r.get("port"), []) if p is not r]
         lo = r.get("leftover") or {}
+        name, name_source, name_why = _listener_name(r)
         services.append({
             "id": r.get("id"), "key": service_key(r),
             "port": r.get("port"), "pid": r.get("pid"),
-            "name": r.get("service") or r.get("cmd") or "?",
+            "name": name, "name_source": name_source,
+            "name_why": name_why,
             "cmd": r.get("cmd"), "cmdline": _scrub(r.get("cmdline"), 140),
             "category": r.get("service_cat"), "service_id": r.get("service_id"),
             "family": fam, "shape": shape, "family_label": fam_label,
@@ -511,6 +566,8 @@ def build(rows, host=None, groups=None, containers=None, sessions=None,
             "leftover": bool(lo.get("likely")), "leftover_why": lo.get("reasons") or [],
             "conflict": [p.get("id") for p in peers],
             "container": (r.get("container") or {}).get("name") if isinstance(r.get("container"), dict) else r.get("container"),
+            "container_service": _attached_container_field(r.get("container"), "service", 70),
+            "container_image": _attached_container_field(r.get("container"), "image", 120),
             "depends_on": [d.get("id") if isinstance(d, dict) else d for d in (r.get("depends_on") or [])],
             "used_by": [d.get("id") if isinstance(d, dict) else d for d in (r.get("used_by") or [])],
             "url": r.get("url"),
@@ -1500,6 +1557,7 @@ def _past_row(x):
     level = x["exposure"]
     return {"id": "%s-%s" % (x["port"], x["pid"]), "port": x["port"], "pid": x["pid"],
             "cmd": x["service"], "cmdline": x["service"], "service": x["service"], "service_id": sid,
+            "name_source": "recorded",
             "exposure": {"level": level, "addrs": ["127.0.0.1"] if level == "loopback" else ["*"]},
             "activity": {"known": False, "note": "use is not recorded for the past"},
             "conns": 0, "health": "nodata", "risk": 0, "risk_band": "", "reasons": [],

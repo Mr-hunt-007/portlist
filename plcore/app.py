@@ -67,13 +67,40 @@ def main(argv=None):
     p.add_argument("--world", "-world", action="store_true",
                    help="open the living harbour: every port as a building, in a "
                         "browser, full screen, for a second screen. Loopback only, "
-                        "read-only, served until ctrl-c")
+                        "served until ctrl-c. It only reads, unless you switch "
+                        "stopping on in its Play panel")
     p.add_argument("--world-port", type=int, default=0, metavar="N",
                    help="port for --world on 127.0.0.1 (default: any free one)")
     p.add_argument("--no-open", action="store_true",
                    help="with --world: print the address, open nothing")
     p.add_argument("--windowed", action="store_true",
                    help="with --world: a normal browser tab rather than full screen")
+    q = p.add_argument_group(
+        "one answer, then exit",
+        "Name what you mean and portlist explains it instead of opening the views:\n"
+        "  portlist 3000            why is :3000 running, who started it, can the network reach it\n"
+        "  portlist node            every listener whose service, command or project matches\n"
+        "  portlist --list --json   everything listening, for a script\n"
+        "Exit codes: 0 fine, 1 warnings, 2 nothing matched, 3 another user's process "
+        "(run with sudo), 4 unusable question, 5 internal error.")
+    q.add_argument("targets", nargs="*", metavar="PORT|NAME",
+                   help="a port (3000 or :3000) or a name to explain")
+    q.add_argument("-o", "--port", type=int, action="append", default=[], metavar="N",
+                   help="a port to explain (repeatable)")
+    q.add_argument("-p", "--pid", type=int, action="append", default=[], metavar="PID",
+                   help="a process to explain, by pid (repeatable)")
+    q.add_argument("-x", "--exact", action="store_true", help="names must match exactly")
+    q.add_argument("-s", "--short", action="store_true", help="only the chain that started it, on one line")
+    q.add_argument("-t", "--tree", action="store_true", help="the chain that started it, as a tree")
+    q.add_argument("--warnings", action="store_true", help="only what deserves a look")
+    q.add_argument("--json", action="store_true", help="the answer as JSON")
+    q.add_argument("-l", "--list", action="store_true", help="print everything listening, once")
+    q.add_argument("--exposed", action="store_true", help="with --list: only what is bound beyond loopback")
+    q.add_argument("--leftovers", action="store_true", help="with --list: only what looks left over")
+    q.add_argument("--attention", action="store_true", help="with --list: only medium, high and critical risk")
+    q.add_argument("--no-color", action="store_true", help="plain text, no colour (NO_COLOR works too)")
+    q.add_argument("--completion", choices=("bash", "zsh", "fish"), metavar="SHELL",
+                   help="print a shell completion script: bash, zsh or fish")
     args = p.parse_args(argv)
 
     if args.keys:
@@ -103,6 +130,19 @@ def main(argv=None):
         return 0
     if args.data_dir:
         os.environ["PORTLIST_DATA"] = args.data_dir
+    if args.completion:
+        from . import explain
+        sys.stdout.write(explain.completion(args.completion))
+        return 0
+    only = "exposed" if args.exposed else "leftovers" if args.leftovers else "attention" if args.attention else None
+    if args.targets or args.port or args.pid or args.list or only or args.json:
+        from . import explain
+        ports, names = explain.parse_targets(args.targets)
+        mode = "short" if args.short else "tree" if args.tree else "warnings" if args.warnings else "full"
+        return explain.run(ports=ports + args.port, pids=args.pid, names=names, exact=args.exact,
+                           mode=mode, as_json=args.json, no_color=args.no_color,
+                           list_mode=args.list or bool(only) or not (ports or names or args.port or args.pid),
+                           only=only)
     if args.world:
         from . import worldserve
         return worldserve.run(port=args.world_port, open_it=not args.no_open,

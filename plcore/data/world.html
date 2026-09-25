@@ -779,7 +779,7 @@ function sync(doc) {
     for (const e of [...W.workers.values(), ...W.pets.values()]) e.path = null;
     W.trucks = []; W.carriers = []; W.visitors = []; W.carts = [];
     // a new layout moves the road and the car park: re-seat, never leave anything floating
-    W.cars = new Map(); W.firstCars = true; W.vessels = new Map(); W.firstVessels = true;
+    W.cars = new Map(); W.firstCars = true; W.vessels = new Map(); W.firstVessels = true; W.subs = new Map(); W.firstSubs = true;
     if (W.fork) { W.fork = null; } if (W.cleaner) { W.cleaner = null; }
     for (const b of W.boats.values()) b._route = null;
     if (!first) fit(true);
@@ -884,7 +884,7 @@ function sync(doc) {
 
   if (first && doc.chatter) W.chatAt = W.t + 6;
   syncBoats(doc);
-  if (W.geo) { syncCars(doc); syncVessels(doc); syncVisitors(doc); }
+  if (W.geo) { syncCars(doc); syncVessels(doc); syncVisitors(doc); syncSubs(doc); }
   W.snap = doc;
   W.firstFrame = false;
   traffic();
@@ -1113,6 +1113,7 @@ function step(dt) {
   stepTrain(dt);
   stepBulker(dt);
   stepVessels(dt);
+  stepSubs(dt);
   stepDrama(dt);
   if (W.snap && W.snap.chatter && W.snap.chatter.length && W.t > W.chatAt) startChat();
   W.chat = W.chat.filter(c => W.t < c.until);
@@ -1517,6 +1518,7 @@ function draw() {
   bulkItems(items, night);
   escortItems(items, night);
   for (const v of W.vessels.values()) items.push({ z: v.pos[0] + v.pos[1], f: () => drawVessel(v, night) });
+  for (const u of (W.subs || new Map()).values()) items.push({ z: u.pos[0] + u.pos[1] - 0.5, f: () => drawSub(u, night) });
   if (drama()) {
     // one brawl per port, in front of the first building holding it
     const seen = new Set();
@@ -3122,7 +3124,7 @@ function scrubTo(v) {
       const r = await fetch(API + '?at=' + at, { headers: { [HEADER]: TOKEN }, cache: 'no-store' });
       const doc = await r.json();
       // the past has no traffic, sessions or recent rubble: clear what belongs to now
-      if (!W.past) { W.cars = new Map(); W.firstCars = true; W.vessels = new Map(); W.firstVessels = true; W.ruins = []; W.trucks = []; W.visitors = []; W.carts = []; }
+      if (!W.past) { W.cars = new Map(); W.firstCars = true; W.vessels = new Map(); W.firstVessels = true; W.subs = new Map(); W.firstSubs = true; W.ruins = []; W.trucks = []; W.visitors = []; W.carts = []; }
       W.past = doc.past; sync(doc);
       $('#live').className = 'live wait'; $('#liveT').textContent = 'replay'; renderPills(); renderDrawerLabel(); renderA11y();
       const b = $('#banner'); b.classList.add('on', 'past');
@@ -3132,7 +3134,7 @@ function scrubTo(v) {
 }
 function goLive() {
   if (!W.past) return;
-  W.past = null; $('#banner').classList.remove('on', 'past'); W.cars = new Map(); W.firstCars = true; W.vessels = new Map(); W.firstVessels = true; W.ruins = [];
+  W.past = null; $('#banner').classList.remove('on', 'past'); W.cars = new Map(); W.firstCars = true; W.vessels = new Map(); W.firstVessels = true; W.subs = new Map(); W.firstSubs = true; W.ruins = [];
   const sl = $('#scrubRange'); if (sl.max) sl.value = sl.max; $('#scrubWhen').textContent = 'now';
   poll();
 }
@@ -3665,6 +3667,13 @@ function drawSigns() {
     if (!(hov || sel) && lvl < 2) continue;
     const [x, y] = toScreen(...iso(v._wx, v._wy, 24));
     add({ kind: 'car', ref: v, x, y, pop: 1, hov, sel, small: true, label: W.capture ? (v.e.apps[0] || '?') : (v.e.apps[0] || '?') + ' · ' + (v.e.services[0] || v.e.ports[0] || ''), dot: '#7fb2ff', exposed: false, chips: [appLogo(v.e.apps[0])].filter(Boolean), marks: [], pri: hov || sel ? 100 : 6 });
+  }
+  for (const u of (W.subs || new Map()).values()) {
+    if (u._wx == null || u.stage === 'dive') continue;
+    const hov = W.hovered && W.hovered.ref === u, sel = W.sel && W.sel.ref === u;
+    if (!(hov || sel) && lvl < 2) continue;
+    const [x, y] = toScreen(...iso(u._wx, u._wy, 16));
+    add({ kind: 'sub', ref: u, x, y, pop: u.rise, hov, sel, small: true, label: W.capture ? 'MCP server' : (u.m.name || 'MCP') + ' · stdio', dot: '#b69cff', exposed: false, chips: [], marks: [], pri: hov || sel ? 100 : 8 });
   }
   for (const bt of W.boats.values()) {
     if (bt._ix == null) continue;
@@ -4235,6 +4244,7 @@ function hoverText(h) {
     case 'cleaner': return ['The groundskeeper', r.stage === 'sweep' ? 'sweeping an old foundation' : r.stage === 'walk' ? 'on the way' : 'waiting for work'];
     case 'car': return [(r.e.apps || []).join(', ') || 'outbound', (r.e.services[0] || 'TCP') + ' · ' + r.e.address + ' · ' + r.e.count + ' connection' + (r.e.count > 1 ? 's' : '')];
     case 'visitor-ssh': return ['SSH session coming in', 'from ' + r.o.raddr + ' · port ' + r.o.lport];
+    case 'sub': return [r.m.name || 'MCP server', 'MCP server over stdio  ·  pid ' + r.m.pid + '  ·  no port: it talks to its agent through a pipe'];
     case 'boat': return [r.o.target, (r.o.kind === 'db' ? r.o.service : 'SSH') + ' session · ' + r.o.raddr + (r.o.rport ? ':' + r.o.rport : '') + (r.o.in_fleet ? ' · in your fleet' : '')];
     case 'lighthouse': { const L = W.snap.lighthouse; return ['The lighthouse', L.listening ? 'SSH listening on ' + L.ports.map(p => ':' + p).join(' ') : 'dark: no SSH server listening']; }
     case 'gate': { const g = W.snap.gate; return ['External access gate', g.state === 'open' ? g.reachable.length + ' reachable from outside' : g.state === 'watch' ? 'bound, not verified' : 'closed']; }
@@ -4357,6 +4367,14 @@ function describe(h) {
       logos: (e.apps || []).map(a => [appLogo(a), a]).filter(x => x[0]), tags: [soft((e.services || []).join(', ') || 'TCP'), soft(e.scope || 'network'), r.stage === 'leaving' ? soft('closed') : solid('open', '#6fe3a4')],
       meta: [['remote', e.address], ['ports', (e.ports || []).join(', ') || '?'], ['talking to it', (e.apps || []).join(', ') || '?'], ['connections', String(e.count)]],
       sections: [['WHAT YOU SEE', [VESSEL[e.kind] ? 'A ' + VESSEL[e.kind].label + ' at the anchorage off the causeway is a machine your apps are talking to right now over ' + ((e.services || [])[0] || 'a recognised port') + '. Web traffic comes by car; ' + { fishing: 'push connections are held open, waiting, so they are fishing boats with a line out', mailboat: 'mail comes by the mail boat', ferry: 'chat is the ferry', launch: 'AI services are the fast launch', tug: 'databases, caches and queues are tugs', tender: 'name and directory services are the tender' }[e.kind] + '. It sailed in when the first connection opened and sails out when the last one closes.' : 'A car in the lot outside the gate is a machine your apps are talking to right now. It drove in over the causeway when the first connection opened and drives out when the last one closes. The same list as the dashboard\'s network view.']]], cmds: [] };
+  }
+  if (h.kind === 'sub') {
+    const m = r.m;
+    return { kind: 'MCP SERVER · NO PORT', accent: '#b69cff', title: m.name || 'MCP server',
+      tags: [solid(r.stage === 'dive' ? 'gone' : 'running', '#b69cff'), soft('stdio')],
+      meta: [['pid', String(m.pid)], ['listens on', 'nothing: it talks to its agent through a pipe']],
+      sections: [['WHAT YOU SEE', ['A submarine is an MCP server that speaks over stdio. It holds no port, so the quay has no building for it, yet it is running and its agent can call its tools. It surfaced when the process started and dives when it exits.']]],
+      cmds: ['ps -p ' + m.pid + ' -o pid,ppid,command'], tui: 'portlist, then 5 for agents' };
   }
   if (h.kind === 'visitor-ssh') {
     const o = r.o;
@@ -4719,6 +4737,7 @@ function renderLegend() {
     ['🌬', 'The harbour\'s mood', 'Calm, busy or under pressure, from the machine\'s own figures. Wind, whitecaps and smoke follow it; the machine panel says why.'],
     ['📖', 'Stories', 'When a few events in a row mean one thing (an agent arrived and started a server, a stack came up, something keeps restarting), a card says so once.'],
     ['✦', 'Compare (C)', 'The harbour beside itself an hour ago: a star on what is new, a ghost where something has gone.'],
+    ['⚓', 'Submarines off the quay', 'MCP servers that talk to their agent over stdio. They hold no port, so the quay has no building for them, yet they run with tool access. One surfaces when a server starts and dives when its process exits.'],
     ['🎣', 'Boats at the anchorage', 'Outbound connections that are not web: a fishing boat for push (a line held open), the mail boat for mail, a ferry for chat, a launch for AI, tugs for databases and queues, a tender for naming. Web traffic stays cars.'],
     ['⛴', 'Coal carrier', 'Comes when the coal bunker is half full: towed in by tugs, tied up at the jetty, loaded by the excavator, towed out. Tugs, the pilot boat, the radar and the reflections follow the ships; they mean nothing of their own.'],
     ['⏹', 'Stopping (Play)', 'Off until you switch it on, and off again on reload. Each stop asks first and sends SIGTERM, only if a fresh scan shows that process still on that port.'],
@@ -5391,6 +5410,86 @@ function drawVessel(v, night) {
   v._wx = x; v._wy = y;
 }
 
+// ------------------------------------------------------------------ submarines
+// An MCP server that speaks over stdio holds no port, so nothing on the quay can
+// show it: it is running, it has tool access, and it is out of sight. That is a
+// submarine. One per server the scan found, holding station off the anchorage
+// with only the sail above water. It surfaces when the server starts and dives
+// when the process is gone. It never patrols: a server that is idle does not
+// get to look busy.
+function subStation(i) {
+  // open water north of the quay, clear of the routes out to the islands
+  return [13 + (i % 4) * 4, -9 - (i % 2) - Math.floor(i / 4) * 3];
+}
+function syncSubs(doc) {
+  const list = (doc.stdio_mcp || []).slice(0, 12), seen = new Set(), used = new Set();
+  W.subs = W.subs || new Map();
+  for (const u of W.subs.values()) if (u.stage !== 'dive') used.add(u.slot);
+  for (const m of list) {
+    const key = (m.name || '?') + ':' + m.pid;
+    seen.add(key);
+    let u = W.subs.get(key);
+    if (!u) {
+      let i = 0; while (used.has(i)) i++; used.add(i);
+      u = { key, slot: i, pos: subStation(i), phase: hash(key) * 6, head: [hash('h' + key) > 0.5 ? 1 : -1, 0.12],
+            rise: W.firstSubs ? 1 : 0, stage: W.firstSubs ? 'station' : 'surface' };
+      W.subs.set(key, u);
+    }
+    u.m = m;
+  }
+  for (const u of W.subs.values()) if (!seen.has(u.key) && u.stage !== 'dive') u.stage = 'dive';
+  W.firstSubs = false;
+}
+function stepSubs(dt) {
+  if (!W.subs) return;
+  for (const [k, u] of W.subs) {
+    if (u.stage === 'surface') { u.rise = Math.min(1, u.rise + dt / 3.2); if (u.rise >= 1) u.stage = 'station'; }
+    else if (u.stage === 'dive') { u.rise -= dt / 3.2; if (u.rise <= 0) W.subs.delete(k); }
+  }
+}
+function drawSub(u, night) {
+  const T = REDUCED ? 0 : W.t, [x, y] = u.pos, a = fogAt(x) * Math.max(0, Math.min(1, u.rise));
+  if (a <= 0.01) return;
+  // below the waterline first: the hull is a shadow in the water, not a boat on it
+  const sink = (1 - u.rise) * 6, bob = Math.sin(T * 0.8 + u.phase) * 0.6 + (W.tide || 0) * 0.4 - sink;
+  const hl = Math.hypot(u.head[0], u.head[1]) || 1, fx = u.head[0] / hl, fy = u.head[1] / hl;
+  const P = (lx, ly) => [x + fx * lx - fy * ly, y + fy * lx + fx * ly];
+  const dark = c => hex(c, shade(c, -60), night * 0.7);
+  ctx.save(); ctx.globalAlpha = a;
+  const hull = [];
+  for (let k = 0; k < 16; k++) { const t = k / 16 * Math.PI * 2; hull.push(P(Math.cos(t) * 1.55, Math.sin(t) * 0.3)); }
+  poly(hull.map(p => iso(p[0], p[1], -1.5)), 'rgba(12,24,34,' + (0.42 * a).toFixed(2) + ')');
+  ctx.translate(0, -bob);
+  // the deck just breaking the surface, and the sail standing up out of it
+  const deck = [P(-1.0, -0.14), P(0.9, -0.14), P(1.15, 0), P(0.9, 0.14), P(-1.0, 0.14), P(-1.2, 0)];
+  poly(deck.map(p => iso(p[0], p[1], 0.6)), dark('#3a4650'));
+  const sail = [P(-0.05, -0.1), P(0.38, -0.1), P(0.38, 0.1), P(-0.05, 0.1)];
+  for (let k = 0; k < 4; k++) {
+    const p0 = sail[k], p1 = sail[(k + 1) % 4];
+    poly([iso(p0[0], p0[1], 7), iso(p1[0], p1[1], 7), iso(p1[0], p1[1], 0.6), iso(p0[0], p0[1], 0.6)], dark(k % 2 ? '#2b353e' : '#44525d'));
+  }
+  poly(sail.map(p => iso(p[0], p[1], 7)), dark('#56636e'));
+  const mast = P(0.2, 0), [mx, my] = iso(mast[0], mast[1], 7), [tx, ty] = iso(mast[0], mast[1], 12);
+  ctx.strokeStyle = dark('#8b969e'); ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(tx, ty); ctx.lineTo(tx + fx * 2.4, ty - fy * 1.2); ctx.stroke();
+  // violet, like every AI thing in the harbour: a slow light on the sail
+  ctx.fillStyle = 'rgba(182,156,255,' + (0.45 + 0.35 * Math.sin(T * 1.6 + u.phase)).toFixed(2) + ')';
+  ctx.beginPath(); ctx.arc(mx, my - 3, 1.3, 0, 6.3); ctx.fill();
+  // a ring of wake where the sail cuts the water
+  if (!REDUCED) {
+    const [wx, wy] = iso(x, y, 0.6), r = 5 + Math.sin(T * 1.1 + u.phase) * 1.2;
+    ctx.strokeStyle = 'rgba(230,244,255,' + (0.22 * a).toFixed(2) + ')'; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.ellipse(wx, wy, r * 1.8, r * 0.6, 0, 0, 6.3); ctx.stroke();
+  }
+  if (u.stage !== 'station' && !REDUCED) for (let k = 0; k < 5; k++) {
+    const q = P(-0.8 + k * 0.4, 0), [bx, by] = iso(q[0], q[1], 1 + ((T * 6 + k * 3) % 8));
+    ctx.fillStyle = 'rgba(230,244,255,.5)'; ctx.beginPath(); ctx.arc(bx, by, 0.9, 0, 6.3); ctx.fill();
+  }
+  ctx.restore();
+  const [a1, b1] = iso(x - 1.4, y - 0.6, 12), [a2, b2] = iso(x + 1.4, y + 0.6, 0);
+  HITS.push({ kind: 'sub', ref: u, poly: [[a1 - 8, b1 - 4], [a2 + 8, b1 - 4], [a2 + 8, b2 + 6], [a1 - 8, b2 + 6]] });
+  u._wx = x; u._wy = y;
+}
+
 // ------------------------------------------------------------------ the coal carrier
 // The bunker does not keep what the trains bring. When it is half full a bulk
 // carrier comes in and berths south of the staithe, an excavator on the jetty
@@ -5906,6 +6005,7 @@ function travelling() {
   if (W.bulker && W.bulker.stage !== 'load') return true;
   for (const c of W.cars.values()) if (c.stage !== 'parked') return true;
   for (const v of W.vessels.values()) if (v.stage !== 'moored') return true;
+  for (const u of (W.subs || new Map()).values()) if (u.stage !== 'station') return true;
   for (const b of W.boats.values()) if (b.moving) return true;
   for (const e of W.workers.values()) if (e.stage !== 'work' || !(e.pause > 0)) return true;
   for (const v of W.visitShips.values()) if (v.t < 1 || v.leaving) return true;

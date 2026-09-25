@@ -6,10 +6,10 @@ name: Living harbour
 on:
   push:
     branches: [ "main" ]
-    paths: [ "plcore/world*.py", "plcore/data/world.html", "plcore/explain.py", "docs/play/**", "tools/gen_playground.py", "tools/worldcheck/**", ".github/workflows/world.yml" ]
+    paths: [ "plcore/world*.py", "plcore/data/world.html", "plcore/explain.py", "docs/play/**", "tools/gen_playground.py", "tools/playtui.py", "plcore/tui.py", "plcore/dash.py", "plcore/graphview.py", "plcore/vibe.py", "tools/worldcheck/**", ".github/workflows/world.yml" ]
   pull_request:
     branches: [ "main" ]
-    paths: [ "plcore/world*.py", "plcore/data/world.html", "plcore/explain.py", "docs/play/**", "tools/gen_playground.py", "tools/worldcheck/**", ".github/workflows/world.yml" ]
+    paths: [ "plcore/world*.py", "plcore/data/world.html", "plcore/explain.py", "docs/play/**", "tools/gen_playground.py", "tools/playtui.py", "plcore/tui.py", "plcore/dash.py", "plcore/graphview.py", "plcore/vibe.py", "tools/worldcheck/**", ".github/workflows/world.yml" ]
 
 jobs:
   harbour:

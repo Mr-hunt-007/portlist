@@ -26,6 +26,23 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
   is the real one, asking the playground for its data when it is not served by
   portlist. `llms.txt` for agents.
 
+- **Submarines in the harbour.** MCP servers that speak over stdio hold no
+  port, so the quay never had a building for them. Each one is now a submarine
+  off the quay: it surfaces when the server starts, holds station with only the
+  sail showing, and dives when the process exits. Hover or click for its name
+  and pid. It never patrols, because an idle server should not look busy.
+
+- **The playground runs the program itself.** `portlist` in the playground's
+  terminal opens the real views, all ten plus `V` vibe, with the same header,
+  view bar, columns and footer. They are not a copy: `tools/playtui.py` runs
+  `plcore.tui` against an in-memory window and records every screen the keys
+  reach, for every combination of services you can stop. So `kill 4412`
+  changes the views as well as the harbour. Around the services the simulated
+  machines now live on a loop: cars come and go in the car park, SSH sessions
+  arrive at the lighthouse and sail out to other hosts, a worker container
+  starts and exits, and MCP servers surface and dive. The events come from the
+  harbour's own differ. The page is restyled in the site's paper and ink.
+
 ### Fixed
 
 - Harbour camera kept its focus when the container yard overflows (#11), public

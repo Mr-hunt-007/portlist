@@ -4,90 +4,186 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>portlist playground</title>
-<meta name="description" content="Try portlist in your browser on a simulated machine: ask why a port is running, find what an agent left behind, stop it, and watch the harbour change. No install.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e2c42'/%3E%3Ccircle cx='16' cy='13' r='8' fill='none' stroke='%23f0a24b' stroke-width='2.6'/%3E%3C/svg%3E">
+<meta name="description" content="Try portlist in your browser on a simulated machine: ask why a port is running, find what an agent left behind, stop it, walk all ten views, and watch the harbour change. No install.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23F2EFE7'/><rect x='7' y='8' width='18' height='2' fill='%2314110E'/><rect x='7' y='15' width='11' height='2' fill='%23C8452F'/><rect x='7' y='22' width='15' height='2' fill='%2314110E'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-:root{--bg:#0b1219;--panel:#0f1a24;--line:#1f3040;--ink:#dfe9f1;--dim:#7f98aa;--amber:#f0a24b;--red:#ff6a5e;--green:#6fe3a4;--blue:#7fb2ff;--mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
-*{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans)}
-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);background:#0a1118}
-header .brand{font-family:var(--mono);font-weight:700;letter-spacing:.04em;color:var(--ink);text-decoration:none}
-header .brand span{color:var(--amber)}
-.chip{font-family:var(--mono);font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
-.chip b{color:var(--ink);font-weight:600}
-.sim{border-color:rgba(190,150,255,.5);color:#d9c6ff}
-header .sp{flex:1}
-header button,header a.btn{font:500 12.5px var(--sans);padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--ink);cursor:pointer;text-decoration:none}
-header button:hover,header a.btn:hover{border-color:var(--amber);color:#ffd9a8}
-header .pri{background:var(--amber);border-color:var(--amber);color:#1a1206}
-header .pri:hover{background:#ffb866;color:#1a1206}
-main{display:grid;grid-template-columns:minmax(360px,46%) 1fr;height:calc(100% - 53px)}
-@media(max-width:900px){main{grid-template-columns:1fr;grid-template-rows:56% 44%;height:calc(100% - 96px)}}
-#term{position:relative;display:flex;flex-direction:column;border-right:1px solid var(--line);background:#070c11;min-height:0}
-#term .bar{display:flex;gap:6px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);font:12px var(--mono);color:var(--dim)}
-#term .bar i{width:10px;height:10px;border-radius:50%;background:#2a3440;display:inline-block}
-#out{flex:1;overflow-y:auto;padding:12px 14px 4px;font:13px/1.55 var(--mono);white-space:pre-wrap;word-break:break-word;min-height:0}
-#out .tbl{display:block;white-space:pre;overflow-x:auto}
-#out .cmd{color:var(--ink)} #out .p{color:var(--green)} #out .dim{color:var(--dim)} #out .amber{color:var(--amber)} #out .red{color:var(--red)} #out .green{color:var(--green)} #out .blue{color:var(--blue)} #out b{color:#fff}
-#line{display:flex;gap:8px;align-items:center;padding:8px 14px 12px;font:13px var(--mono)}
-#line .p{color:var(--green);white-space:nowrap}
-#in{flex:1;background:none;border:0;outline:0;color:var(--ink);font:13px var(--mono);caret-color:var(--amber)}
-#tui{position:absolute;inset:37px 0 0 0;background:#070c11;display:none;flex-direction:column;font:12.5px/1.5 var(--mono);outline:0}
-#tui.on{display:flex}
-#tui .top{padding:8px 14px;border-bottom:1px solid var(--line);color:var(--dim)} #tui .top b{color:var(--amber)}
-#tui .tabs{display:flex;gap:4px;padding:6px 14px;flex-wrap:wrap} #tui .tabs span{padding:1px 8px;border-radius:5px;color:var(--dim)} #tui .tabs span.on{background:#1b2a38;color:#fff}
-#tui pre{margin:0;padding:6px 14px;flex:1;overflow:auto;white-space:pre}
-#tui .row{display:block} #tui .row.sel{background:#1f3246;color:#fff}
-#tui .keys{padding:6px 14px;border-top:1px solid var(--line);color:var(--dim)}
-#side{position:relative;min-height:0}
-#side iframe{width:100%;height:100%;border:0;display:block;background:#0a1420}
-#coach{position:absolute;left:16px;right:16px;bottom:16px;max-width:560px;margin:0 auto;background:rgba(10,19,29,.96);border:1px solid rgba(240,162,75,.5);border-radius:12px;padding:14px 16px;box-shadow:0 18px 50px rgba(0,0,0,.5);display:none;z-index:5}
-#coach.on{display:block}
-#coach .n{font:600 11px var(--mono);letter-spacing:.12em;color:var(--amber)}
-#coach h3{margin:4px 0 6px;font-size:15px}
-#coach p{margin:0 0 10px;color:#c4d4e0;font-size:13.5px;line-height:1.5}
-#coach code{font-family:var(--mono);background:#16263a;padding:1px 6px;border-radius:5px;color:#ffd9a8;cursor:pointer}
-#coach .row{display:flex;gap:8px;justify-content:space-between;align-items:center}
-#coach button{font:500 12px var(--sans);padding:6px 11px;border-radius:7px;border:1px solid var(--line);background:none;color:var(--ink);cursor:pointer}
-#coach .dots{display:flex;gap:4px} #coach .dots i{width:7px;height:7px;border-radius:50%;background:#2a3a4a} #coach .dots i.done{background:var(--green)} #coach .dots i.now{background:var(--amber)}
-.modal{position:fixed;inset:0;background:rgba(4,8,12,.72);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+/* The site's paper, ink and one vermilion. The terminal is the ink block on
+   the desk; everything around it is paper, the way the landing page frames its
+   plates. */
+:root{
+  --paper:#F2EFE7; --paper-2:#EAE6DC; --ink:#14110E; --ink-soft:#2A2724;
+  --grey:#6E6A63; --faint:#9A958C; --rule:#D8D3C7; --shu:#C8452F;
+  --panel:#12100E; --panel-2:#1B1815; --on-ink:#E8E2D6; --on-ink-dim:#8C857A;
+  --disp:"Shippori Mincho B1","Times New Roman",serif;
+  --sans:"Zen Kaku Gothic New",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  /* the terminal program's nine colours, re-inked for this page */
+  --t-n:#E8E2D6; --t-d:#7F8B97; --t-r:#F0564A; --t-a:#D9A441; --t-g:#93B872;
+  --t-b:#74B3B9; --t-v:#E8775A;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.6;
+  -webkit-font-smoothing:antialiased; min-height:100vh}
+body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:url("../bg-paper.png") repeat; background-size:400px 400px; opacity:.55; mix-blend-mode:multiply}
+a{color:var(--ink); text-decoration:none}
+button{font:inherit}
+:focus-visible{outline:1.5px solid var(--shu); outline-offset:3px}
+.meta{font-family:var(--mono); font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--faint)}
+
+/* ---- masthead ---- */
+nav{position:relative; z-index:3; border-bottom:1px solid var(--ink)}
+nav .in{display:flex; align-items:baseline; gap:22px; padding:14px 28px 12px; flex-wrap:wrap}
+.brand{font-family:var(--disp); font-weight:800; font-size:21px; letter-spacing:.02em}
+.brand span{color:var(--shu)}
+nav .where{font-family:var(--disp); font-size:14px; color:var(--grey)}
+nav .links{margin-left:auto; display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+nav .links button,nav .links a{background:none; border:0; border-bottom:1px solid transparent; padding:4px 8px;
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--grey); cursor:pointer}
+nav .links button:hover,nav .links a:hover{color:var(--shu); border-bottom-color:var(--shu)}
+nav .links .ghost{border:1px solid var(--ink); color:var(--ink); padding:7px 13px; margin-left:6px}
+nav .links .ghost:hover{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+
+/* ---- the desk: two plates and a margin ---- */
+.desk{position:relative; z-index:1; display:grid; grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr);
+  gap:28px; padding:22px 28px 28px; height:calc(100vh - 58px); min-height:620px}
+.plate{display:flex; flex-direction:column; min-height:0; min-width:0}
+.caption{display:flex; justify-content:space-between; align-items:baseline; gap:14px;
+  border-bottom:1px solid var(--ink); padding-bottom:7px; margin-bottom:10px}
+.caption b{font-family:var(--disp); font-weight:700; font-size:15px; white-space:nowrap}
+.caption b i{font-style:normal; color:var(--shu)}
+.caption .meta{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.side{display:grid; grid-template-rows:minmax(0,1fr) auto; gap:22px; min-height:0}
+
+/* ---- the terminal ---- */
+.ink{position:relative; flex:1; min-height:0; background:var(--panel); color:var(--on-ink);
+  display:flex; flex-direction:column; box-shadow:0 1px 0 var(--ink)}
+.ink::after{content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(transparent 0 0),radial-gradient(120% 90% at 50% 0,rgba(255,255,255,.035),transparent 60%)}
+#out{flex:1; overflow-y:auto; padding:16px 18px 4px; font:13px/1.6 var(--mono); white-space:pre-wrap;
+  word-break:break-word; min-height:0; scrollbar-color:#3a352f transparent}
+#out .tbl{display:block; white-space:pre; overflow-x:auto}
+#out .p{color:var(--t-v)} #out .cmd{color:var(--on-ink)} #out b{color:#fff; font-weight:600}
+#out .dim{color:var(--on-ink-dim)} #out .amber{color:var(--t-a)} #out .red{color:var(--t-r)}
+#out .green{color:var(--t-g)} #out .blue{color:var(--t-b)}
+#line{display:flex; gap:9px; align-items:center; padding:9px 18px 14px; font:13px var(--mono); border-top:1px solid #26221e}
+#line .p{color:var(--t-v); white-space:nowrap}
+#in{flex:1; min-width:0; background:none; border:0; outline:0; color:var(--on-ink); font:13px var(--mono); caret-color:var(--t-v)}
+
+/* the terminal program itself: recorded frames, one cell per character */
+#tui{position:absolute; inset:0; background:var(--panel); display:none; outline:0; overflow:auto;
+  padding:12px 12px 10px}
+#tui.on{display:block}
+#tui pre{margin:0; font-family:var(--mono); line-height:1.28; white-space:pre; color:var(--t-n)}
+#tui pre span{white-space:pre}
+.n{color:var(--t-n)} .d{color:var(--t-d)} .r{color:var(--t-r)} .a{color:var(--t-a)} .g{color:var(--t-g)}
+.b{color:var(--t-b)} .v{color:var(--t-v)}
+.h{background:var(--paper); color:var(--ink)}
+.s{background:var(--paper); color:var(--ink)}            /* the cursor row: a strip of paper through the ink */
+.x{font-weight:600}
+/* the keys, as paper tabs under the plate, so a phone can drive it too */
+.keys{display:none; flex-wrap:wrap; gap:4px 6px; padding:9px 0 0; align-items:center}
+.keys.on{display:flex}
+.keys button{background:none; border:1px solid var(--rule); padding:3px 8px; cursor:pointer;
+  font:11px var(--mono); color:var(--ink-soft)}
+.keys button kbd{font:600 11px var(--mono); color:var(--shu); margin-right:5px}
+.keys button:hover,.keys button.on{border-color:var(--ink); background:var(--ink); color:var(--paper)}
+.keys button.on kbd,.keys button:hover kbd{color:#F3A48F}
+.keys .note{flex-basis:100%; font:12px var(--mono); color:var(--grey); min-height:18px}
+
+/* ---- the harbour plate ---- */
+.frame{position:relative; flex:1; min-height:0; background:var(--panel); box-shadow:0 1px 0 var(--ink)}
+.frame iframe{position:absolute; inset:0; width:100%; height:100%; border:0; display:block; background:#0a1420}
+.frame.flash{outline:2px solid var(--shu); outline-offset:3px}
+
+/* ---- the margin: the tutorial as notes on paper ---- */
+#coach{display:none; border-top:1px solid var(--ink); padding-top:12px}
+#coach.on{display:grid; grid-template-columns:64px minmax(0,1fr); gap:4px 16px}
+#coach .num{font-family:var(--disp); font-weight:800; font-size:54px; line-height:.9; color:var(--shu)}
+#coach .num small{display:block; font-family:var(--mono); font-weight:400; font-size:10px; letter-spacing:.2em;
+  color:var(--faint); margin-top:8px}
+#coach h3{margin:0 0 4px; font-family:var(--disp); font-weight:700; font-size:18px; line-height:1.25}
+#coach p{margin:0 0 10px; color:var(--ink-soft); font-size:14px}
+#coach .c{display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--ink);
+  color:var(--on-ink); font:12.5px var(--mono); padding:9px 12px; cursor:pointer; margin:0 0 10px}
+#coach .c::before{content:"$ "; color:var(--t-v)}
+#coach .c span{flex:1}
+#coach .c em{font-style:normal; font-size:10px; letter-spacing:.16em; color:var(--on-ink-dim)}
+#coach .c:hover em{color:#F3A48F}
+#coach .row{display:flex; gap:14px; align-items:center; justify-content:space-between}
+#coach .row button{background:none; border:0; border-bottom:1px solid var(--rule); padding:2px 0; cursor:pointer;
+  font:11px var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--grey)}
+#coach .row button:hover{color:var(--shu); border-bottom-color:var(--shu)}
+#coach .ticks{display:flex; gap:5px}
+#coach .ticks i{width:16px; height:2px; background:var(--rule)}
+#coach .ticks i.done{background:var(--ink)} #coach .ticks i.now{background:var(--shu)}
+
+/* ---- dialogs on paper ---- */
+.modal{position:fixed; inset:0; background:rgba(20,17,14,.55); display:none; align-items:center; justify-content:center; z-index:20; padding:16px}
 .modal.on{display:flex}
-.modal .box{width:min(640px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
-.modal h2{margin:0 0 6px;font-size:18px} .modal p{margin:0 0 14px;color:#b8cad8;font-size:13.5px;line-height:1.5}
-.pick{display:grid;gap:10px}
-.pick button{text-align:left;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#0c1620;color:var(--ink);cursor:pointer}
-.pick button:hover{border-color:var(--amber)}
-.pick b{display:block;font-size:14px} .pick span{display:block;font:12px var(--mono);color:var(--dim);margin:2px 0 6px} .pick small{color:#b8cad8;font-size:12.5px;line-height:1.45}
-.pick em{float:right;font:600 10.5px var(--mono);letter-spacing:.1em;color:var(--amber);font-style:normal}
-.inst h4{margin:14px 0 6px;font-size:13px;color:var(--dim);font-weight:600}
-.inst .cmd{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 12px;margin:0 0 6px;border-radius:8px;background:#08111a;border:1px solid var(--line);font:12.5px var(--mono);color:#ffd9a8;cursor:pointer;word-break:break-all}
-.inst .cmd span{flex:none;font-size:10.5px;letter-spacing:.1em;color:var(--dim)}
-.close{margin-top:12px;font:500 12.5px var(--sans);padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--ink);cursor:pointer}
+.modal .box{width:min(640px,100%); max-height:90vh; overflow:auto; background:var(--paper); border-top:3px solid var(--ink); padding:22px 26px}
+.modal h2{margin:0 0 6px; font-family:var(--disp); font-weight:800; font-size:24px}
+.modal p{margin:0 0 14px; color:var(--ink-soft); font-size:14px}
+.modal p code{font:12.5px var(--mono); background:var(--paper-2); padding:1px 5px}
+.pick{display:grid; gap:0; border-top:1px solid var(--rule)}
+.pick button{text-align:left; padding:14px 2px; border:0; border-bottom:1px solid var(--rule); background:none; cursor:pointer; color:var(--ink)}
+.pick button:hover b{color:var(--shu)}
+.pick b{display:block; font-family:var(--disp); font-size:18px} .pick span{display:block; font:11.5px var(--mono); color:var(--grey); margin:2px 0 6px}
+.pick small{color:var(--ink-soft); font-size:13.5px; line-height:1.5}
+.pick em{float:right; font:500 10px var(--mono); letter-spacing:.2em; color:var(--shu); font-style:normal}
+.inst h4{margin:16px 0 6px; font:500 10.5px var(--mono); letter-spacing:.2em; text-transform:uppercase; color:var(--faint)}
+.inst .cmd{display:flex; justify-content:space-between; gap:10px; align-items:center; padding:10px 13px; margin:0 0 6px;
+  background:var(--ink); font:12.5px var(--mono); color:var(--on-ink); cursor:pointer; word-break:break-all}
+.inst .cmd span{flex:none; font-size:10px; letter-spacing:.16em; color:var(--on-ink-dim)}
+.close{margin-top:14px; background:none; border:1px solid var(--ink); padding:8px 16px; cursor:pointer;
+  font:11px var(--mono); letter-spacing:.14em; text-transform:uppercase}
+.close:hover{background:var(--ink); color:var(--paper)}
+
+@media(max-width:980px){
+  .desk{grid-template-columns:1fr; height:auto; padding:16px}
+  .plate.term .ink{flex:none; height:72vh}
+  .side{grid-template-rows:auto auto}
+  .side .frame{flex:none; height:56vh}
+  .caption .meta{display:none}
+  nav .in{padding:12px 16px}
+  nav .where{display:none}
+}
 </style>
 </head>
 <body>
-<header>
+<nav><div class="in">
   <a class="brand" href="../">portlist<span>.</span></a>
-  <span class="chip">playground</span>
-  <span class="chip" id="who"><b>you@devbox</b> · macOS</span>
-  <span class="chip sim">simulated</span>
-  <span class="sp"></span>
-  <button type="button" id="bTour">Tutorial</button>
-  <button type="button" id="bScen">Scenario</button>
-  <button type="button" id="bReset">Reset</button>
-  <a class="btn" href="https://github.com/Mr-hunt-007/portlist">GitHub</a>
-  <button type="button" class="pri" id="bInstall">Install</button>
-</header>
-<main>
-  <section id="term" aria-label="Terminal">
-    <div class="bar"><i></i><i></i><i></i><span id="title">you@devbox: ~</span></div>
-    <div id="out" role="log" aria-live="polite"></div>
-    <label id="line"><span class="p" id="prompt">you@devbox ~ %</span><input id="in" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type a command"></label>
-    <div id="tui" tabindex="0" aria-label="portlist views"></div>
+  <span class="where">the playground</span>
+  <div class="links">
+    <button type="button" id="bTour">Guide</button>
+    <button type="button" id="bScen">Machine</button>
+    <button type="button" id="bReset">Reset</button>
+    <a href="https://github.com/Mr-hunt-007/portlist">GitHub</a>
+    <button type="button" class="ghost" id="bInstall">Install</button>
+  </div>
+</div></nav>
+
+<main class="desk">
+  <section class="plate term" aria-label="Terminal">
+    <div class="caption"><b><i>Plate A</i> &nbsp;a shell on a machine that is not yours</b><span class="meta" id="who">you@devbox · macOS · simulated</span></div>
+    <div class="ink" id="term">
+      <div id="out" role="log" aria-live="polite"></div>
+      <label id="line"><span class="p" id="prompt">you@devbox ~ %</span><input id="in" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type a command"></label>
+      <div id="tui" tabindex="0" aria-label="portlist, the terminal program"><pre id="scr"></pre></div>
+    </div>
+    <div class="keys" id="keys" aria-label="Keys"></div>
   </section>
-  <section id="side" aria-label="The harbour">
-    <iframe id="harbour" src="about:blank" title="The living harbour of the simulated machine"></iframe>
-    <div id="coach" role="dialog" aria-live="polite"></div>
-  </section>
+  <aside class="side">
+    <section class="plate" aria-label="The harbour">
+      <div class="caption"><b><i>Plate B</i> &nbsp;the same machine, as a harbour</b><span class="meta" id="hnote">every building is a service</span></div>
+      <div class="frame" id="hframe"><iframe id="harbour" src="about:blank" title="The living harbour of the simulated machine"></iframe></div>
+    </section>
+    <section id="coach" role="region" aria-live="polite" aria-label="Guide"></section>
+  </aside>
 </main>
 
 <div class="modal" id="mScen" role="dialog" aria-modal="true" aria-labelledby="scT"><div class="box">
@@ -105,7 +201,7 @@ main{display:grid;grid-template-columns:minmax(360px,46%) 1fr;height:calc(100% -
   <div class="cmd">pipx install git+https://github.com/Mr-hunt-007/portlist<span>COPY</span></div>
   <h4>macOS and Linux, install script</h4>
   <div class="cmd">curl -fsSL https://mr-hunt-007.github.io/portlist/install.sh | sh<span>COPY</span></div>
-  <p style="margin-top:12px">Then <code>portlist</code> for the views, <code>portlist 3000</code> to explain one port, or <code>portlist --world</code> for the harbour.</p>
+  <p style="margin-top:14px">Then <code>portlist</code> for the views, <code>portlist 3000</code> to explain one port, or <code>portlist --world</code> for the harbour.</p>
   <button class="close" type="button" data-close>Close</button>
 </div></div>
 
@@ -117,21 +213,21 @@ main{display:grid;grid-template-columns:minmax(360px,46%) 1fr;height:calc(100% -
 // by running portlist's own code on two made-up machines. The terminal only
 // renders those answers and keeps track of what you stopped.
 const $ = s => document.querySelector(s);
-const esc = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 let M = null, S = null;
 function fresh(m) {
-  return { m, killed: new Set(), version: 1, pendingEvents: [], lastCode: 0, sudo: false };
+  return { m, killed: new Set(), version: 1, pendingEvents: [], lastCode: 0, sudo: false, beat: 0 };
 }
 function pick(key) {
   M = PLAY.machines.find(x => x.key === key) || PLAY.machines[0];
   S = fresh(M);
-  $('#who').innerHTML = '<b>' + esc(M.user + '@' + M.host) + '</b> · ' + esc(M.os);
-  $('#title').textContent = M.user + '@' + M.host + ': ~';
+  $('#who').textContent = M.user + '@' + M.host + ' · ' + M.os + ' · simulated';
   $('#prompt').textContent = M.user + '@' + M.host + ' ~ ' + (M.os.startsWith('macOS') ? '%' : '$');
   $('#out').innerHTML = '';
   closeTui();
-  print('<span class="dim">A simulated ' + esc(M.title.toLowerCase()) + '. ' + esc(M.blurb) + '\nType </span>help<span class="dim"> for what works here, or follow the tutorial.</span>\n');
+  print('<span class="dim">A simulated ' + esc(M.title.toLowerCase()) + '. ' + esc(M.blurb) + '\nType </span>help<span class="dim"> for what works here, or </span>portlist<span class="dim"> for the program itself.</span>\n');
   const f = $('#harbour'); f.src = 'harbour.html?' + key + '-' + Date.now();
+  $('#hnote').textContent = 'every building is a service';
   tour.step = M.tutorial ? 0 : -1; renderCoach();
 }
 const alive = () => M.listing.filter(r => !S.killed.has(r.pid));
@@ -140,7 +236,7 @@ const answer = pid => M.answers[String(pid)];
 // the harbour asks for its data here; a stop in either place shows in both
 window.playFeed = function (seq) {
   if (seq >= S.version) return null;
-  const d = JSON.parse(JSON.stringify(M.world));
+  const d = JSON.parse(JSON.stringify(Object.assign({}, M.world, M.beats[S.beat])));
   const gone = s => S.killed.has(s.pid);
   d.services = d.services.filter(s => !gone(s));
   // what a stopped service was flagged for goes with it
@@ -157,6 +253,17 @@ window.playFeed = function (seq) {
   d.events = S.pendingEvents.splice(0); d.seq = S.version; d.at = Date.now() / 1000;
   return d;
 };
+// Life around the services, on a loop: traffic, SSH sessions, containers and
+// MCP servers come and go. Each beat was built by portlist's world model, and
+// the events between them come from its own differ.
+setInterval(() => {
+  if (!M || document.hidden || !M.beats || M.beats.length < 2) return;
+  S.beat = (S.beat + 1) % M.beats.length;
+  const evs = M.beat_events[S.beat] || [];
+  evs.forEach(e => S.pendingEvents.push(Object.assign({}, e, { ts: Date.now() / 1000 })));
+  S.version++;
+  if (evs.length) $('#hnote').textContent = evs[evs.length - 1].meaning;
+}, 8000);
 window.playKill = function (pid, force) { run('kill ' + (force ? '-9 ' : '') + pid, true); };
 
 // ------------------------------------------------------------------ output
@@ -209,7 +316,7 @@ function renderList(items) {
 }
 
 // ------------------------------------------------------------------ commands
-const HELP = [['portlist', 'the views: everything listening, with who started it (q to leave)'],
+const HELP = [['portlist', 'the program itself: ten views, 0 to 9, and V for vibe (q to leave)'],
   ['portlist 8787', 'why is :8787 running, who started it, can the network reach it'],
   ['portlist 8787 --short', 'just the chain that started it'], ['portlist 8787 --tree', 'the chain as a tree'],
   ['portlist 8787 --warnings', 'only what deserves a look'], ['portlist 8787 --json', 'all of it, as JSON'],
@@ -235,7 +342,7 @@ function run(line, fromHarbour) {
   else { print(esc(cmd) + ': command not found here. Type ' + C.b('help') + ' for what works in the playground.\n'); code = 127; }
   S.lastCode = code;
   tour.check(raw, code);
-  if (fromHarbour) $('#in').focus();
+  if (fromHarbour && !T.on) $('#in').focus();
 }
 function lsof(rest) {
   const want = (rest.find(a => /^-i:?\d+$|^:\d+$/.test(a)) || rest.join(' ')).match(/:(\d+)/);
@@ -257,14 +364,15 @@ function kill(rest, sudo) {
   S.killed.add(pid); S.version++;
   const svc = M.world.services.find(s => s.pid === pid);
   if (svc) S.pendingEvents.push({ trigger: 'SERVICE_STOPPED', subject: 'service:' + svc.id, meaning: ':' + svc.port + ' ' + svc.name + ' stopped listening', priority: 40, ts: Date.now() / 1000, evidence: { port: svc.port } });
-  print(C.dim('stopped :' + e.port + ' ' + e.service + '. Watch the harbour on the right.') + '\n');
+  print(C.dim('stopped :' + e.port + ' ' + e.service + '. Watch the harbour.') + '\n');
+  if (T.on) drawTui();
   return 0;
 }
 function portlist(rest) {
   const flags = new Set(rest.filter(a => a.startsWith('-'))), targets = rest.filter(a => !a.startsWith('-'));
   if (flags.has('--help') || flags.has('-h')) { print(HELP.filter(h => h[0].startsWith('portlist')).map(([c, d]) => '  ' + esc(c.padEnd(26)) + C.dim(d)).join('\n') + '\n'); return 0; }
   if (flags.has('--version')) { print('portlist 1.3\n'); return 0; }
-  if (flags.has('--world') || flags.has('-world')) { print(C.dim('The harbour of this machine is already open on the right. On your own machine, portlist --world opens it full screen.') + '\n'); flash(); return 0; }
+  if (flags.has('--world') || flags.has('-world')) { print(C.dim('The harbour of this machine is already open beside the shell. On your own machine, portlist --world opens it full screen.') + '\n'); flash(); return 0; }
   const only = flags.has('--exposed') ? 'exposed' : flags.has('--leftovers') ? 'leftovers' : flags.has('--attention') ? 'attention' : null;
   const json = flags.has('--json');
   if (!targets.length && !flags.has('--pid') && !flags.has('-p')) {
@@ -292,55 +400,121 @@ function portlist(rest) {
   else print(found.map(mode).join('\n\n') + '\n');
   return found.some(e => e.warnings.length) ? 1 : 0;
 }
-function flash() { const f = $('#harbour'); f.style.outline = '2px solid var(--amber)'; setTimeout(() => f.style.outline = '', 900); }
+function flash() { const f = $('#hframe'); f.classList.add('flash'); setTimeout(() => f.classList.remove('flash'), 900); }
 
-// ------------------------------------------------------------------ the views (a text version of the terminal program)
-const VIEWS = [['1', 'Services', () => true], ['2', 'Exposed', x => x.exposure !== 'loopback'], ['3', 'Attention', x => ['Medium', 'High', 'Critical'].includes(x.risk_band)], ['4', 'Leftovers', x => x.leftover]];
-const T = { on: false, view: 0, sel: 0, detail: false };
-function openTui() { T.on = true; T.view = 0; T.sel = 0; T.detail = false; $('#tui').classList.add('on'); renderTui(); $('#tui').focus(); }
-function closeTui() { T.on = false; $('#tui').classList.remove('on'); $('#in').focus(); }
-function renderTui() {
-  const items = alive().filter(VIEWS[T.view][2]); T.sel = Math.min(T.sel, Math.max(0, items.length - 1));
-  const all = alive(), exp = all.filter(x => x.verified).length;
-  let body = '';
-  if (T.detail && items[T.sel]) body = renderFull(answer(items[T.sel].pid));
-  else body = renderList(items).split('\n').map((l, i) => '<span class="row' + (i - 1 === T.sel ? ' sel' : '') + '">' + l + '</span>').join('');
-  $('#tui').innerHTML = '<div class="top"><b>PORTLIST</b>  ' + esc(M.host) + '   ' + all.length + ' listening   ' + (exp ? '<span class="red">' + exp + ' reachable from outside</span>' : '0 exposed') + '</div>' +
-    '<div class="tabs">' + VIEWS.map((v, i) => '<span class="' + (i === T.view ? 'on' : '') + '">' + v[0] + ' ' + v[1] + '(' + all.filter(v[2]).length + ')</span>').join('') + '</div>' +
-    '<pre>' + (body || 'nothing here') + '</pre>' +
-    '<div class="keys">j/k move   enter detail   1-4 views   esc back   q quit</div>';
+// ------------------------------------------------------------------ portlist, the terminal program
+// Not an imitation: tools/playtui.py runs plcore.tui against an in-memory
+// window and records every screen these keys reach, for every combination of
+// services you can stop. This only picks the frame and inks it.
+const T = { on: false, view: '1', sel: 0, detail: false, sec: 0, vibe: -1 };
+const ORDER = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+function screens() {
+  const key = [...S.killed].filter(p => !M.system_pids.includes(p)).sort((a, b) => a - b).join(',');
+  return M.tui.states[key] || M.tui.states[''];
+}
+function openTui() {
+  Object.assign(T, { on: true, view: '1', sel: 0, detail: false, sec: 0, vibe: -1 });
+  $('#tui').classList.add('on'); $('#keys').classList.add('on'); note('');
+  drawTui(); $('#tui').focus();
+}
+function closeTui() { T.on = false; $('#tui').classList.remove('on'); $('#keys').classList.remove('on'); $('#in').focus(); }
+function frameIds() {
+  const st = screens();
+  if (T.vibe >= 0) return st.vibe[T.vibe].frame;
+  const v = st.views[T.view];
+  if (v.label === 'Dashboard' && T.sec) return v.panes[T.sec];
+  T.sel = Math.max(0, Math.min(T.sel, v.frames.length - 1));
+  const f = v.frames[T.sel];
+  return T.detail && f[1] ? f[1] : f[0];
+}
+function clock() { const d = new Date(), p = n => String(n).padStart(2, '0'); return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()); }
+function drawTui() {
+  if (!T.on) return;
+  const ids = frameIds(), now = clock(), last = ids.length - 1;
+  const html = ids.map((id, y) => M.tui.lines[id].map(([text, tone]) => {
+    // the recorded clock is the moment the frame was painted; show this one
+    if ((y === 0 || y >= last - 1) && /\d\d:\d\d:\d\d/.test(text)) text = text.replace(/\d\d:\d\d:\d\d/, now);
+    if (!tone) return esc(text);
+    return '<span class="' + tone[0] + (tone[1] === '!' ? ' x' : '') + '">' + esc(text) + '</span>';
+  }).join('')).join('\n');
+  $('#scr').innerHTML = html;
+  fit();
+  renderKeys();
+}
+function fit() {
+  // one character is 0.6em in Plex Mono: size the font so a full row fits the plate
+  const box = $('#tui'), cols = M.tui.size[0], rows = M.tui.size[1];
+  const byW = (box.clientWidth - 24) / (cols * 0.6), byH = (box.clientHeight - 22) / (rows * 1.28);
+  $('#scr').style.fontSize = Math.max(6.5, Math.min(14, byW, byH > 7 ? byH : byW)) + 'px';
+}
+const NOT_HERE = { O: 'O opens the service in your browser. On a simulated machine there is nothing behind it.',
+  f: 'f finds a free port on your machine. This one is made up, so it has no ports to spare.',
+  '/': 'Search works on your own machine. Here, 0 to 9 and j/k reach every recorded screen.',
+  r: 'r rescans. Nothing changes on a simulated machine unless you stop something.', a: 'a turns animation off. The playground shows still frames.',
+  '?': 'The keys are listed under this plate.' };
+function note(t) { const n = $('#keys .note'); if (n) n.textContent = t; T.noteText = t; }
+function tuiKey(k, shift) {
+  const st = screens();
+  if (T.vibe >= 0) {
+    if (k === 'n') T.vibe = (T.vibe + 1) % st.vibe.length;
+    else { T.vibe = -1; }
+    return drawTui();
+  }
+  const v = st.views[T.view];
+  if (k === 'q') { closeTui(); tour.check('portlist-q', 0); return; }
+  if (k === 'Escape') { if (T.detail) T.detail = false; else if (T.sec) T.sec = 0; else { closeTui(); tour.check('portlist-q', 0); return; } }
+  else if (ORDER.includes(k)) { T.view = k; T.sel = 0; T.detail = false; T.sec = 0; tour.check('portlist-view-' + k, 0); }
+  else if (k === 'Tab') { const i = ORDER.indexOf(T.view); T.view = ORDER[(i + (shift ? 9 : 1)) % 10]; T.sel = 0; T.detail = false; T.sec = 0; tour.check('portlist-view-' + T.view, 0); }
+  else if (k === 'j' || k === 'ArrowDown') { if (!T.sec) T.sel = Math.min(v.frames.length - 1, T.sel + 1); }
+  else if (k === 'k' || k === 'ArrowUp') { if (!T.sec) T.sel = Math.max(0, T.sel - 1); }
+  else if ((k === 'l' || k === 'ArrowRight') && v.label === 'Dashboard') T.sec = (T.sec + 1) % 3;
+  else if ((k === 'h' || k === 'ArrowLeft') && v.label === 'Dashboard') T.sec = (T.sec + 2) % 3;
+  else if (k === 'Enter') { if ((v.frames[T.sel] || [])[1]) { T.detail = !T.detail; if (T.detail) tour.check('portlist-detail', 0); } }
+  else if (k === 'V') { T.vibe = 0; tour.check('portlist-vibe', 0); }
+  else if (NOT_HERE[k]) { note(NOT_HERE[k]); return; }
+  else return false;
+  note('');
+  drawTui();
 }
 $('#tui').addEventListener('keydown', e => {
-  const n = alive().filter(VIEWS[T.view][2]).length;
-  if (e.key === 'q') { closeTui(); tour.check('portlist-q', 0); }
-  else if (e.key === 'Escape') { if (T.detail) T.detail = false; else closeTui(); }
-  else if (e.key === 'j' || e.key === 'ArrowDown') T.sel = Math.min(n - 1, T.sel + 1);
-  else if (e.key === 'k' || e.key === 'ArrowUp') T.sel = Math.max(0, T.sel - 1);
-  else if (e.key === 'Enter' || e.key === 'o') { T.detail = !T.detail; if (T.detail) tour.check('portlist-detail', 0); }
-  else if (/^[1-4]$/.test(e.key)) { T.view = +e.key - 1; T.sel = 0; T.detail = false; if (e.key === '4') tour.check('portlist-4', 0); }
-  else return;
-  e.preventDefault(); if (T.on) renderTui();
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (tuiKey(e.key, e.shiftKey) !== false) e.preventDefault();
 });
+function renderKeys() {
+  const st = screens(), views = ORDER.map(k => [k, st.views[k].label]);
+  const on = k => (T.vibe < 0 && T.view === k) ? ' class="on"' : '';
+  const extra = T.vibe >= 0 ? [['n', 'next scene'], ['q', 'back to the list']]
+    : [['j', 'down'], ['k', 'up'], ['Enter', 'detail'], ...(st.views[T.view].label === 'Dashboard' ? [['l', 'pane']] : []), ['V', 'vibe'], ['q', 'quit']];
+  $('#keys').innerHTML = views.map(([k, l]) => '<button type="button" data-k="' + k + '"' + on(k) + '><kbd>' + k + '</kbd>' + esc(l) + '</button>').join('') +
+    extra.map(([k, l]) => '<button type="button" data-k="' + esc(k) + '"' + (k === 'V' && T.vibe >= 0 ? ' class="on"' : '') + '><kbd>' + esc(k === 'Enter' ? '↵' : k) + '</kbd>' + esc(l) + '</button>').join('') +
+    '<span class="note">' + esc(T.noteText || (T.vibe >= 0 ? 'The ambient screen: ' + st.vibe[T.vibe].name + '. On your own terminal it rotates on its own.' : '')) + '</span>';
+  $('#keys').querySelectorAll('[data-k]').forEach(b => b.onclick = () => { tuiKey(b.dataset.k, false); if (T.on) $('#tui').focus(); });
+}
+window.addEventListener('resize', () => { if (T.on) fit(); });
+setInterval(() => { if (T.on) drawTui(); }, 1000);
 
-// ------------------------------------------------------------------ the tutorial
+// ------------------------------------------------------------------ the guide
 const tour = { step: 0, steps: [
   { t: 'Something is listening that you did not start', p: 'Port 8787 is open on this laptop and you do not remember why. Start the way you would today:', c: 'lsof -i :8787', ok: l => /^lsof\b.*8787/.test(l) },
   { t: 'lsof says who holds it, not why', p: 'python3 holds it. Ask portlist instead: who started it, from which project, and can the network reach it.', c: 'portlist 8787', ok: l => /^portlist\s+:?8787\s*$/.test(l) },
-  { t: 'A session that ended five days ago left it open to the network', p: 'A Claude Code session started it, then exited. It is bound to every interface, and portlist connected from your network address and got in: the red building by the open gate. The chain on one line:', c: 'portlist 8787 --short', ok: l => /^portlist\s+:?8787.*(--short|-s)\b/.test(l) },
+  { t: 'A session that ended five days ago left it open', p: 'A Claude Code session started it, then exited. It is bound to every interface, and portlist connected from your network address and got in: the red building by the open gate. The chain on one line:', c: 'portlist 8787 --short', ok: l => /^portlist\s+:?8787.*(--short|-s)\b/.test(l) },
   { t: 'Everything else', p: 'One listing of everything, then only what looks left over:', c: 'portlist --list --leftovers', ok: l => /^portlist\b.*--leftovers/.test(l) || /^portlist\b.*--list/.test(l) },
   { t: 'Stop it', p: 'portlist never stops anything on its own: it prints the command and you run it. Run it, and watch the harbour take the building down.', c: 'kill 4412', ok: (l, code) => /^(sudo\s+)?kill\b.*4412/.test(l) && code === 0 },
-  { t: 'The views', p: 'Run portlist with nothing after it for the full-screen views. Press 4 for leftovers, j and k to move, enter for detail, q to leave.', c: 'portlist', ok: l => l === 'portlist-q' },
-  { t: 'That is portlist', p: 'Try the staging server under Scenario for a machine with something that should not be there, or install it and ask about your own machine.', c: null, ok: () => false }],
+  { t: 'The program itself', p: 'With nothing after it, portlist opens its ten views. Walk them with 0 to 9 or tab, j and k to move, enter for detail, V for the ambient screen. q leaves.', c: 'portlist', ok: l => l === 'portlist-q' },
+  { t: 'That is portlist', p: 'Try the staging server under Machine for a box with something on it that should not be there, or install it and ask about your own.', c: null, ok: () => false }],
   check(line, code) { if (this.step < 0 || this.step >= this.steps.length - 1) return; if (this.steps[this.step].ok(line, code)) { this.step++; renderCoach(); } } };
 function renderCoach() {
   const el = $('#coach');
   if (tour.step < 0) { el.classList.remove('on'); return; }
   const s = tour.steps[tour.step], last = tour.step === tour.steps.length - 1;
-  el.innerHTML = '<div class="row"><span class="n">STEP ' + (tour.step + 1) + ' OF ' + tour.steps.length + '</span><span class="dots">' + tour.steps.map((_, i) => '<i class="' + (i < tour.step ? 'done' : i === tour.step ? 'now' : '') + '"></i>').join('') + '</span></div>' +
-    '<h3>' + esc(s.t) + '</h3><p>' + esc(s.p) + (s.c ? '<br><code data-cmd="' + esc(s.c) + '">' + esc(s.c) + '</code>' : '') + '</p>' +
-    '<div class="row"><button type="button" data-skip>' + (last ? 'Close' : 'Skip the tutorial') + '</button>' + (last ? '<button type="button" data-install>Install portlist</button>' : s.c ? '<button type="button" data-run="' + esc(s.c) + '">Type it for me</button>' : '') + '</div>';
+  el.innerHTML = '<div class="num">' + String(tour.step + 1).padStart(2, '0') + '<small>OF ' + String(tour.steps.length).padStart(2, '0') + '</small></div>' +
+    '<div><h3>' + esc(s.t) + '</h3><p>' + esc(s.p) + '</p>' +
+    (s.c ? '<div class="c" data-run="' + esc(s.c) + '" role="button" tabindex="0"><span>' + esc(s.c) + '</span><em>RUN IT</em></div>' : '') +
+    '<div class="row"><span class="ticks">' + tour.steps.map((_, i) => '<i class="' + (i < tour.step ? 'done' : i === tour.step ? 'now' : '') + '"></i>').join('') + '</span>' +
+    '<span>' + (last ? '<button type="button" data-install>Install</button> ' : '') + '<button type="button" data-skip>' + (last ? 'Close' : 'Skip') + '</button></span></div></div>';
   el.classList.add('on');
-  el.querySelectorAll('[data-run],[data-cmd]').forEach(b => b.onclick = () => { const c = b.dataset.run || b.dataset.cmd; $('#in').value = c; $('#in').focus(); if (b.dataset.run) { run(c); $('#in').value = ''; } });
+  const r = el.querySelector('[data-run]');
+  if (r) { const go = () => { if (T.on) closeTui(); run(r.dataset.run); $('#in').value = ''; }; r.onclick = go; r.onkeydown = e => { if (e.key === 'Enter') go(); }; }
   el.querySelector('[data-skip]').onclick = () => { tour.step = -1; renderCoach(); };
   const ins = el.querySelector('[data-install]'); if (ins) ins.onclick = () => $('#mInst').classList.add('on');
 }
@@ -353,8 +527,8 @@ $('#in').addEventListener('keydown', e => {
   else if (e.key === 'ArrowDown') { e.target.value = hi < hist.length - 1 ? hist[++hi] : (hi = hist.length, ''); e.preventDefault(); }
   else if (e.key === 'l' && e.ctrlKey) { $('#out').innerHTML = ''; e.preventDefault(); }
 });
-$('#term').addEventListener('click', e => { if (!T.on && !window.getSelection().toString()) $('#in').focus(); });
-$('#pick').innerHTML = PLAY.machines.map(m => '<button type="button" data-key="' + m.key + '"><em>' + (m.tutorial ? 'TUTORIAL' : 'SANDBOX') + '</em><b>' + esc(m.title) + '</b><span>' + esc(m.user + '@' + m.host + ' · ' + m.os) + '</span><small>' + esc(m.blurb) + '</small></button>').join('');
+$('#term').addEventListener('click', () => { if (window.getSelection().toString()) return; (T.on ? $('#tui') : $('#in')).focus(); });
+$('#pick').innerHTML = PLAY.machines.map(m => '<button type="button" data-key="' + m.key + '"><em>' + (m.tutorial ? 'GUIDED' : 'SANDBOX') + '</em><b>' + esc(m.title) + '</b><span>' + esc(m.user + '@' + m.host + ' · ' + m.os) + '</span><small>' + esc(m.blurb) + '</small></button>').join('');
 $('#pick').querySelectorAll('button').forEach(b => b.onclick = () => { $('#mScen').classList.remove('on'); pick(b.dataset.key); });
 $('#bScen').onclick = () => $('#mScen').classList.add('on');
 $('#bInstall').onclick = () => $('#mInst').classList.add('on');

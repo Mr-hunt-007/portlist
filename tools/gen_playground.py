@@ -181,10 +181,23 @@ def machine(m):
                "disks": [{"mount": "/", "pct": 61.0, "free": 180 << 30, "total": 460 << 30}],
                "processes": {"count": 312}, "network": {"interfaces": []}}
     hostinfo = {"hostname": m["host"], "lan": [{"ip": m["lan"]}], "firewall": {"enabled": True, "name": "Firewall", "stealth": False}}
-    snap = world.build(rows, hostinfo, m["groups"], {"engine": "docker" if m["containers"] else None,
+    # the model words a few things per platform: word them for the simulated machine, not the one building it
+    real_platform, sys.platform = sys.platform, "darwin" if m["os"].startswith("macOS") else "linux"
+    try:
+        snap = _build(m, rows, hostinfo, sysinfo)
+    finally:
+        sys.platform = real_platform
+    tasks = world.plan_pets(snap, [], now=NOW)
+    return _finish(m, rows, answers, listing, snap, tasks)
+
+
+def _build(m, rows, hostinfo, sysinfo):
+    return world.build(rows, hostinfo, m["groups"], {"engine": "docker" if m["containers"] else None,
                        "reachable": bool(m["containers"]), "note": "", "containers": m["containers"]},
                        {"sessions": []}, sysinfo, [], now=NOW, outbound=m["islands"], conns=m["inbound"], traffic=m["traffic"])
-    tasks = world.plan_pets(snap, [], now=NOW)
+
+
+def _finish(m, rows, answers, listing, snap, tasks):
     doc = dict(snap, events=[], seq=1, pets=tasks, chatter=world.chatter(tasks, snap), history=[], stdio_mcp=[], fleet=[])
     lsof = [{"cmd": r["cmd"][:9], "pid": r["pid"], "user": r["user"], "port": r["port"],
              "addr": (r["exposure"]["addrs"] or ["*"])[0].replace("0.0.0.0", "*")} for r in sorted(rows, key=lambda r: r["port"])]

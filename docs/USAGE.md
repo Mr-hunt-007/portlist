@@ -6,6 +6,16 @@ portlist
 
 That is the whole command line. Everything else is keys.
 
+## One answer, then exit
+
+`portlist 3000` (or a name, or `--pid`) explains one listener and exits: who
+started it and the chain that did, the project, reachability, use, risk, the
+warnings, and the command to stop it. `--short`, `--tree`, `--warnings` and
+`--json` change the shape; `--list` prints everything once, with `--exposed`,
+`--leftovers` or `--attention`. Exit codes: 0 fine, 1 warnings, 2 nothing
+matched, 3 another user's process, 4 an unusable question, 5 an internal error.
+`portlist --completion bash|zsh|fish` prints a completion script.
+
 ## The dashboard
 
 `0`, and where portlist opens: four cards (machine, exposure, agents,

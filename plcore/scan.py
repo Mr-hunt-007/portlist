@@ -154,6 +154,12 @@ def _refresh_bg():
         _refreshing.clear()
 
 
+def _public_inbound_count(connections, port):
+    """Public peers connected to this listener, not outbound traffic by its pid."""
+    return sum(1 for c in connections
+               if c.get("lport") == port and c.get("scope") == "public")
+
+
 def _scan_now(force=False):
     with _lock:
         now = time.time()
@@ -262,7 +268,7 @@ def _scan_now(force=False):
                 "exposure": exposure,
                 "probe": {k: v for k, v in pr.items() if not k.startswith("_")},
                 "conns": len(conns.get(pid, [])),
-                "conns_public": sum(1 for c in conns.get(pid, []) if c["scope"] == "public"),
+                "conns_public": _public_inbound_count(conns.get(pid, []), port),
                 "mcp": mcp_info,
                 "shared": holders[port] > 1,
                 "answers_on": (pr.get("probed_at") or "127.0.0.1"),

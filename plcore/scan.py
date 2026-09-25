@@ -32,17 +32,27 @@ _REFRESH_AFTER = 4.0        # older than this and a background refresh starts
 _refreshing = threading.Event()
 
 
-def _verify(level, port, host):
-    # Keyed by (level, port): two processes can share a port with different bind
-    # scopes, and a loopback row's None must not become the wildcard row's answer.
-    key = (level, port)
+def _verify(level, port, host, addrs):
+    # A shared port can have different specific bind addresses with different
+    # reachability. Keep their verification results separate.
+    key = (level, port, tuple(sorted(addrs)))
     hit = _verify_cache.get(key)
     now = time.time()
     if hit and now - hit[0] < _VERIFY_TTL:
         return hit[1]
-    val = risk.verify_exposure(level, port, host)
+    val = risk.verify_exposure(level, port, host, addrs)
     _verify_cache[key] = (now, val)
     return val
+
+
+def _probe_host(addrs, lan_ips, prefer_network=False, verified=None):
+    """Use the listener's actual address when loopback cannot reach it."""
+    specific = sorted(set(addrs) - collect.LOOPBACK - collect.WILDCARD)
+    if specific:
+        if verified in specific:
+            return verified
+        return next((ip for ip in lan_ips if ip in specific), specific[0])
+    return next(iter(lan_ips), None) if prefer_network else None
 
 
 def _mcp_for(port, sig_id, cmdline, pr):
@@ -202,13 +212,14 @@ def _scan_now(force=False):
 
         targets = []
         for e in merged.values():
-            probe_host = None
-            if holders[e["port"]] > 1:
-                owns_loopback = any(a in collect.LOOPBACK for a in e["addrs"])
-                if not owns_loopback and loopback_owner.get(e["port"]) not in (None, e["pid"]):
-                    # Someone else owns 127.0.0.1 here; this socket answers on the
-                    # network address instead.
-                    probe_host = next((ip for ip in lan_ips), None)
+            e["level"] = risk.classify_exposure(e["addrs"])
+            e["verified"] = _verify(e["level"], e["port"], host, e["addrs"])
+            owns_loopback = any(a in collect.LOOPBACK for a in e["addrs"])
+            prefer_network = (holders[e["port"]] > 1 and not owns_loopback and
+                              loopback_owner.get(e["port"]) not in (None, e["pid"]))
+            verified = e["verified"] or {}
+            probe_host = _probe_host(e["addrs"], lan_ips, prefer_network,
+                                     verified.get("ip") if verified.get("accepting") else None)
             e["probe_host"] = probe_host
             targets.append((e["port"], probe_host))
 
@@ -240,10 +251,10 @@ def _scan_now(force=False):
                 if guess:
                     sig = {"id": None, "name": guess, "cat": None, "note": None}
 
-            level = risk.classify_exposure(e["addrs"])
+            level = e["level"]
             exposure = dict(risk.EXPOSURE[level])
             exposure["addrs"] = sorted(e["addrs"])
-            exposure["verified"] = _verify(level, port, host)
+            exposure["verified"] = e["verified"]
 
             cwd = dirs.get(pid, "")
             row = {
@@ -280,7 +291,8 @@ def _scan_now(force=False):
                 # is a broken promise, not a convenience.
                 "lan_urls": ([] if level == "loopback" else
                              ["%s://%s:%d" % ("https" if pr.get("https") else "http",
-                                              a["ip"], port) for a in host.get("lan", [])]),
+                                              a["ip"], port) for a in host.get("lan", [])
+                              if level == "all" or a["ip"] in e["addrs"]]),
             }
             st, label, detail = health_of(row)
             row["health"] = st

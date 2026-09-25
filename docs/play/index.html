@@ -376,7 +376,7 @@ function kill(rest, sudo) {
 function portlist(rest) {
   const flags = new Set(rest.filter(a => a.startsWith('-'))), targets = rest.filter(a => !a.startsWith('-'));
   if (flags.has('--help') || flags.has('-h')) { print(HELP.filter(h => h[0].startsWith('portlist')).map(([c, d]) => '  ' + esc(c.padEnd(26)) + C.dim(d)).join('\n') + '\n'); return 0; }
-  if (flags.has('--version')) { print('portlist 1.3\n'); return 0; }
+  if (flags.has('--version')) { print('portlist ' + PLAY.version + '\n'); return 0; }
   if (flags.has('--world') || flags.has('-world')) { print(C.dim('The harbour of this machine is already open beside the shell. On your own machine, portlist --world opens it full screen.') + '\n'); flash(); return 0; }
   const only = flags.has('--exposed') ? 'exposed' : flags.has('--leftovers') ? 'leftovers' : flags.has('--attention') ? 'attention' : null;
   const json = flags.has('--json');

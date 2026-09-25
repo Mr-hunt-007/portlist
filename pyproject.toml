@@ -45,7 +45,7 @@ Changelog = "https://github.com/Mr-hunt-007/portlist/blob/main/CHANGELOG.md"
 portlist = "plcore.app:main"
 
 [tool.setuptools]
-packages = ["plcore", "plcore.platforms"]
+packages = ["plcore", "plcore.platforms", "plcore.adapters"]
 # The room scene's plate. It is 27 KB and it is the scene, so a wheel without
 # it installs a menu entry that draws nothing.
 package-data = {plcore = ["data/*.png", "data/*.html"]}

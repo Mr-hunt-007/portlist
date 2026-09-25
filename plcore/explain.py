@@ -261,7 +261,7 @@ def render_full(e, c):
     else:
         kv("Warnings", c.green("none"))
     if e["stop"]:
-        kv("To stop it", "%s  %s" % (e["stop"], c.dim("(portlist prints it; you run it)")))
+        kv("To stop it", "portlist kill %s  %s" % (e["port"], c.dim("(or %s)" % e["stop"])))
     return "\n".join(L)
 
 
@@ -402,24 +402,39 @@ FLAGS = ["--port", "--pid", "--json", "--short", "--tree", "--warnings", "--exac
          "--no-open", "--windowed", "--keys", "--data-dir", "--vibe-bg", "--completion", "--version", "--help"]
 
 
+COMMANDS = ["kill", "cleanup", "report"]
+COMMAND_FLAGS = {"kill": ["--pid", "--yes", "--force", "--dry-run", "--exact", "--no-color", "--help"],
+                 "cleanup": ["--idle", "--yes", "--force", "--dry-run", "--json", "--no-color", "--help"],
+                 "report": ["--output", "--redact", "--open", "--help"]}
+
+
 def completion(shell):
     words = " ".join(FLAGS)
     if shell == "bash":
         return ("# portlist completion for bash: add to ~/.bashrc\n"
                 "#   eval \"$(portlist --completion bash)\"\n"
                 "_portlist() {\n"
-                "  local cur=\"${COMP_WORDS[COMP_CWORD]}\"\n"
-                "  if [[ \"$cur\" == -* ]]; then COMPREPLY=( $(compgen -W \"%s\" -- \"$cur\") ); fi\n"
+                "  local cur=\"${COMP_WORDS[COMP_CWORD]}\" sub=\"${COMP_WORDS[1]}\" w=\"%s\"\n"
+                "  case \"$sub\" in\n%s  esac\n"
+                "  if [[ \"$cur\" == -* ]]; then COMPREPLY=( $(compgen -W \"$w\" -- \"$cur\") );\n"
+                "  elif [[ $COMP_CWORD == 1 ]]; then COMPREPLY=( $(compgen -W \"%s\" -- \"$cur\") ); fi\n"
                 "}\n"
-                "complete -F _portlist portlist\n") % words
+                "complete -F _portlist portlist\n") % (
+                    words, "".join("    %s) w=\"%s\" ;;\n" % (k, " ".join(v)) for k, v in COMMAND_FLAGS.items()),
+                    " ".join(COMMANDS))
     if shell == "zsh":
         opts = "\n".join("  '%s[%s]'" % (f, f.strip("-").replace("-", " ")) for f in FLAGS)
         return ("#compdef portlist\n# portlist completion for zsh: add to ~/.zshrc\n"
                 "#   eval \"$(portlist --completion zsh)\"\n"
-                "_portlist() {\n  _arguments \\\n%s\n}\ncompdef _portlist portlist\n") % " \\\n".join(opts.splitlines())
+                "_portlist() {\n  if (( CURRENT == 2 )) && [[ $words[2] != -* ]]; then\n"
+                "    compadd %s\n    return\n  fi\n  _arguments \\\n%s\n}\ncompdef _portlist portlist\n") % (
+                    " ".join(COMMANDS), " \\\n".join(opts.splitlines()))
     if shell == "fish":
         return ("# portlist completion for fish: portlist --completion fish > ~/.config/fish/completions/portlist.fish\n"
-                + "\n".join("complete -c portlist -l %s" % f.lstrip("-") for f in FLAGS) + "\n")
+                + "\n".join("complete -c portlist -l %s" % f.lstrip("-") for f in FLAGS) + "\n"
+                + "complete -c portlist -n __fish_use_subcommand -f -a '%s'\n" % " ".join(COMMANDS)
+                + "".join("complete -c portlist -n '__fish_seen_subcommand_from %s' -l %s\n" % (k, f.lstrip("-"))
+                          for k, v in COMMAND_FLAGS.items() for f in v))
     raise ValueError("unknown shell %r (bash, zsh or fish)" % shell)
 
 

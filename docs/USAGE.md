@@ -16,6 +16,36 @@ warnings, and the command to stop it. `--short`, `--tree`, `--warnings` and
 matched, 3 another user's process, 4 an unusable question, 5 an internal error.
 `portlist --completion bash|zsh|fish` prints a completion script.
 
+## Stop it, clean up, hand it on
+
+`portlist kill 3000` (or a name, or `--pid 812`) shows what is listening there,
+who started it, whether the network can reach it and how it should be stopped,
+then asks. A port published by a container is stopped with `docker stop`; a
+Homebrew service with `brew services stop`; a launchd job with `launchctl
+bootout`; a systemd unit with `systemctl stop` (a system unit needs sudo). A
+PM2 app is named and left to PM2. After the stop it scans again and says if
+something brought the port straight back. `--yes` skips the question (the only
+way to act from a script: a pipe is never asked), `--force` sends SIGKILL to
+what ignores SIGTERM for five seconds, `--dry-run` stops nothing.
+
+`portlist cleanup` asks about each listener that looks left over, the one the
+network can reach first, with the evidence: how long unused, who started it and
+whether that session has exited. `y` stops it, `n` keeps it, `k` keeps it and
+stops calling it a leftover (kept in `~/.portlist/ignored.json`), `a` stops the
+rest, `q` quits. `--idle 24` also offers anything unused for a day; `--dry-run`
+and `--json` list without stopping.
+
+`portlist report` writes one self-contained HTML page: a verdict, what needs a
+look and why, everything listening, who started what, containers, and how each
+thing was measured. No scripts and nothing fetched, so it opens anywhere.
+Command lines are in it with secrets masked (`--token=***`, passwords in URLs);
+`--redact` takes out host and user names, addresses, project names, paths and
+command lines for a report leaving your team. `-o -` writes it to stdout.
+
+Exit codes for `kill` and `cleanup`: 0 done, 1 something kept, declined, still
+running or back, 2 nothing matched, 3 another user's process, 4 an unusable
+question.
+
 ## The dashboard
 
 `0`, and where portlist opens: four cards (machine, exposure, agents,

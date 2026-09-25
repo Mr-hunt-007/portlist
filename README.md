@@ -1,41 +1,68 @@
 <h1 align="center">portlist</h1>
 
 <p align="center">
-  <strong>Every port on this machine, and where it came from.</strong><br>
-  A terminal program, with an optional harbour view in the browser (<code>--world</code>). No dependencies.
+  <strong>Every port on your machine. Who started it. Who can reach it. Whether you still need it.</strong><br>
+  A terminal program for macOS, Linux and Windows. No dependencies.
 </p>
 
 <p align="center">
+  <a href="https://mr-hunt-007.github.io/portlist/play/">Try it in your browser</a> &middot;
   <a href="https://mr-hunt-007.github.io/portlist/">Website</a> &middot;
   <a href="docs/USAGE.md">Usage</a> &middot;
   <a href="CHANGELOG.md">Changelog</a> &middot;
-  <a href="https://github.com/Mr-hunt-007/portlist/issues">Issues</a> &middot;
-  <a href="LICENSE">MIT</a> &middot;
-  <a href="https://buymeacoffee.com/mr.hunt.007">Buy me a coffee</a>
+  <a href="LICENSE">MIT</a>
 </p>
 
 ```
- PORTLIST  devbox   12 listening  2 off-box  2 need attention              21:20:37
-  1 Services(12)  2 Exposed(2)  3 Attention(2)  4 Leftovers(5)  5 Agents(3)  6 Containers(0)  7 Sessions(8)  8 System
+$ portlist
+ PORTLIST  devbox   6 listening  1 off-box  1 need attention                              14:13:20
+ ▌1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions ...
 
- PORT    SERVICE             PROJECT           REACHABLE       RISK      STARTED BY
- :3000   Next.js             storefront        Localhost only   12 Info  Claude Code 2h
- :5173   Vite                admin-ui          Localhost only   12 Info  terminal 5h
- :8787   Python http.server  data-export       All interfaces   71 High  Claude Code 5d
- :9050   Tor                 /opt/homebrew     Localhost only   12 Info  launchd 24d
-
- j/k move   h/l pane   tab view   enter detail   O open   / search   f free port   V vibe   q quit
+ PORT    SERVICE                 PROJECT           REACHABLE      RISK     STARTED BY
+ :3000   Next.js                 storefront        Localhost only 12 Info  Claude Code 2h
+ :5173   Vite                    admin-ui          Localhost only 12 Info  terminal 5h
+ :5432   PostgreSQL              storefront        Localhost only 12 Info  Docker 2d
+ :8787   Python http.server      data-export       All interfaces 71 High  Claude Code 5d
+ :11434  Ollama                  -                 Localhost only 12 Info  launchd 9d
 ```
 
-Twelve things are listening. You started three of them today and you cannot name
-the rest.
+`:8787` is the one to look at. Ask about it:
 
-**[Try it in your browser](https://mr-hunt-007.github.io/portlist/play/)**: a simulated
-laptop with a guided tutorial, no install.
+```
+$ portlist 8787
+Target       :8787
+Service      Python http.server  (python3, pid 4412, user you)
+Project      data-export  ~/code/data-export
+Started      5d 0h ago by a Claude Code session (exited)
+Why it runs  launchd (pid 1) → python3 (pid 4412)
+Reachable    All interfaces  0.0.0.0
+In use       0 connections now, never seen in use in 5d 0h of watching
+Risk         71 High
+Warnings     reachable from beyond this machine: portlist connected on 192.0.2.14 (en0) and got in
+             looks left over: nothing has connected to it in the 5 days portlist has been watching
+             a Claude Code session started it and has since exited
+To stop it   portlist kill 8787  (or kill 4412)
+```
 
-Or see the same scan as a harbour on a second screen, with `portlist --world`:
+A session that ended five days ago left a file server open to your network, and
+portlist did not take the bind address's word for it: it connected from your
+network address and got in. Then:
 
-<p align="center"><a href="#the-living-harbour"><img src="docs/harbour.jpg" alt="The living harbour, from a scripted demo machine: services as buildings, the lighthouse for SSH, the coal train for downloads, the gate open for a service reachable from outside" width="820"></a></p>
+```
+portlist kill 8787     # shows it, asks, stops it the right way, checks it stayed stopped
+portlist cleanup       # walks every leftover with its evidence: y stop, n keep, k stop asking
+portlist report        # the whole machine as one HTML file to hand on (--redact for outside)
+```
+
+`kill` knows what it is stopping. A port published by a container is stopped
+with `docker stop`, not by killing the engine's proxy. A Homebrew service, a
+launchd job or a systemd unit is stopped through its manager, because killing
+the process only gets it restarted. After the stop portlist looks again, and if
+something brought it straight back, it tells you what.
+
+**[Try all of it in your browser](https://mr-hunt-007.github.io/portlist/play/)**: a
+simulated laptop and a staging server, the real program's views, and a guided
+tour. No install.
 
 ## What problem does it solve
 
@@ -133,7 +160,7 @@ In use       0 connections now, never seen in use in 18h of watching
 Risk         12 Info
 Warnings     looks left over: nothing has connected to it in 18 hours
              a Claude Code session started it and has since exited
-To stop it   kill 18714  (portlist prints it; you run it)
+To stop it   portlist kill 8000  (or kill 18714)
 ```
 
 ```
@@ -382,7 +409,7 @@ portlist --world        # or -world, or W inside the terminal
 Every port on this machine as a harbour, in a browser, full screen: a second
 screen you can glance at. Each listening service is a building shaped by what it
 is (a lighthouse for SSH, tanks for Postgres and Mongo, a dome for a local model,
-a mast for MCP), the gate out of the harbour opens only when portlist actually
+a mast for MCP, and a submarine off the quay for an MCP server that speaks over stdio and holds no port at all), the gate out of the harbour opens only when portlist actually
 connected from the network and got in, agents are robots that walk out when they
 exit and leave a bulb burning over whatever they left running, and five cats go
 and look at whatever matters most. Click anything and it says which measurement
@@ -519,9 +546,11 @@ motion would make the prettiest part of the program the one lying to you.
 
 ## What it can tell you that `lsof` cannot
 
-- **Who started it.** Claude Code, Cursor, Codex, Copilot, Aider, Goose,
-  Windsurf, a terminal, a service manager - from process ancestry first and the
-  environment second. And whether that session has since exited.
+- **Who started it.** Claude Code, Cursor, Codex, Copilot, Gemini CLI, OpenCode,
+  Aider, Goose, Windsurf, an editor, a terminal, a service manager - from process
+  ancestry first and the environment second. And whether that session has since
+  exited. Each agent is one file in [`plcore/adapters/`](plcore/adapters/), so
+  adding the one you use is a small pull request.
 - **Whether it survived a restart.** A launch record is written the first time a
   service is seen and never rewritten, so attribution outlives both the agent
   exiting and the service being restarted by something else.
@@ -531,13 +560,15 @@ motion would make the prettiest part of the program the one lying to you.
 - **Which container holds the port**, and which compose project it belongs to.
 - **A port that is free** now and not spoken for by anything you run later.
 
-## It never stops anything on its own
+## It stops nothing without a yes
 
-The terminal prints the command; you run it. There is no kill key, no daemon,
-and nothing here writes to another machine. The one exception is opt-in: the
-harbour's Play panel has a **stopping** switch, off on every page load. With it
-on, each stop asks first, then sends SIGTERM to that process, and only if a
-fresh scan shows it still on that port.
+Looking is free; stopping is asked for. `portlist kill` and `portlist cleanup`
+show what a listener is before they ask, stop only what a fresh scan still shows
+on that port, never touch pid 0 or 1, portlist itself, or anything it files as
+part of the system, and refuse to ask a pipe: in a script, `--yes` is the only
+way to act and `--dry-run` shows what would happen. The terminal views have no
+kill key. The harbour's Play panel has a **stopping** switch, off on every page
+load; with it on, each stop asks first and goes through the same checks.
 
 It does open sockets, and it is worth being exact about which. It connects
 *outward* to the ports on this machine to see what answers, and it binds a

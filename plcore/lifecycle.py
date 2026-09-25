@@ -17,20 +17,12 @@ import re
 import time
 
 # Ancestry command lines that name the thing a developer would recognise.
-# Order matters: the most specific claim wins.
-STARTERS = [
-    ("claude-code", "Claude Code", r"(?:^|/)claude(?:\s|$)|claude-code|\bclaude\.js\b", "AI agent"),
-    ("cursor", "Cursor", r"(?i)/cursor(?:\.app|/|\s)|cursor helper|cursor-agent", "AI editor"),
-    ("codex", "Codex CLI", r"(?:^|/)codex(?:\s|$)|codex-cli", "AI agent"),
-    ("copilot", "GitHub Copilot", r"(?i)copilot(-agent|-cli)?", "AI agent"),
-    ("aider", "Aider", r"(?:^|/)aider(?:\s|$)", "AI agent"),
-    ("goose", "Goose", r"(?:^|/)goose(?:\s|$)", "AI agent"),
-    ("windsurf", "Windsurf", r"(?i)windsurf", "AI editor"),
-    ("zed", "Zed", r"(?i)/zed(?:\.app|/|\s)", "editor"),
-    ("vscode", "VS Code", r"(?i)visual studio code|/code helper|(?:^|/)code(?:\s|$)|electron.*vscode",
-     "editor"),
-    ("jetbrains", "JetBrains IDE", r"(?i)(intellij|pycharm|webstorm|goland|rubymine|jetbrains)",
-     "editor"),
+# Order matters: the most specific claim wins. The agents and editors come
+# first and come from plcore/adapters (one file each); what follows is
+# everything else that starts processes.
+from .adapters import ADAPTERS
+
+OTHER_STARTERS = [
     ("docker", "a container runtime", r"(?i)dockerd|docker-proxy|containerd|com\.docker", "runtime"),
     ("tmux", "tmux", r"(?:^|/)tmux(?:\s|$)|tmux: server", "terminal"),
     ("screen", "screen", r"(?:^|/)SCREEN(?:\s|$)", "terminal"),
@@ -42,22 +34,15 @@ STARTERS = [
      "terminal"),
     ("shell", "a shell", r"(?:^|/)(bash|zsh|fish|sh|dash)(?:\s|$)", "terminal"),
 ]
+STARTERS = [(a.kind, a.name, a.ancestry, a.cls) for a in ADAPTERS if a.ancestry] + OTHER_STARTERS
 
 # Environment variable NAMES that identify the tool that spawned a process.
 # Values are never read; the presence of the name is the whole signal.
-ENV_STARTERS = [
-    ("claude-code", "Claude Code", ("CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT",
-                                    "CLAUDE_CODE_SESSION_ID"), "AI agent"),
-    ("cursor", "Cursor", ("CURSOR_TRACE_ID", "CURSOR_AGENT", "CURSOR_SESSION_ID"), "AI editor"),
-    ("codex", "Codex CLI", ("CODEX_SANDBOX", "CODEX_HOME", "CODEX_SESSION_ID"), "AI agent"),
-    ("copilot", "GitHub Copilot", ("COPILOT_AGENT_ID", "GITHUB_COPILOT_SESSION"), "AI agent"),
-    ("vscode", "VS Code", ("VSCODE_GIT_ASKPASS_NODE", "VSCODE_PID", "VSCODE_CWD"), "editor"),
-    ("windsurf", "Windsurf", ("WINDSURF_SESSION_ID", "CODEIUM_API_KEY"), "AI editor"),
-    ("jetbrains", "JetBrains IDE", ("IDEA_INITIAL_DIRECTORY", "PYCHARM_HOSTED"), "editor"),
+ENV_STARTERS = [(a.kind, a.name, a.env, a.cls) for a in ADAPTERS if a.env] + [
     ("ci", "a CI runner", ("GITHUB_ACTIONS", "GITLAB_CI", "BUILDKITE", "CIRCLECI"), "automation"),
 ]
 
-AI_KINDS = {"claude-code", "cursor", "codex", "copilot", "aider", "goose", "windsurf"}
+AI_KINDS = {a.kind for a in ADAPTERS if a.ai}
 
 
 def starter(row, chain_up, env_names=()):

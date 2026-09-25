@@ -45,7 +45,12 @@ HEAD_BYTES = 96 * 1024
 TAIL_BYTES = 256 * 1024
 MAX_SESSIONS = 60
 # Processes that are a coding-agent session rather than something it spawned.
-AGENT_NAMES = ("claude", "codex")
+def _agent_names():
+    from .adapters import ADAPTERS
+    return tuple(n for a in ADAPTERS for n in a.processes)
+
+
+AGENT_NAMES = _agent_names()
 
 
 def _root(path):
@@ -350,7 +355,7 @@ def _glob_sessions(patterns, reader, tool=None):
     return out
 
 
-def _files(newest_first=True, limit=MAX_SESSIONS):
+def claude_files():
     out = []
     root = _root(CLAUDE_ROOT)
     if os.path.isdir(root):
@@ -365,6 +370,11 @@ def _files(newest_first=True, limit=MAX_SESSIONS):
                         out.append((os.path.getmtime(p), p, read_claude))
                     except OSError:
                         pass
+    return out
+
+
+def codex_files():
+    out = []
     croot = _root(CODEX_ROOT)
     if os.path.isdir(croot):
         for base, _dirs, names in os.walk(croot):
@@ -375,10 +385,19 @@ def _files(newest_first=True, limit=MAX_SESSIONS):
                         out.append((os.path.getmtime(p), p, read_codex))
                     except OSError:
                         pass
-    out += _copilot_sessions()
-    out += _glob_sessions(VSCODE_CHAT, read_vscode, "vscode")
-    out += _glob_sessions(CURSOR_CHAT, read_vscode, "cursor")
-    out += _glob_sessions(GEMINI_GLOBS, read_gemini)
+    return out
+
+
+def _files(newest_first=True, limit=MAX_SESSIONS):
+    """Every adapter that knows where its transcripts live contributes them."""
+    from .adapters import ADAPTERS
+    out = []
+    for a in ADAPTERS:
+        if a.sessions:
+            try:
+                out += a.sessions()
+            except Exception:
+                pass            # one unreadable store must not empty the list
     out.sort(key=lambda t: t[0], reverse=newest_first)
     return out[:limit]
 

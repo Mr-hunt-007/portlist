@@ -216,13 +216,13 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 let M = null, S = null;
 function fresh(m) {
-  return { m, killed: new Set(), version: 1, pendingEvents: [], lastCode: 0, sudo: false, beat: 0 };
+  return { m, killed: new Set(), version: 1, pendingEvents: [], lastCode: 0, sudo: false, beat: 0, ask: null };
 }
 function pick(key) {
   M = PLAY.machines.find(x => x.key === key) || PLAY.machines[0];
   S = fresh(M);
   $('#who').textContent = M.user + '@' + M.host + ' · ' + M.os + ' · simulated';
-  $('#prompt').textContent = M.user + '@' + M.host + ' ~ ' + (M.os.startsWith('macOS') ? '%' : '$');
+  setPrompt();
   $('#out').innerHTML = '';
   closeTui();
   print('<span class="dim">A simulated ' + esc(M.title.toLowerCase()) + '. ' + esc(M.blurb) + '\nType </span>help<span class="dim"> for what works here, or </span>portlist<span class="dim"> for the program itself.</span>\n');
@@ -296,7 +296,7 @@ function renderFull(e) {
   kv('Risk', ['High', 'Critical'].includes(band) ? C.red(rt) : band === 'Medium' ? C.amber(rt) : esc(rt));
   if (e.warnings.length) { kv('Warnings', C.amber(e.warnings[0])); e.warnings.slice(1).forEach(w => L.push(' '.repeat(13) + C.amber(w))); }
   else kv('Warnings', C.green('none'));
-  if (e.stop) kv('To stop it', esc(e.stop) + '  ' + C.dim('(portlist prints it; you run it)'));
+  if (e.stop) kv('To stop it', 'portlist kill ' + e.port + '  ' + C.dim('(or ' + e.stop + ')'));
   return L.join('\n');
 }
 const renderShort = e => chainText(e) + '  ' + C.dim('[:' + e.port + ' ' + e.service + ']');
@@ -322,9 +322,13 @@ const HELP = [['portlist', 'the program itself: ten views, 0 to 9, and V for vib
   ['portlist 8787 --warnings', 'only what deserves a look'], ['portlist 8787 --json', 'all of it, as JSON'],
   ['portlist node', 'every listener whose service, command or project matches'],
   ['portlist --list', 'everything once; add --exposed, --leftovers or --attention'],
+  ['portlist kill 8787', 'show it, ask, stop it the right way, check it stayed stopped'],
+  ['portlist cleanup', 'walk through what looks left over: y stop, n keep, k stop asking, q quit'],
+  ['portlist report', 'the machine as one HTML page to hand on (--redact for outside)'],
   ['lsof -i :8787', 'what lsof can tell you, for comparison'], ['kill <pid>', 'stop a process (sudo for other users\')'],
   ['echo $?', 'the exit code of the last command'], ['clear', 'clear the screen']];
 function run(line, fromHarbour) {
+  if (S.ask) { const q = S.ask; S.ask = null; setPrompt(); print('<span class="dim">' + esc(q.text) + '</span> ' + esc(line.trim()) + '\n'); q.then((line.trim().toLowerCase()[0]) || q.def); return; }
   const raw = line.trim(); if (!raw) return;
   print('<span class="p">' + esc($('#prompt').textContent) + '</span> <span class="cmd">' + esc(raw) + '</span>\n');
   let args = raw.split(/\s+/), sudo = false;
@@ -338,6 +342,7 @@ function run(line, fromHarbour) {
   else if (cmd === 'hostname') print(esc(M.host) + '\n');
   else if (cmd === 'lsof') code = lsof(rest);
   else if (cmd === 'kill') code = kill(rest, sudo);
+  else if (cmd === 'portlist' && ['kill', 'cleanup', 'report'].includes(rest[0])) code = portlistCmd(rest[0], rest.slice(1), sudo);
   else if (cmd === 'portlist') code = portlist(rest);
   else { print(esc(cmd) + ': command not found here. Type ' + C.b('help') + ' for what works in the playground.\n'); code = 127; }
   S.lastCode = code;
@@ -401,6 +406,115 @@ function portlist(rest) {
   return found.some(e => e.warnings.length) ? 1 : 0;
 }
 function flash() { const f = $('#hframe'); f.classList.add('flash'); setTimeout(() => f.classList.remove('flash'), 900); }
+
+// ------------------------------------------------------------------ portlist kill, cleanup, report
+// The same card and the same decision as plcore/stop.py: what it is, how it
+// should be stopped (M.stops comes from portlist's own supervisor detection),
+// a question, then the stop. A question waits for the next line you type.
+function setPrompt() { $('#prompt').textContent = S.ask ? S.ask.text : M.user + '@' + M.host + ' ~ ' + (M.os.startsWith('macOS') ? '%' : '$'); }
+function ask(text, choices, then) {
+  const def = (choices.match(/[A-Z]/) || ['n'])[0].toLowerCase();
+  S.ask = { text: text + ' [' + choices.split('').join('/') + ']', def, then: a => then(choices.toLowerCase().includes(a) ? a : def) };
+  setPrompt(); $('#in').focus();
+}
+function card(e, lead) {
+  const L = [], kv = (k, v) => L.push('   ' + C.dim(k.padEnd(11)) + ' ' + v);
+  L.push((lead || '') + C.b(':' + e.port) + '  ' + C.b(e.service) + '  ' + C.dim('pid ' + e.pid + ', ' + e.user));
+  if (e.project) kv('project', esc(e.project.name || '') + '  ' + C.dim(e.project.path || ''));
+  kv('started', span(e.started.ago_seconds) + ' ago by ' + esc(e.started.by || 'nobody on record') + (e.started.still_running === false ? C.amber(' (exited)') : ''));
+  kv('chain', chainText(e));
+  const r = e.reachable;
+  kv('reachable', r.verified ? C.red(r.label + ', verified from ' + r.addrs.join(', ')) : r.level !== 'loopback' ? C.amber(r.label) : C.green(r.label));
+  const u = e.use;
+  kv('use', u.idle_seconds != null ? (u.idle_seconds > 60 ? 'last used ' + span(u.idle_seconds) + ' ago' : 'in use now')
+    : u.ever_used === false ? C.amber('never seen in use in ' + span(u.watched_seconds) + ' of watching') : u.connections + ' connections now');
+  e.warnings.filter(w => !/^reachable from beyond/.test(w)).slice(0, 3).forEach((w, i) => kv(i ? '' : 'warning', C.amber(w)));
+  const plan = M.stops[String(e.pid)];
+  if (plan) kv('stop with', esc(plan.command || plan.kind) + '  ' + C.dim('(' + plan.note + ')'));
+  return L.join('\n');
+}
+function stopOne(e, sudo, done) {
+  const plan = M.stops[String(e.pid)] || null, runs = plan && plan.command && (plan.runnable || (sudo && plan.kind === 'systemd'));
+  if (e.user !== M.user && !sudo) { print(C.amber('   another user owns it: run `sudo portlist kill ' + e.port + '`') + '\n'); return done('denied'); }
+  if (M.system_pids.includes(e.pid)) { print(C.dim('   portlist files this under the system; it will not stop it') + '\n'); return done('kept'); }
+  if (plan && plan.kind === 'pm2') {
+    // PM2 restarts what it manages: the stop "works" and the port is back a moment later
+    print(C.amber('   it came back as pid ' + (e.pid + 1) + ' (' + e.service + ').') + '\n' + C.amber('   ' + plan.note) + '\n');
+    return done('back');
+  }
+  S.killed.add(e.pid); S.version++;
+  const svc = M.world.services.find(s => s.pid === e.pid);
+  if (svc) S.pendingEvents.push({ trigger: 'SERVICE_STOPPED', subject: 'service:' + svc.id, meaning: ':' + svc.port + ' ' + svc.name + ' stopped listening', priority: 40, ts: Date.now() / 1000, evidence: { port: svc.port } });
+  print((runs ? C.dim('   ran: ' + plan.command) + '\n' : '') + C.green('   stopped. :' + e.port + ' is free.') + '\n');
+  if (T.on) drawTui();
+  if (e.pid === 4412) tour.check('portlist-stopped-4412', 0);
+  done('stopped');
+}
+function verbFor(e, sudo) { const p = M.stops[String(e.pid)]; return p && p.command && (p.runnable || (sudo && p.kind === 'systemd')) ? p.command : 'SIGTERM to pid ' + e.pid; }
+function portlistCmd(sub, args, sudo) {
+  const flags = new Set(args.filter(a => a.startsWith('-'))), targets = args.filter(a => !a.startsWith('-'));
+  const yes = flags.has('--yes') || flags.has('-y'), dry = flags.has('--dry-run') || flags.has('-n');
+  if (sub === 'report') {
+    const file = flags.has('--redact') ? M.report.replace('.html', '-redacted.html') : M.report;
+    print('wrote portlist-report-' + (flags.has('--redact') ? 'this-machine' : M.host) + '.html' + (flags.has('--redact') ? ', redacted' : '') +
+      '  <a href="' + file + '" target="_blank" rel="noopener">open it</a>\n' + C.dim('(the report of this machine as the playground built it: stops made here are not in it)') + '\n');
+    return 0;
+  }
+  if (sub === 'kill') {
+    if (!targets.length) { print('portlist kill: name a port or a name, e.g. portlist kill 8787\n'); return 4; }
+    const hits = [];
+    for (const t of targets) {
+      const port = /^:?\d+$/.test(t) ? +t.replace(':', '') : null;
+      if (port != null && !(port > 0 && port < 65536)) { print('portlist kill: ' + port + ' is not a port (1-65535)\n'); return 4; }
+      const found = Object.values(M.answers).filter(e => !S.killed.has(e.pid) && (port != null ? e.port === port :
+        [e.service, e.command, e.project && e.project.name].some(f => f && f.toLowerCase().includes(t.toLowerCase()))));
+      if (!found.length) print('nothing is listening that matches ' + (port != null ? 'port ' + port : 'name ' + esc(t)) + '\n');
+      hits.push(...found);
+    }
+    if (!hits.length) return 2;
+    const next = i => {
+      if (i >= hits.length) return;
+      const e = hits[i];
+      print(card(e) + '\n');
+      if (dry) { print(C.dim('   would run: ' + verbFor(e, sudo)) + '\n'); return next(i + 1); }
+      if (yes) return stopOne(e, sudo, () => next(i + 1));
+      if (e.user !== M.user && !sudo) return stopOne(e, sudo, () => next(i + 1));
+      ask('   Stop it (' + verbFor(e, sudo) + ')?', 'yN', a => a === 'y' ? stopOne(e, sudo, () => next(i + 1)) : (print(C.dim('   kept') + '\n'), next(i + 1)));
+    };
+    next(0);
+    return 0;
+  }
+  // cleanup
+  const cands = M.cleanup.filter(p => !S.killed.has(p)).map(answer);
+  if (flags.has('--json')) { print(esc(JSON.stringify(cands, null, 2)) + '\n'); return 0; }
+  if (!cands.length) { print(C.green('Nothing looks left over.') + C.dim(' (' + alive().length + ' listening)') + '\n'); return 0; }
+  print(C.b(cands.length + ' listener' + (cands.length === 1 ? ' looks' : 's look') + ' left over.') + C.dim(dry || yes ? '' : ' Nothing is stopped unless you say y. y stop, n keep, k keep and stop asking, a stop the rest, q quit') + '\n\n');
+  const done = { stopped: [], kept: [], ignored: [] };
+  let all = false;
+  const finish = () => {
+    if (dry) return print(C.dim('dry run: nothing was stopped. `portlist cleanup` asks about each one.') + '\n');
+    const b = [];
+    if (done.stopped.length) b.push(C.green('stopped ' + done.stopped.length + ' (' + done.stopped.map(p => ':' + p).join(' ') + ')'));
+    if (done.kept.length) b.push('kept ' + done.kept.length + ' (' + done.kept.map(p => ':' + p).join(' ') + ')');
+    if (done.ignored.length) b.push('stopped asking about ' + done.ignored.map(p => ':' + p).join(' '));
+    print((b.join(', ') || 'nothing done') + '\n');
+  };
+  const next = i => {
+    if (i >= cands.length) return finish();
+    const e = cands[i];
+    print(card(e, C.dim((i + 1) + '/' + cands.length + '  ')) + '\n');
+    if (dry) { print(C.dim('   would run: ' + verbFor(e, sudo)) + '\n\n'); return next(i + 1); }
+    if (yes || all) return stopOne(e, sudo, r => { done[r === 'stopped' ? 'stopped' : 'kept'].push(e.port); print('\n'); next(i + 1); });
+    ask('   Stop it?', 'yNkaq', a => {
+      if (a === 'q') { print(C.dim('stopped asking') + '\n'); return finish(); }
+      if (a === 'k') { done.ignored.push(e.port); print(C.dim('   kept; portlist will not call :' + e.port + ' a leftover again') + '\n\n'); return next(i + 1); }
+      if (a === 'y' || a === 'a') { all = a === 'a'; return stopOne(e, sudo, r => { done[r === 'stopped' ? 'stopped' : 'kept'].push(e.port); print('\n'); next(i + 1); }); }
+      done.kept.push(e.port); print(C.dim('   kept') + '\n\n'); next(i + 1);
+    });
+  };
+  next(0);
+  return 0;
+}
 
 // ------------------------------------------------------------------ portlist, the terminal program
 // Not an imitation: tools/playtui.py runs plcore.tui against an in-memory
@@ -499,7 +613,7 @@ const tour = { step: 0, steps: [
   { t: 'lsof says who holds it, not why', p: 'python3 holds it. Ask portlist instead: who started it, from which project, and can the network reach it.', c: 'portlist 8787', ok: l => /^portlist\s+:?8787\s*$/.test(l) },
   { t: 'A session that ended five days ago left it open', p: 'A Claude Code session started it, then exited. It is bound to every interface, and portlist connected from your network address and got in: the red building by the open gate. The chain on one line:', c: 'portlist 8787 --short', ok: l => /^portlist\s+:?8787.*(--short|-s)\b/.test(l) },
   { t: 'Everything else', p: 'One listing of everything, then only what looks left over:', c: 'portlist --list --leftovers', ok: l => /^portlist\b.*--leftovers/.test(l) || /^portlist\b.*--list/.test(l) },
-  { t: 'Stop it', p: 'portlist never stops anything on its own: it prints the command and you run it. Run it, and watch the harbour take the building down.', c: 'kill 4412', ok: (l, code) => /^(sudo\s+)?kill\b.*4412/.test(l) && code === 0 },
+  { t: 'Stop it', p: 'portlist kill shows what it is about to stop and asks first. Answer y, and watch the harbour take the building down. (Plain kill 4412 works too.)', c: 'portlist kill 8787', ok: (l, code) => l === 'portlist-stopped-4412' || (/^(sudo\s+)?kill\b.*4412/.test(l) && code === 0) },
   { t: 'The program itself', p: 'With nothing after it, portlist opens its ten views. Walk them with 0 to 9 or tab, j and k to move, enter for detail, V for the ambient screen. q leaves.', c: 'portlist', ok: l => l === 'portlist-q' },
   { t: 'That is portlist', p: 'Try the staging server under Machine for a box with something on it that should not be there, or install it and ask about your own.', c: null, ok: () => false }],
   check(line, code) { if (this.step < 0 || this.step >= this.steps.length - 1) return; if (this.steps[this.step].ok(line, code)) { this.step++; renderCoach(); } } };

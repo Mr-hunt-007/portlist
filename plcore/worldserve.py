@@ -156,20 +156,12 @@ def make_handler(token, port_ref, keep_fresh=True):
 
 def stop_process(pid, port, force=False):
     """Signal a process, but only one a fresh scan shows listening on `port`
-    right now. -> (http status, json text)."""
-    from . import scan
-    if pid in (0, 1) or pid in (os.getpid(), os.getppid()):
-        return 400, json.dumps({"error": "refusing to signal that process"})
-    rows, _ = scan.scan(force=True)
-    row = next((r for r in rows if r.get("pid") == pid and r.get("port") == port), None)
-    if not row:
-        return 409, json.dumps({"error": "pid %d is not listening on :%d any more" % (pid, port)})
-    try:
-        os.kill(pid, signal.SIGKILL if force else signal.SIGTERM)
-    except ProcessLookupError:
-        return 410, json.dumps({"error": "process already gone"})
-    except PermissionError:
-        return 403, json.dumps({"error": "not permitted: the process belongs to another user"})
+    right now. -> (http status, json text). The same guard `portlist kill` uses."""
+    from .stop import signal_listener
+    status, msg, row = signal_listener(pid, port, force)
+    code = {"ok": 200, "refused": 400, "stale": 409, "gone": 410, "denied": 403}[status]
+    if status != "ok":
+        return code, json.dumps({"error": msg})
     return 200, json.dumps({"ok": True, "signalled": pid, "signal": "SIGKILL" if force else "SIGTERM",
                             "service": row.get("service") or row.get("cmd")})
 

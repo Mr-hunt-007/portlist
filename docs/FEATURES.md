@@ -180,9 +180,12 @@ guessing.
 
 ## What it will not do
 
-- It never stops, kills or restarts anything on its own. The detail pane prints
-  the command and you run it. The harbour can stop a process only after you
-  switch stopping on in its Play panel (off on every load) and confirm each one.
+- It never stops anything on its own. `portlist kill` and `portlist cleanup`
+  stop only what you say yes to, after showing what it is and why it was
+  offered, and only what a fresh scan still shows on that port; a pipe is never
+  asked, so a script must pass `--yes`. The terminal views have no kill key. The
+  harbour can stop a process only after you switch stopping on in its Play panel
+  (off on every load) and confirm each one.
 - The terminal opens no listening socket. A tool for watching what is listening
   should not add to the list. `--world` is the exception you ask for: one server
   on 127.0.0.1, with a per-run key, gone when you close it.

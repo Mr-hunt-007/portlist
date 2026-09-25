@@ -27,9 +27,15 @@ well as field names, because an organisation name can itself contain an address.
 
 ## What portlist will not do
 
-It never stops, kills or restarts anything. The detail pane prints the command
-and you run it. That is deliberate: a tool that both guesses which process is
-abandoned and can end it will eventually end the wrong one.
+It never stops anything on its own. `portlist kill` and `portlist cleanup` stop
+what you say yes to, one listener at a time, after showing what it is; the
+leftover guess decides what to *ask* about, never what to end, because a tool
+that both guesses which process is abandoned and ends it will eventually end the
+wrong one. Every stop re-checks with a fresh scan that the process is still on
+that port, refuses pid 0, pid 1, portlist itself and anything filed as part of
+the system, and stops a container, a Homebrew service, a launchd job or a
+systemd unit through its manager rather than by signal. Standard input that is
+not a terminal is never asked a question: without `--yes`, nothing is stopped.
 
 ## Reporting a vulnerability
 

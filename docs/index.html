@@ -54,7 +54,7 @@
  {"@type":"Question","name":"Does portlist send anything anywhere?",
   "acceptedAnswer":{"@type":"Answer","text":"No. There is no telemetry and no update check, and nothing is sent off the machine. Agent transcripts are read locally and never leave it."}},
  {"@type":"Question","name":"Can portlist kill a process?",
-  "acceptedAnswer":{"@type":"Answer","text":"Not on its own. The detail pane prints the command and you run it. The harbour view can stop a process only after you switch stopping on (it is off on every load) and confirm that one process; it sends SIGTERM, and only if a fresh scan shows it still on that port."}},
+  "acceptedAnswer":{"@type":"Answer","text":"Not on its own. portlist kill 3000 shows what is on the port and who started it, asks, then stops it the right way: docker stop for a container, brew services, launchctl or systemctl for a managed service, SIGTERM otherwise, and checks it did not come straight back. portlist cleanup does the same for everything that looks left over, one at a time. The harbour view can stop a process only after you switch stopping on (it is off on every load) and confirm that one process; it sends SIGTERM, and only if a fresh scan shows it still on that port."}},
  {"@type":"Question","name":"Which coding agents does portlist read?",
   "acceptedAnswer":{"@type":"Answer","text":"Claude Code, Codex, GitHub Copilot CLI, VS Code chat, Cursor and Gemini CLI. Each is read from the store it already writes; nothing is installed into any of them."}},
  {"@type":"Question","name":"What does portlist run on?",
@@ -1016,9 +1016,10 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
     </div>
 
     <ul class="plain">
-      <li class="rise" data-n="01"><span><strong>It never stops anything on its own.</strong> The detail
-        pane prints the command and you run it. The harbour can stop a process only once you switch
-        that on and confirm it, one process at a time.</span></li>
+      <li class="rise" data-n="01"><span><strong>It never stops anything on its own.</strong>
+        <code>portlist kill</code> and <code>portlist cleanup</code> show what a listener is, then ask,
+        and stop a container or a managed service through its manager. The harbour can stop a process
+        only once you switch that on and confirm it, one process at a time.</span></li>
       <li class="rise" data-n="02"><span><strong>The terminal opens no listening socket.</strong> It
         connects outward to see what answers, and binds a candidate port for a moment to check it is
         free. Neither calls <code>listen()</code>. The harbour view listens on 127.0.0.1 only.</span></li>
@@ -1030,10 +1031,43 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
   </div>
 </section>
 
-<section class="chapter" id="architecture">
+<section class="chapter" id="deal">
   <div class="wrap">
     <div class="ch-head rise">
       <div class="ch-num">05</div>
+      <div class="ch-body">
+        <h2>Then deal with it.</h2>
+        <p>Ask about one port and get the whole answer, on one screen. Stop it and portlist stops
+          the right thing: the container, not its proxy; the service, not the process its manager
+          would restart. Then it looks again, and tells you if something brought it back.</p>
+      </div>
+      <div class="glyph jp" aria-hidden="true">止</div>
+    </div>
+
+    <ul class="plain">
+      <li class="rise" data-n="01"><span><strong><code>portlist 8787</code></strong> explains one
+        listener and exits: the chain that started it, the project, whether the network can reach it,
+        use, risk, and warnings that are each a measured fact. <code>--json</code> for scripts and
+        agents, exit codes that mean something.</span></li>
+      <li class="rise" data-n="02"><span><strong><code>portlist kill 8787</code></strong> shows it,
+        asks, and stops it through <code>docker stop</code>, <code>brew services</code>,
+        <code>launchctl</code> or <code>systemctl</code> when one of those owns it. A pipe is never
+        asked: a script says <code>--yes</code> or nothing happens.</span></li>
+      <li class="rise" data-n="03"><span><strong><code>portlist cleanup</code></strong> walks
+        everything that looks left over, the one the network can reach first, with the evidence:
+        unused for how long, started by which agent, whether that session is still alive.
+        <code>y</code> stop, <code>n</code> keep, <code>k</code> stop asking.</span></li>
+      <li class="rise" data-n="04"><span><strong><code>portlist report</code></strong> writes the
+        machine as one HTML page to attach to an issue or hand to a teammate, secrets in command lines
+        masked; <code>--redact</code> for one leaving your team.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="chapter" id="architecture">
+  <div class="wrap">
+    <div class="ch-head rise">
+      <div class="ch-num">06</div>
       <div class="ch-body">
         <h2>One scan, one model, ten views.</h2>
         <p>A view is a question asked of the model, never a second trip to the machine.
@@ -1099,7 +1133,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
 <section class="chapter" id="harbour">
   <div class="wrap">
     <div class="ch-head rise">
-      <div class="ch-num">06</div>
+      <div class="ch-num">07</div>
       <div class="ch-body">
         <h2>Or watch it as a harbour.</h2>
         <p><code>portlist --world</code>, or <kbd>W</kbd> in the terminal, opens the same scan as a
@@ -1138,7 +1172,7 @@ footer .end{margin-top:26px; font-family:var(--disp); font-size:13px; color:var(
 <section class="chapter" id="install">
   <div class="wrap">
     <div class="ch-head rise">
-      <div class="ch-num">07</div>
+      <div class="ch-num">08</div>
       <div class="ch-body">
         <h2>Install.</h2>
         <p>One program, no dependencies, nothing system-wide unless your package manager puts it
@@ -1187,7 +1221,7 @@ brew install portlist">copy</button><span class="p">$</span> brew tap Mr-hunt-00
 <section class="chapter" id="faq">
   <div class="wrap">
     <div class="ch-head rise">
-      <div class="ch-num">08</div>
+      <div class="ch-num">09</div>
       <div class="ch-body">
         <h2>Questions.</h2>
         <p>The ones worth answering before you install anything that reads your machine.</p>

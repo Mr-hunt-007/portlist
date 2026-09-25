@@ -50,11 +50,41 @@ keys
 """
 
 
+COMMANDS = """\
+commands
+  portlist kill 3000     stop it, after showing what it is and who started it.
+                         Stops a container, a Homebrew service or a launchd or
+                         systemd job the right way, and checks it stayed stopped
+  portlist cleanup       walk through what looks left over, with the evidence,
+                         and stop what you say yes to
+  portlist report        this machine's listeners as one HTML file to hand on
+                         (--redact for one leaving your team)
+  each takes --help
+"""
+
+
+def _command(name, argv):
+    if name == "kill":
+        from . import stop
+        return stop.kill_main(argv)
+    if name == "cleanup":
+        from . import stop
+        return stop.cleanup_main(argv)
+    from . import report
+    return report.report_main(argv)
+
+
 def main(argv=None):
+    argv = sys.argv[1:] if argv is None else list(argv)
+    if argv and argv[0] in ("kill", "cleanup", "report"):
+        try:
+            return _command(argv[0], argv[1:])
+        except KeyboardInterrupt:
+            return 1
     p = argparse.ArgumentParser(
         prog="portlist",
         description="Every port on this machine, and where it came from.",
-        epilog=KEYS, formatter_class=argparse.RawDescriptionHelpFormatter)
+        epilog=COMMANDS + "\n" + KEYS, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--version", action="version", version="portlist " + VERSION)
     p.add_argument("--data-dir", default=None,
                    help="where the launch ledger and use history live "

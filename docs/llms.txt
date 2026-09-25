@@ -1,0 +1,20 @@
+# portlist
+
+> Every port on this machine, and where it came from. A terminal program (Python, no dependencies; macOS, Linux, Windows; MIT) that lists what is listening and answers what lsof cannot: which agent session or terminal started each service, from which project, whether the network can actually reach it, and whether anyone still uses it. With a live harbour view in the browser.
+
+## Use it from a script or an agent
+
+- `portlist 3000`: explain one listener (who started it and the chain that did, project, reachability, use, risk, warnings, the command to stop it)
+- `portlist 3000 --json`: the same as JSON; `portlist --list --json` for everything
+- `portlist --list --exposed | --leftovers | --attention`: filtered listings
+- `portlist 3000 --short` / `--tree`: the chain that started it
+- Exit codes: 0 fine, 1 warnings, 2 nothing matched, 3 another user's process, 4 unusable question, 5 internal error
+- It never stops a process on its own; it prints the command. It sends nothing off the machine.
+
+## Links
+
+- [README](https://github.com/Mr-hunt-007/portlist/blob/main/README.md): what it does and how to install it
+- [Usage](https://github.com/Mr-hunt-007/portlist/blob/main/docs/USAGE.md): the views, keys and columns
+- [The harbour](https://github.com/Mr-hunt-007/portlist/blob/main/docs/WORLD.md): `portlist --world`, every object and what it measures
+- [Playground](https://mr-hunt-007.github.io/portlist/play/): try it in a browser on a simulated machine
+- [Features](https://github.com/Mr-hunt-007/portlist/blob/main/docs/FEATURES.md): the full list, and how each answer is reached

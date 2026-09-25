@@ -27,6 +27,32 @@ found here were breaches of one of them.
 6. **Verify against live output, not green tests.** Every recurring bug in this
    project has been a confident wrong answer rather than a crash.
 
+## Add an agent
+
+Each coding agent and editor portlist recognises is one file in
+`plcore/adapters/`, and every "was this started by an agent?" answer is built
+from them: the ancestry patterns, the environment variable names, the agent
+processes the Sessions view counts, and where its transcripts live. Adding one
+you use (Amp, Continue, Cline, Roo, Kiro...) is a single file:
+
+```python
+# plcore/adapters/amp.py
+from . import Adapter
+
+ADAPTER = Adapter(
+    kind="amp", name="Amp", cls="AI agent", order=78,
+    ancestry=r"(?:^|/)amp(?:\s|$)",   # matched against each ancestor's command line
+    env=(),                            # names the tool sets in what it launches; values are never read
+    processes=("amp",),                # its own executable, for the Sessions view
+)
+```
+
+`plcore/adapters/__init__.py` documents every field. Two rules: a pattern must
+not match anything else (a wrong name is worse than "unknown"), and show the
+evidence in the pull request, a `ps -o pid,ppid,command` line from a real
+session is enough. `tests/test_report_adapters.py` checks the table is still
+consistent.
+
 ## Terminal work
 
 `plcore/tui.py`, `vibe.py`, `dash.py` and `graphview.py` are the drawing layer.

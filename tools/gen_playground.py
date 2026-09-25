@@ -23,11 +23,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from plcore import agents, explain, world  # noqa: E402
+from plcore import agents, explain, report, stop, world  # noqa: E402
 
 import playtui  # noqa: E402  (tools/, next to this file)
 
 OUT = os.path.join(ROOT, "docs", "play")
+from plcore.app import VERSION  # noqa: E402
 # a fixed moment, so the same code always builds the same bytes (CI checks that it does)
 NOW = 1_790_000_000.0
 DAY = 86400
@@ -139,6 +140,7 @@ def devbox():
             "lan": "192.0.2.14", "blurb": "Claude Code has been busy here: a Next.js app with its database and cache in "
             "Docker, a Vite server, a local model, and a file server from a session that ended five days ago.",
             "tutorial": True, "rows": rows, "sessions": _devbox_sessions(),
+            "units": {}, "labels": {610: "homebrew.mxcl.ollama"},
             "events": [(40, {"type": "opened", "text": "Next.js opened on :3000 (Localhost only)"}),
                        (1300, {"type": "closed", "text": "Storybook on :6006 stopped listening"}),
                        (3 * 3600, {"type": "opened", "text": "Vite opened on :5173 (Localhost only)"}),
@@ -246,6 +248,8 @@ def web1():
     return {"key": "web1", "title": "Staging server", "user": "deploy", "host": "web-1", "os": "Ubuntu 24.04",
             "lan": "203.0.113.20", "blurb": "A small staging server: nginx in front, a PM2 app, Postgres and Redis, "
             "and SSH. Some of it is meant to be public. Some of it is not.", "tutorial": False, "rows": rows, "sessions": {"sessions": [], "processes": [], "accounts": []},
+            "units": {1200: "nginx.service", 900: "postgresql.service", 1500: "redis-server.service", 800: "ssh.service"},
+            "labels": {},
             "events": [(25, {"type": "opened", "text": "a connection to :5432 from 198.51.100.77"}),
                        (2 * DAY, {"type": "opened", "text": "kworkerd opened on :4444 (All interfaces)"}),
                        (12 * DAY, {"type": "opened", "text": "Node / Express opened on :8080 (Localhost only)"})],
@@ -332,6 +336,7 @@ def machine(m):
     tasks = world.plan_pets(snap, [], now=NOW)
     out = _finish(m, rows, answers, listing, snap, tasks)
     out["tui"] = tui
+    out["stops"], out["cleanup"], out["report"] = _stops(m, rows, det, hostinfo, sysinfo)
     out["beats"], out["beat_events"] = beats, beat_events
     return out
 
@@ -392,6 +397,33 @@ def _life(m, rows, hostinfo, sysinfo, base):
     beats = [{k: s[k] for k in keys if k in s and _json.dumps(s[k], sort_keys=True, default=str)
               != _json.dumps(base.get(k), sort_keys=True, default=str)} for s in snaps]
     return beats, events
+
+
+def _stops(m, rows, det, hostinfo, sysinfo):
+    """How `portlist kill` would stop each listener here, from portlist's own
+    supervisor detection, fed the units and launchd labels this machine has;
+    which listeners `portlist cleanup` would offer; and the report page."""
+    saved = stop._cgroup_unit, stop._launchd_label, stop.os.geteuid
+    stop._cgroup_unit = lambda pid: ("system", m["units"][pid]) if pid in m["units"] else None
+    stop._launchd_label = lambda pid: m["labels"].get(pid)
+    stop.os.geteuid = lambda: 1000                       # the visitor is not root
+    try:
+        plans = {}
+        for r in rows:
+            sup = stop.supervisor(r, det[r["pid"]]["tree"]["ancestry"])
+            plans[str(r["pid"])] = ({"command": " ".join(sup["command"]) if sup["command"] else None,
+                                     "runnable": bool(sup["runnable"] and sup["command"]), "note": sup["note"],
+                                     "kind": sup["kind"]} if sup else None)
+    finally:
+        stop._cgroup_unit, stop._launchd_label, stop.os.geteuid = saved
+    cleanup = [r["pid"] for r in stop.candidates(rows)]
+    name = "report-%s.html" % m["key"]
+    for redact, path in ((False, name), (True, name.replace(".html", "-redacted.html"))):
+        with playtui.Clock(NOW):
+            page = report.build(rows, hostinfo, sysinfo, det, redact=redact, now=NOW, version=VERSION)
+        with open(os.path.join(OUT, path), "w", encoding="utf-8") as f:
+            f.write(page)
+    return plans, cleanup, name
 
 
 def _finish(m, rows, answers, listing, snap, tasks):

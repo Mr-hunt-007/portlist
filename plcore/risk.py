@@ -32,18 +32,26 @@ def classify_exposure(addrs):
     return "unknown"
 
 
-def verify_exposure(level, port, host):
+def verify_exposure(level, port, host, addrs):
     """Prove a non-loopback bind actually accepts on a real network address."""
     if level not in ("all", "lan"):
         return None
-    for a in host.get("lan", []):
+    candidates = [a for a in host.get("lan", [])
+                  if level == "all" or a["ip"] in addrs]
+    # A wildcard listener should be reachable on any interface. Keep its
+    # existing single-interface check; specific listeners need their own IP.
+    if level == "all":
+        candidates = candidates[:1]
+    failed = None
+    for a in candidates:
         if collect.reachable_from(a["ip"], port):
             return {"ip": a["ip"], "iface": a["iface"], "accepting": True,
                     "note": "Accepted a connection on %s (%s). Whether the internet can reach it "
                             "also depends on your router and firewall." % (a["ip"], a["iface"])}
-        return {"ip": a["ip"], "iface": a["iface"], "accepting": False,
-                "note": "Bound to all interfaces but did not accept on %s - likely filtered." % a["ip"]}
-    return None
+        failed = {"ip": a["ip"], "iface": a["iface"], "accepting": False,
+                  "note": "Bound to %s but did not accept on %s - likely filtered."
+                          % (level, a["ip"])}
+    return failed
 
 
 def score(row, host):

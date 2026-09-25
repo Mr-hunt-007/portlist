@@ -182,9 +182,11 @@ SAMPLER = r"""
       }
       for (const c of W.cars.values()) {
         if (c.stage === 'queued') { last.delete(c.key); continue; }
+        // Same key is not same car: replay, Live and the sandbox rebuild the car
+        // park with new cars parked in their bays, which is a new scene, not a jump.
         const q = last.get(c.key);
-        if (smooth && q && Math.hypot(c.pos[0] - q[0], c.pos[1] - q[1]) > 0.3) R.teleports.push(c.key);
-        last.set(c.key, c.pos.slice());
+        if (smooth && q && q.car === c && Math.hypot(c.pos[0] - q.p[0], c.pos[1] - q.p[1]) > 0.3) R.teleports.push(c.key);
+        last.set(c.key, { car: c, p: c.pos.slice() });
         if (!onSurface(c.pos)) R.offRoad.push(c.pos.map(v => +v.toFixed(1)));
       }
       const hc = [g.head.gx + 0.75, g.head.gy + 0.75];

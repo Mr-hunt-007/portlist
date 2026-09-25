@@ -80,9 +80,11 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ### Fixed
 
-- The harbour check no longer calls a car moving honestly across a stalled
-  frame a jump, and waits for the simulated train rather than five frames: a
-  CI runner that froze for five minutes had failed both.
+- The harbour check's "no vehicle jumps" compared cars by key, so a car park
+  rebuilt by replay or Live (new cars, parked straight into their bays) could
+  read as a teleport whenever the bays came out in a different order. It now
+  compares a car only with itself, skips frames from a stalled runner, and
+  waits for the simulated train instead of a fixed five frames.
 
 - Harbour camera kept its focus when the container yard overflows (#11), public
   visitors are counted only at the port they reached (#12), and a service bound

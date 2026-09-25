@@ -113,6 +113,54 @@ pipx there. The name `portlist` on PyPI belongs to an unrelated package, which
 is why the distribution is `portlist-tui` while the command stays
 `portlist`.</sub>
 
+## One answer, then exit
+
+When you already know which one you mean, name it and portlist explains it
+without opening the views:
+
+```
+$ portlist 8000
+Target       :8000
+Service      FastAPI / Uvicorn  (Python, pid 18714, user you)
+Project      ransompool  ~/code/ransompool
+Started      18h 6m ago by a Claude Code session (exited)
+Why it runs  launchd (pid 1) → Python (pid 18714)
+Reachable    Localhost only  127.0.0.1
+In use       0 connections now, never seen in use in 18h of watching
+Risk         12 Info
+Warnings     looks left over: nothing has connected to it in 18 hours
+             a Claude Code session started it and has since exited
+To stop it   kill 18714  (portlist prints it; you run it)
+```
+
+```
+portlist 3000              # a port (or :3000); portlist --port 3000 --port 5173 for several
+portlist node              # every listener whose service, command or project matches
+portlist --pid 812         # by process
+portlist 3000 --short      # just the chain that started it, on one line
+portlist 3000 --tree       # the chain as a tree, with what it started in turn
+portlist 3000 --warnings   # only what deserves a look
+portlist 3000 --json       # all of it, for scripts and agents
+portlist --list            # everything listening, once; add --exposed, --leftovers or --attention
+portlist --completion zsh  # shell completion for bash, zsh or fish
+```
+
+Warnings are measured facts: reachable from beyond this machine, bound beyond
+loopback, high risk, running as root, an executable deleted since it started,
+a library injection variable (`LD_PRELOAD`, `DYLD_INSERT_LIBRARIES`), looks
+left over, its agent has exited, up more than 90 days, over 1 GB of memory,
+started three or more times today. An unknown origin is not a warning: unknown
+is not the same as dangerous.
+
+The exit code says what a script needs: `0` fine, `1` warnings, `2` nothing
+matched, `3` another user's process (run with sudo), `4` an unusable question,
+`5` an internal error.
+
+```sh
+portlist 8787 --short
+case $? in 0) echo fine ;; 1) echo "worth a look" ;; 2) echo "not running" ;; esac
+```
+
 ## The dashboard
 
 `0`, and it is where portlist opens. Everything about the machine on one screen,

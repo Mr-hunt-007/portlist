@@ -124,7 +124,7 @@ guessing.
 - **Sharing is what it shows.** A parent is printed once and carried down with a
   rule, so eleven services under one agent session reads at a glance.
 - **The address that proved it.** Where reachability was verified by connecting,
-  the graph says `confirmed on 192.168.0.2` rather than just naming the zone.
+  the graph says `confirmed on 192.0.2.14` rather than just naming the zone.
 - **It degrades by dropping columns**, the process first, and becomes headed
   groups below 100 columns.
 

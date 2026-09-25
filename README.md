@@ -13,18 +13,7 @@
   <a href="LICENSE">MIT</a>
 </p>
 
-```
-$ portlist
- PORTLIST  devbox   6 listening  1 off-box  1 need attention                              14:13:20
- ▌1 Services   2 Exposed   3 Attention   4 Leftovers   5 Agents   6 Containers   7 Sessions ...
-
- PORT    SERVICE                 PROJECT           REACHABLE      RISK     STARTED BY
- :3000   Next.js                 storefront        Localhost only 12 Info  Claude Code 2h
- :5173   Vite                    admin-ui          Localhost only 12 Info  terminal 5h
- :5432   PostgreSQL              storefront        Localhost only 12 Info  Docker 2d
- :8787   Python http.server      data-export       All interfaces 71 High  Claude Code 5d
- :11434  Ollama                  -                 Localhost only 12 Info  launchd 9d
-```
+<p align="center"><img src="docs/dashboard.png" alt="portlist's dashboard: machine load, exposure, agents and containers; every listening port with who started it and whether it is reachable; the selected :8787 Python file server, started by a Claude Code session, bound to all interfaces, risk 71 High with the reasons" width="900"></p>
 
 `:8787` is the one to look at. Ask about it:
 
@@ -146,21 +135,16 @@ is why the distribution is `portlist-tui` while the command stays
 ## One answer, then exit
 
 When you already know which one you mean, name it and portlist explains it
-without opening the views:
+without opening the views, as `portlist 8787` does at the top of this page. The
+chain that started it, on its own:
 
 ```
-$ portlist 8000
-Target       :8000
-Service      FastAPI / Uvicorn  (Python, pid 18714, user you)
-Project      ransompool  ~/code/ransompool
-Started      18h 6m ago by a Claude Code session (exited)
-Why it runs  launchd (pid 1) → Python (pid 18714)
-Reachable    Localhost only  127.0.0.1
-In use       0 connections now, never seen in use in 18h of watching
-Risk         12 Info
-Warnings     looks left over: nothing has connected to it in 18 hours
-             a Claude Code session started it and has since exited
-To stop it   portlist kill 8000  (or kill 18714)
+$ portlist 3000 --tree
+launchd (pid 1)
+  └─ zsh (pid 812)
+    └─ claude (pid 901)
+      └─ npm (pid 4100)
+        └─ node (pid 4123)   :3000 Next.js
 ```
 
 ```
@@ -196,36 +180,7 @@ case $? in 0) echo fine ;; 1) echo "worth a look" ;; 2) echo "not running" ;; es
 `0`, and it is where portlist opens. Everything about the machine on one screen,
 so a single screenshot tells the whole story.
 
-```
-  MACHINE                                           EXPOSURE                    AGENTS                      CONTAINERS
-     ·  ●  ●         ·  ●  ●         ◉  ●  ●        LISTENING      16           Claude Code    14           ENGINE         docker
-   ·         ●     ·         ●     ●         ●      EXPOSED        2            terminal       1            STATE          no answer
-  ·    36%    ◉   ◉    85%    ●   ●    96%    ●     NEEDS WORK     2            launchd        1                           count unknown
-   ·   CPU   ·     ●   RAM   ●     ●  DISK   ●      UNKNOWN ORIGIN 12                                                      not zero
-     ·  ·  ·         ●  ●  ●         ●  ●  ●
-  LOAD  3.56 3.37 3.64
-
-  LISTENING  14 services                                                                                      Tab  next section
-    PORT    SERVICE               PROJECT           STARTED BY          REACH           RISK
-  ● :7337   Grafana               metrics           terminal            Localhost only  12 Info
-  ○ :8000   Python http.server    analytics         Claude Code         Localhost only  12 Info
-  ○ :8787   Python http.server    data-export       Claude Code         All interfaces  71 High
-
-  SELECTED SERVICE                                                          │ ACTIVITY
-                                                                            │
-  Grafana :7337                                                             │ 22:52:49 · Bun on :10065 stopped listening
-  ~/code/metrics                                                            │ 22:23:58 · Bun opened on :57155 (loopback)
-                                                                            │
-  REACH      Localhost only                                                 │ CPU
-  PID        9561   Python                                                  │ ▃▃▄▃▃▂▃▄▅▄▃▃▃
-  LAST USED  in use now                                                     │ MEMORY
-                                                                            │ ▇▇▇▇▇▇▇▇▇▇▇▇▇
-  RISK  71 / 100   High                                                     │
-    +42   Listening on all interfaces (0.0.0.0)                             │
-    +10   No authentication seen and reachable off-box                      │
-
-  ● 2 exposed    ◆ 2 need attention    ⚠ 12 unknown origin    ◉ 3 agents    firewall on
-```
+<p align="center"><img src="docs/dashboard-server.png" alt="The dashboard on a staging server: four services reachable from outside, PostgreSQL selected at risk 88 Critical with each reason and its points, and a live connection from a public address in the activity pane" width="900"></p>
 
 **Tab** moves to the next view, in the same order as the number keys, and
 **shift-Tab** goes back. **`h`** and **`l`** (or the arrows) move between the
@@ -290,21 +245,7 @@ Ten agent windows, none of them closed, and no way to tell which is which.
 Press **7**. Open sessions first, because those are the only rows you can act
 on; everything under them is a transcript nobody is holding:
 
-```
- TOOL     WHAT IT WAS ABOUT                    PROJECT      CONTEXT  VS BIGGEST  LAST USED
- 4 agent processes running  -  30 transcripts on disk
-     Claude Code      max - default max 20x
-     Codex            not signed in
-
- 6 open right now  -  2.9M tokens between them  -  oldest untouched 5h
- * claude Refactor the billing webhook retries  payments       215k  ██░░░░░░    2s ago    4 here
- * claude Port the admin table to components    admin-ui       904k  ████████    17m ago   4 here
- * claude Trace the flaky integration test      api            479k  ████░░░░    26m ago   4 here
-
- 24 left on disk, no process behind them
-   claude Split the worker into two queues      worker         935k  ████████    7h ago
-   claude Make the search endpoint paginate     docs           193k  ██░░░░░░    9h ago
-```
+<p align="center"><img src="docs/sessions.png" alt="The sessions view: one Claude Code session open with its pid and context size, three transcripts left on disk, each with what it was about, its project and how long since it was used" width="900"></p>
 
 The bar compares each session with the **biggest one on this machine**, and
 with nothing else. A transcript records the tokens a turn carried; it never
@@ -315,18 +256,18 @@ window it cannot read.
 to, and how to close it:
 
 ```
- context       903,802 tokens on the last turn  -  214 turns
- last active   28 Aug 04:14  (17m ago)
- running       pid 14502
- close it      kill 14502
- first prompt  the stripe webhook retries twice on 5xx, work out why and fix...
- last prompt   run the migration against staging first
+ context       184,000 tokens on the last turn - 96 turns
+ last active   21 Sep 14:12 (40s ago)
+ running       pid 901
+ close it      kill 901
+ first prompt  Add checkout page and wire it to the orders API
+ where it got  checkout page renders, orders API returns 201, next: payment webhook
 ```
 
 When several agents share one directory it says so instead of choosing:
 
 ```
- running       pid 9316, 5864, 30000, 43725 - more than one agent is in this
+ running       pid 901, 1120, 1377, 2002 - more than one agent is in this
                directory, so which of them is this session cannot be told from outside
  close it      from its own window - the line above says why a pid cannot be picked for you
 ```
@@ -376,23 +317,11 @@ and the last activity. Sixty sessions in a tenth of a second.
 `9`. Who started what, where it runs and what it exposes, laid out the way a
 terminal draws a layered graph well:
 
-```
-  STARTED BY            PROJECT             PROCESS           PORT  AND SERVICE          REACHABLE FROM
-  started work in ──▸   runs ──▸            listens ──▸       confirmed on ──▸
-
-  ◆ Claude Code       ├─analytics         ──Python pid 6810 ──:8000   Python http.serv ──Localhost only
-  │                   ├─data-export       ──node pid 77259  ──:8422   unidentified     ──Localhost only
-  │                   │                   ──Python pid 96798──:8787   Python http.serv ──All interfaces  confirmed on 192.168.0.2
-  │                   ├─metrics           ──bun pid 32016   ──:48744  Bun              ──Localhost only
-  │                   └─scanner           ──Python pid 67222──:8787   FastAPI / Uvicorn──Localhost only
-  ◇ launchd           └─no project        ──tor pid 58508   ──:9050   Tor              ──Localhost only
-
-  ◆ an agent session   ◇ something else   10 of 12 services were started by an agent
-```
+<p align="center"><img src="docs/graph.png" alt="The graph view: each starter (Claude Code, Docker, launchd, a terminal) with the projects it worked in, the process it runs, the port it listens on and where that port is reachable from" width="900"></p>
 
 One line is one service, and a parent is printed once and carried down with a
-rule, which is what makes the sharing visible: eleven services under one agent
-session, four in one project. The edge names are the ones the web version uses,
+rule, which is what makes the sharing visible: every service sits under the
+agent that started it, and under that, the project it runs in. The edge names are the ones the web version uses,
 so both surfaces describe the machine with one vocabulary.
 
 Narrow terminals get the same graph as headed groups, because that is what a
@@ -424,20 +353,7 @@ and the rules are in [docs/WORLD.md](docs/WORLD.md).
 
 Press **V**, or leave it alone for thirty seconds:
 
-```
-                              P O R T L I S T
-
-                                LOCAL NETWORK
-
-                                   ○ :8787
-                  :8422 ○ ·           ·           · ○ :8807
-                            ·····     ·     ·····
-             :8078 ○ ···················HOST···········●······ ◉ :7337
-                            ·····     ·     ·····
-                  :9050 ○ ·           ·           · ○ :8000
-
-                  1 connection observed between local services
-```
+<p align="center"><img src="docs/vibe.png" alt="Vibe mode's cockpit scene: CPU, memory and disk meters, every listening service with its reach, and a strip of the host's ports" width="820"></p>
 
 Seven scenes rotate: the cockpit (everything at once), a grid of every listening
 service, the machine and its

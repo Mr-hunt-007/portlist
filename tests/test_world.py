@@ -81,6 +81,112 @@ def test_unknown_origin_is_curious_not_alarming():
     assert svc["risk_band"] == "Info"
 
 
+def test_listener_name_uses_attached_container_labels_without_claiming_protocol_or_origin():
+    cases = ((80, "traefik", "homelab-traefik-1", "traefik", "com.docker.backend"),
+             (5432, None, "postgres", "postgres", "?"),
+             (53, "pihole", "homelab-pihole-1", "pihole", "docker-proxy"))
+    for port, compose_service, container_name, expected, cmd in cases:
+        r = row(port=port, service=None, service_id=None, service_cat=None, cmd=cmd,
+                origin={}, starter={}, container={"id": "cid-%d" % port,
+                                                  "service": compose_service, "name": container_name,
+                                                  "project": "homelab", "image": "example/image"})
+        svc = snap([r])["services"][0]
+        assert svc["name"] == expected
+        assert svc["name_source"] == "container"
+        assert "container-reported" in svc["name_why"]
+        assert "protocol not verified" in svc["name_why"]
+        assert "identity_note" not in svc
+        assert svc["origin"] == "unknown" and svc["family"] == "unknown"
+        assert svc["risk"] == 0 and svc["risk_band"] == "Info"
+
+
+def test_attached_container_exposes_bounded_service_and_image_without_changing_name():
+    attached = {"id": "cid", "name": "pihole-1", "service": "pihole",
+                "image": "docker.io/pihole/pihole:2026.09"}
+    svc = snap([row(service="DNS service", service_id="mcp", container=attached,
+                    origin={}, starter={})])["services"][0]
+    assert svc["container"] == "pihole-1"
+    assert svc["container_service"] == "pihole"
+    assert svc["container_image"] == "docker.io/pihole/pihole:2026.09"
+    assert svc["name"] == "DNS service" and svc["name_source"] == "catalog"
+    assert svc["origin"] == "unknown"
+
+
+def test_container_metadata_requires_an_attached_dict_not_a_yard_or_shared_port_guess():
+    doc = {"reachable": True, "containers": [{"id": "other", "name": "pihole-1",
+            "service": "pihole", "image": "pihole/pihole:latest", "state": "running",
+            "ports": [{"host_port": 3000}]}]}
+    for attached in (None, {}, "old-name", {"service": "?", "image": "<none>"}):
+        r = row(service=None, service_id=None, service_cat=None, cmd="?",
+                container=attached, container_ambiguous="shared port")
+        svc = snap([r], containers=doc)["services"][0]
+        assert svc["container_service"] is None and svc["container_image"] is None
+        assert svc["container"] == (attached.get("name") if isinstance(attached, dict) else attached)
+        assert svc["name_source"] == "unidentified"
+
+
+def test_attached_container_metadata_scrubs_and_caps_display_text():
+    r = row(service=None, service_id=None, service_cat=None, cmd="?",
+            container={"name": "proxy-1", "service": " \x00 contact someone@example.com \n" + "s" * 200,
+                       "image": "registry.example/dev@example.com/" + "i" * 300})
+    svc = snap([r])["services"][0]
+    assert "\x00" not in svc["name"]
+    for field, limit in (("container_service", 70), ("container_image", 120)):
+        value = svc[field]
+        assert value and len(value) <= limit
+        assert "@example.com" not in value
+        assert "\n" not in value and "\x00" not in value
+
+
+def test_listener_name_catalog_script_process_and_unknown_are_distinct():
+    attached = {"id": "cid", "service": "unverified-container", "name": "container-1"}
+    catalog = snap([row(service="PostgreSQL", service_id="postgres", cmd="docker-proxy",
+                        container=attached)])["services"][0]
+    assert (catalog["name"], catalog["name_source"], catalog["family"]) == (
+        "PostgreSQL", "catalog", "postgres")
+
+    script = snap([row(service="store-helper.mjs", service_id=None, service_cat=None,
+                       container=attached)])["services"][0]
+    assert (script["name"], script["name_source"], script["family"]) == (
+        "store-helper.mjs", "script", "unknown")
+
+    process = snap([row(service=None, service_id=None, service_cat=None, cmd="python3",
+                        container=None)])["services"][0]
+    assert (process["name"], process["name_source"]) == ("python3", "process")
+    assert "protocol not verified" in process["name_why"]
+
+    proxy = snap([row(service=None, service_id=None, service_cat=None,
+                      cmd="com.docker.backend", container={"id": "cid"})])["services"][0]
+    assert (proxy["name"], proxy["name_source"]) == ("Unidentified listener", "unidentified")
+    nopid = row(service=None, service_id=None, service_cat=None, cmd="python3")
+    nopid.update(pid=None, id="3000-nopid")
+    for missing in (row(service=None, service_id=None, service_cat=None, cmd="?"), nopid):
+        svc = snap([missing])["services"][0]
+        assert (svc["name"], svc["name_source"]) == ("Unidentified listener", "unidentified")
+
+
+def test_listener_names_scrub_private_addresses_and_cap_length():
+    r = row(service=None, service_id=None, service_cat=None, cmd="?",
+            container={"service": "  contact someone@example.com  " + "z" * 100,
+                       "name": "fallback"})
+    svc = snap([r])["services"][0]
+    assert len(svc["name"]) <= 70
+    assert "someone@example.com" not in svc["name"]
+    assert "[address]" in svc["name"]
+
+
+def test_shared_port_without_row_container_does_not_borrow_another_identity():
+    rows = [row(port=8000, pid=10, service=None, service_id=None, service_cat=None,
+                cmd="?", container=None, origin={}, starter={}),
+            row(port=8000, pid=11, service=None, service_id=None, service_cat=None,
+                cmd="node", container=None, origin={}, starter={})]
+    svcs = {s["pid"]: s for s in snap(rows)["services"]}
+    assert (svcs[10]["name"], svcs[10]["name_source"]) == ("Unidentified listener", "unidentified")
+    assert (svcs[11]["name"], svcs[11]["name_source"]) == ("node", "process")
+    assert all(s["origin"] == "unknown" and s["container"] is None for s in svcs.values())
+    assert all(s["conflict"] for s in svcs.values())
+
+
 def test_too_few_samples_is_measuring_not_idle():
     s = snap([row(activity={"known": False, "note": "watching for 6s"})])
     assert s["services"][0]["activity"] == "unmeasured"
@@ -307,6 +413,19 @@ def test_reconstruct_walks_opens_and_closes_back():
     assert [(x["port"], x["exposure"]) for x in at30] == [(3000, "loopback"), (8080, "all")]   # vite not yet, api still up
     assert [x["port"] for x in world.reconstruct(now_rows, events, NOW - 5)] == [3000, 5173]  # the present
     assert [x["port"] for x in world.reconstruct(now_rows, events, NOW - 100)] == [3000]       # before api opened
+
+
+def test_past_display_names_are_recorded_not_live_catalog_or_process_evidence():
+    from plcore import catalog
+    catalog_name = next(sig["name"] for sig in catalog.SERVICES if sig.get("name"))
+    for display_name in (catalog_name, "custom-server.py"):
+        historical = world._past_row({"port": 8888, "pid": 9, "service": display_name,
+                                      "exposure": "loopback"})
+        svc = snap([historical])["services"][0]
+        assert svc["name"] == display_name
+        assert svc["name_source"] == "recorded"
+        assert "recorded" in svc["name_why"]
+        assert "not verified" in svc["name_why"]
 
 
 def test_fleet_harbours_skip_this_machine_and_keep_the_quiet_ones():

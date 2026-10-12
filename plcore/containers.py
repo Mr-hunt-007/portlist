@@ -163,14 +163,30 @@ def inventory(ttl=TTL):
 
 
 def by_port(doc=None):
-    """-> {host_port: container} for running containers that publish one."""
+    """-> {TCP host_port: container} only where one running container owns it.
+
+    The scan's listener rows are TCP. UDP-only and unlabelled mappings cannot
+    identify them. Duplicate IPv4/IPv6 bindings of one container are fine;
+    different TCP owners publishing the same host port are ambiguous.
+    """
     doc = doc if doc is not None else inventory()
-    table = {}
+    table, owners, ambiguous = {}, {}, set()
     for c in doc.get("containers") or []:
         if c["state"] != "running":
             continue
+        owner = (c.get("engine"), c["id"]) if c.get("id") else id(c)
         for p in c["ports"]:
-            table.setdefault(p["host_port"], dict(c, published=p))
+            if p.get("proto") != "tcp":
+                continue
+            port = p.get("host_port")
+            if port is None or port in ambiguous:
+                continue
+            if port in owners and owners[port] != owner:
+                table.pop(port, None)
+                ambiguous.add(port)
+            else:
+                owners[port] = owner
+                table.setdefault(port, dict(c, published=p))
     return table
 
 

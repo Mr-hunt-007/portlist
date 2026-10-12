@@ -50,6 +50,66 @@ def main():
         pg.wait_for_function("() => { const f = document.querySelector('#harbour').contentWindow; try { return f.eval('W.buildings.size') > 0 } catch (e) { return false } }", timeout=20000)
         harbour = lambda js: pg.evaluate("(js) => document.querySelector('#harbour').contentWindow.eval(js)", js)
 
+        def selector_check(name, js, expected):
+            actual = harbour(js)
+            check(name, actual == expected, str(actual))
+
+        # Browser-only tests of the actual renderer selectors, with synthetic
+        # evidence. The port and display name alone must never select a logo.
+        selector_check("exact attached container image logos", """(() => {
+          const c = (image, service = '') => ({name_source:'container', family:'unknown',
+            service_id:null, container_image:image, container_service:service});
+          return [logoOf(c('traefik:3.0', 'traefik')),
+                  logoOf(c('docker.io/pihole/pihole:latest', 'pihole')),
+                  logoOf(c('docker.io/library/postgres:16', 'postgres')),
+                  logoOf(c('public.ecr.aws/supabase/studio:latest'))];
+        })()""", ["traefikproxy", "pihole", "postgresql", "supabase"])
+        selector_check("digest and docker.io registry aliases retain exact repository identity", """(() => {
+          const c = image => ({name_source:'container', family:'unknown', service_id:null,
+            container_image:image, container_service:null});
+          return [logoOf(c('index.docker.io/library/postgres@sha256:abcdef')),
+                  logoOf(c('registry-1.docker.io/pihole/pihole@sha256:abcdef')),
+                  logoOf(c('docker.io/library/traefik@sha256:abcdef')),
+                  logoOf(c('sha256:abcdef'))];
+        })()""", ["postgresql", "pihole", "traefikproxy", None])
+        selector_check("catalog wins; conflicting image and service fail closed", """(() => {
+          const c = {name_source:'container', family:'unknown', container_image:'postgres:16',
+            container_service:'postgres'};
+          return [logoOf({...c, service_id:'redis'}),
+                  logoOf({...c, container_image:'traefik:3.0'})];
+        })()""", ["redis", None])
+        selector_check("unknown, ambiguous and unattached listeners have no brand", """(() => {
+          const c = {family:'unknown', service_id:null, container_image:'traefik:3.0',
+            container_service:'traefik'};
+          return [logoOf({...c, name_source:'unidentified'}),
+                  logoOf({...c, name_source:'unidentified', container_ambiguous:true}),
+                  logoOf({...c, name_source:'process', cmd:'?'}),
+                  logoOf({...c, name_source:'container', container_image:null, container_service:null})];
+        })()""", [None] * 4)
+        selector_check("registry ports and similar image names are not brand matches", """(() => {
+          const c = image => ({name_source:'container', family:'unknown', service_id:null,
+            container_image:image, container_service:null});
+          return ['registry.local:5000/traefik:3', 'ghcr.io/other/traefik:3',
+                  'traefikish:3', 'docker.io/library/traefik-extra:3'].map(x => logoOf(c(x)));
+        })()""", [None] * 4)
+        selector_check("OpenCode and Unity require exact process evidence", """(() => {
+          const c = (cmd, cmdline = cmd) => ({name_source:'process', family:'unknown',
+            service_id:null, cmd, cmdline});
+          return [logoOf(c('opencode')), logoOf(c('OpenCode')), logoOf(c('opencode-helper')),
+                  logoOf(c('Unity', '/Applications/Unity/Hub/Editor/2022.3/Unity.app/Contents/MacOS/Unity -projectPath /tmp/game')),
+                  logoOf(c('Unity', 'Unity -adb2 AssetImportWorker -projectPath /tmp/game')),
+                  logoOf(c('Unity', 'Unity -projectPath /tmp/game')),
+                  logoOf(c('Unity Hub', '/Applications/Unity/Hub/Editor/2022.3/Unity.app/Contents/MacOS/Unity'))];
+        })()""", ["opencode", None, None, "unity", "unity", None, None])
+        selector_check("Mailpit, Wyoming and exporter use generic emblems", """(() => {
+          const c = image => ({name_source:'container', family:'unknown', service_id:null,
+            container_image:image, container_service:null});
+          return [emblemOf(c('axllent/mailpit:latest')),
+                  emblemOf(c('rhasspy/wyoming-piper:1')),
+                  emblemOf(c('ghcr.io/other/node-exporter:v1')),
+                  emblemOf(c('ghcr.io/other/mailpit:v1'))];
+        })()""", ["mail", "waves", "chart", "gear"])
+
         def type_(cmd):
             pg.fill("#in", cmd)
             pg.press("#in", "Enter")

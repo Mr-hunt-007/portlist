@@ -543,12 +543,71 @@ const APP_LOGO = [[/chrome/i, 'googlechrome'], [/firefox/i, 'firefoxbrowser'], [
   [/telegram/i, 'telegram'], [/whatsapp/i, 'whatsapp'], [/github/i, 'github'], [/^git(-remote.*)?$/i, 'git'], [/^curl$/i, 'curl'], [/^brew/i, 'homebrew'], [/electron/i, 'electron'],
   [/1password/i, '1password'], [/dropbox/i, 'dropbox'], [/^warp/i, 'warp'], [/raycast/i, 'raycast'], [/perplexity/i, 'perplexity'], [/ollama/i, 'ollama'], [/^linear/i, 'linear'], [/iterm/i, 'iterm2']];
 function appLogo(name) { for (const [rx, slug] of APP_LOGO) if (rx.test(name || '') && LOGOS[slug]) return slug; return null; }
-// the service's own mark first; an app server shows what it was built with
+// Inline Simple Icons marks selected only when listener identity evidence matches.
+LOGOS.opencode = { t: 'OpenCode', c: '000000', p: 'M22 24H2V0h20zM17 4.8H7v14.4h10z' };
+LOGOS.unity = { t: 'Unity', c: 'FFFFFF', p: 'm12.9288 4.2939 3.7997 2.1929c.1366.077.1415.2905 0 .3675l-4.515 2.6076a.4192.4192 0 0 1-.4246 0L7.274 6.8543c-.139-.0745-.1415-.293 0-.3675l3.7972-2.193V0L1.3758 5.5977V16.793l3.7177-2.1456v-4.3858c-.0025-.1565.1813-.2682.318-.1838l4.5148 2.6076a.4252.4252 0 0 1 .2136.3676v5.2127c.0025.1565-.1813.2682-.3179.1838l-3.7996-2.1929-3.7178 2.1457L12 24l9.6954-5.5977-3.7178-2.1457-3.7996 2.1929c-.1341.082-.3229-.0248-.3179-.1838V13.053c0-.1565.087-.2956.2136-.3676l4.5149-2.6076c.134-.082.3228.0224.3179.1838v4.3858l3.7177 2.1456V5.5977L12.9288 0Z' };
+LOGOS.supabase = { t: 'Supabase', c: '3FCF8E', p: 'M11.9 1.036c-.015-.986-1.26-1.41-1.874-.637L.764 12.05C-.33 13.427.65 15.455 2.409 15.455h9.579l.113 7.51c.014.985 1.259 1.408 1.873.636l9.262-11.653c1.093-1.375.113-3.403-1.645-3.403h-9.642z' };
+LOGOS.traefikproxy = { t: 'Traefik Proxy', c: '24A1C1', p: 'M12 1.19c1.088 0 2.056.768 2.056 1.714 0 .947-.921 1.715-2.056 1.715-.13 0-.3-.022-.509-.064a.685.685 0 0 0-.475.076l-7.37 4.195a.344.344 0 0 0 .001.597l7.99 4.49c.208.116.461.116.669 0l8.034-4.468a.343.343 0 0 0 .003-.598l-2.507-1.424a.683.683 0 0 0-.67-.003l-2.647 1.468a.234.234 0 0 0-.119.18l-.001.025c0 .946-.921 1.714-2.056 1.714s-2.056-.768-2.056-1.714c0-.947.921-1.715 2.056-1.715.042 0 .09.002.145.007l.087.008.096.013a.685.685 0 0 0 .425-.08l3.913-2.173c.3-.166.662-.171.965-.017l.04.023 5.465 3.104c.686.39.693 1.368.03 1.773l-.037.021-3.656 2.033a.343.343 0 0 0 .007.604l3.62 1.906c.72.378.736 1.402.03 1.804l-10.995 6.272a1.03 1.03 0 0 1-1.019 0L.526 16.43a1.03 1.03 0 0 1 .034-1.806l3.66-1.911a.343.343 0 0 0 .01-.603L.524 10.029a1.03 1.03 0 0 1-.041-1.77l.036-.021L9.618 3.06a.688.688 0 0 0 .308-.369l.011-.036c.32-.952 1.046-1.466 2.063-1.466Zm5.076 12.63-4.492 2.586-.041.022c-.306.158-.671.152-.973-.018l-4.478-2.527a.682.682 0 0 0-.65-.01L3.86 15.224a.343.343 0 0 0-.012.602l7.887 4.515c.21.12.467.121.677 0l7.956-4.547a.343.343 0 0 0-.01-.602l-2.623-1.384a.683.683 0 0 0-.659.012z' };
+LOGOS.pihole = { t: 'Pi-hole', c: '96060C', p: "M4.344 0c.238 4.792 3.256 7.056 6.252 7.376.165-1.692-4.319-5.6-4.319-5.6-.008-.011.009-.025.019-.014 0 0 4.648 4.01 5.423 5.645 2.762-.15 5.196-1.947 5-4.912 0 0-4.12-.613-5 4.618C11.48 2.753 8.993 0 4.344 0zM12 7.682v.002a3.68 3.68 0 0 0-2.591 1.077L4.94 13.227a3.683 3.683 0 0 0-.86 1.356 3.31 3.31 0 0 0-.237 1.255A3.681 3.681 0 0 0 4.92 18.45l4.464 4.466a3.69 3.69 0 0 0 2.251 1.06l.002.001c.093.01.187.015.28.017l-.1-.008c.06.003.117.009.177.009l-.077-.001L12 24l-.004-.005a3.68 3.68 0 0 0 2.61-1.077l4.469-4.465a3.683 3.683 0 0 0 1.006-1.888l.012-.063a3.682 3.682 0 0 0 .057-.541l.003-.061c0-.017.003-.05.004-.06h-.002a3.683 3.683 0 0 0-1.077-2.607l-4.466-4.468a3.694 3.694 0 0 0-1.564-.927l-.07-.02a3.43 3.43 0 0 0-.946-.133L12 7.682zm3.165 3.357c.023 1.748-1.33 3.078-1.33 4.806.164 2.227 1.733 3.207 3.266 3.146-.035.003-.068.007-.104.009-1.847.135-3.209-1.326-5.002-1.326-2.23.164-3.21 1.736-3.147 3.27l-.008-.104c-.133-1.847 1.328-3.21 1.328-5.002-.173-2.32-1.867-3.284-3.46-3.132.1-.011.203-.021.31-.027 1.847-.133 3.209 1.328 5.002 1.328 2.082-.155 3.074-1.536 3.145-2.968zM4.344 0c.238 4.792 3.256 7.056 6.252 7.376.165-1.692-4.319-5.6-4.319-5.6-.008-.011.009-.025.019-.014 0 0 4.648 4.01 5.423 5.645 2.762-.15 5.196-1.947 5-4.912 0 0-4.12-.613-5 4.618C11.48 2.753 8.993 0 4.344 0zM12 7.682v.002a3.68 3.68 0 0 0-2.591 1.077L4.94 13.227a3.683 3.683 0 0 0-.86 1.356 3.31 3.31 0 0 0-.237 1.255A3.681 3.681 0 0 0 4.92 18.45l4.464 4.466a3.69 3.69 0 0 0 2.251 1.06l.002.001c.093.01.187.015.28.017l-.1-.008c.06.003.117.009.177.009l-.077-.001L12 24l-.004-.005a3.68 3.68 0 0 0 2.61-1.077l4.469-4.465a3.683 3.683 0 0 0 1.006-1.888l.012-.063a3.682 3.682 0 0 0 .057-.541l.003-.061c0-.017.003-.05.004-.06h-.002a3.683 3.683 0 0 0-1.077-2.607l-4.466-4.468a3.694 3.694 0 0 0-1.564-.927l-.07-.02a3.43 3.43 0 0 0-.946-.133L12 7.682zm3.165 3.357c.023 1.748-1.33 3.078-1.33 4.806.164 2.227 1.733 3.207 3.266 3.146-.035.003-.068.007-.104.009-1.847.135-3.209-1.326-5.002-1.326-2.23.164-3.21 1.736-3.147 3.27l-.008-.104c-.133-1.847 1.328-3.21 1.328-5.002-.173-2.32-1.867-3.284-3.46-3.132.1-.011.203-.021.31-.027 1.847-.133 3.209 1.328 5.002 1.328 2.082-.155 3.074-1.536 3.145-2.968z" };
+const CONTAINER_IMAGE_LOGOS = {
+  traefik: 'traefikproxy', 'docker.io/library/traefik': 'traefikproxy',
+  'pihole/pihole': 'pihole', 'docker.io/pihole/pihole': 'pihole',
+  postgres: 'postgresql', 'docker.io/library/postgres': 'postgresql',
+  'public.ecr.aws/supabase/studio': 'supabase'
+};
+const CONTAINER_SERVICE_LOGOS = { traefik: 'traefikproxy', pihole: 'pihole', postgres: 'postgresql' };
+const CONTAINER_IMAGE_EMBLEMS = {
+  'rhasspy/wyoming-piper': 'waves', 'docker.io/rhasspy/wyoming-piper': 'waves',
+  'rhasspy/wyoming-whisper': 'waves', 'docker.io/rhasspy/wyoming-whisper': 'waves',
+  'rhasspy/wyoming-faster-whisper': 'waves', 'docker.io/rhasspy/wyoming-faster-whisper': 'waves',
+  'rhasspy/wyoming-speech-to-phrase': 'waves', 'docker.io/rhasspy/wyoming-speech-to-phrase': 'waves',
+  'ghcr.io/tboby/wyoming-onnx-asr': 'waves',
+  'axllent/mailpit': 'mail', 'docker.io/axllent/mailpit': 'mail',
+  'public.ecr.aws/supabase/mailpit': 'mail'
+};
+function containerImageRepo(ref) {
+  if (typeof ref !== 'string' || !ref.trim()) return '';
+  let value = ref.trim().toLowerCase();
+  if (value.startsWith('sha256:')) return '';
+  const digestAt = value.indexOf('@');
+  if (digestAt >= 0) value = value.slice(0, digestAt);
+  const slashAt = value.lastIndexOf('/'), tagAt = value.lastIndexOf(':');
+  if (tagAt > slashAt) value = value.slice(0, tagAt);
+  return value.replace(/^(index|registry-1)\.docker\.io\//, 'docker.io/');
+}
+function attachedContainerLogo(service) {
+  if (!service || service.name_source !== 'container' || !(service.container_image || service.container_service)) return null;
+  const imageLogo = CONTAINER_IMAGE_LOGOS[containerImageRepo(service.container_image)] || null;
+  const serviceKey = typeof service.container_service === 'string' ? service.container_service.trim().toLowerCase() : '';
+  const serviceLogo = CONTAINER_SERVICE_LOGOS[serviceKey] || null;
+  if (imageLogo && serviceLogo && imageLogo !== serviceLogo) return null;
+  return imageLogo || serviceLogo;
+}
+function processEvidenceLogo(service) {
+  if (!service || service.name_source !== 'process') return null;
+  if (service.cmd === 'opencode') return 'opencode';
+  if (service.cmd !== 'Unity' || typeof service.cmdline !== 'string') return null;
+  const line = service.cmdline;
+  const linuxHubEditor = /^\/(?:[^/\s]+\/)*Unity\/Hub\/Editor\/[^/\s]+\/Editor\/Unity(?:\s|$)/;
+  const macHubEditor = /^\/(?:[^/\s]+\/)*Unity\/Hub\/Editor\/[^/\s]+\/Unity\.app\/Contents\/MacOS\/Unity(?:\s|$)/;
+  if (linuxHubEditor.test(line) || macHubEditor.test(line)) return 'unity';
+  if (line.startsWith('Unity -adb2 ') && line.includes('AssetImportWorker') && /(?:^|\s)-projectPath(?:=|\s)/.test(line)) return 'unity';
+  return null;
+}
+function attachedContainerEmblem(service) {
+  if (!service || service.name_source !== 'container' || !service.container_image) return null;
+  return CONTAINER_IMAGE_EMBLEMS[containerImageRepo(service.container_image)] || null;
+}
+// Catalog identity remains first; attached-container and exact process evidence are fallbacks.
 function logoOf(s) {
   const id = s.service_id;
   if (['uvicorn', 'gunicorn', 'express', 'bun', 'vite', 'nextjs', 'webpack'].includes(id) && s.framework && LOGOS[s.framework]) return s.framework;
   if (LOGO_OF[id] && LOGOS[LOGO_OF[id]]) return LOGO_OF[id];
+  const containerLogo = attachedContainerLogo(s);
+  if (containerLogo && LOGOS[containerLogo]) return containerLogo;
   if (s.framework && LOGOS[s.framework]) return s.framework;
+  const processLogo = processEvidenceLogo(s);
+  if (processLogo && LOGOS[processLogo]) return processLogo;
   if (s.runtime && LOGOS[s.runtime] && !s.system) return s.runtime;
   return null;
 }
@@ -560,6 +619,12 @@ function badgesOf(s) {
 const PATHS = {};
 function logoPath(slug) { return PATHS[slug] || (PATHS[slug] = new Path2D(LOGOS[slug].p)); }
 function lum(hexc) { const [r, g, b] = rgb('#' + hexc); return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255; }
+function medallionLogoColor(slug, plate) {
+  const brand = LOGOS[slug].c, backgroundLum = lum(String(plate).replace('#', ''));
+  if (backgroundLum > .62 && lum(brand) > .82) return '#3a4450';
+  if (backgroundLum < .3 && lum(brand) < .18) return '#f3f5f7';
+  return '#' + brand;
+}
 // draws a logo into a box at (x, y) of `size`, in its own colour unless told otherwise
 function paintLogo(slug, x, y, size, col) {
   if (!LOGOS[slug]) return;
@@ -579,7 +644,17 @@ function logoSvg(slug, px) {
   const bg = lum(L.c) > 0.82 ? '#1c2733' : '#f3f5f7';
   return '<span class="lchip" style="background:' + bg + ';width:' + px + 'px;height:' + px + 'px" title="' + esc(L.t) + '"><svg viewBox="0 0 24 24" width="' + Math.round(px * 0.62) + '" height="' + Math.round(px * 0.62) + '" aria-hidden="true"><path fill="#' + L.c + '" d="' + L.p + '"/></svg></span>';
 }
-function emblemOf(s) { return EMBLEM_OF[s.service_id] || FAM_EMBLEM[s.family] || 'gear'; }
+function emblemOf(s) {
+  const attached = attachedContainerEmblem(s);
+  if (attached) return attached;
+  if (s && s.name_source === 'process' && s.cmd === 'adb') return 'plug';
+  if (s && s.name_source === 'container') {
+    const service = typeof s.container_service === 'string' ? s.container_service.trim().toLowerCase() : '';
+    const image = containerImageRepo(s.container_image).split('/').pop();
+    if (/(?:^|[-_])exporter$/.test(service) || /(?:^|[-_])exporter$/.test(image)) return 'chart';
+  }
+  return EMBLEM_OF[s.service_id] || FAM_EMBLEM[s.family] || 'gear';
+}
 
 function paintEmblem(c, name, col) {
   c.fillStyle = col; c.strokeStyle = col; c.lineWidth = 0.09; c.lineCap = 'round'; c.lineJoin = 'round';
@@ -623,6 +698,7 @@ function paintEmblem(c, name, col) {
     case 'onion': c.beginPath(); c.moveTo(.5, .06); c.quadraticCurveTo(.56, .3, .82, .52); c.quadraticCurveTo(.92, .9, .5, .92); c.quadraticCurveTo(.08, .9, .18, .52); c.quadraticCurveTo(.44, .3, .5, .06); c.fill();
       c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = .05; c.beginPath(); c.ellipse(.5, .66, .16, .24, 0, 0, 6.3); c.stroke(); break;
     case 'waves': c.lineWidth = .08; for (let i = 1; i < 4; i++) { c.beginPath(); c.arc(.5, .8, i * .2, 3.9, 5.5); c.stroke(); } circ(.5, .8, .06, true); break;
+    case 'mail': c.lineWidth = .08; c.strokeRect(.12, .22, .76, .56); P([[.12, .26], [.5, .58], [.88, .26]]); c.stroke(); P([[.14, .76], [.4, .52]]); c.stroke(); P([[.86, .76], [.6, .52]]); c.stroke(); break;
     case 'gear': circ(.5, .5, .2); for (let i = 0; i < 8; i++) { const a = i / 8 * 6.283; P([[.5 + Math.cos(a) * .26, .5 + Math.sin(a) * .26], [.5 + Math.cos(a) * .4, .5 + Math.sin(a) * .4]]); c.lineWidth = .12; c.stroke(); } break;
     case 'bug': c.beginPath(); c.ellipse(.5, .56, .2, .28, 0, 0, 6.3); c.fill(); c.lineWidth = .06; for (const y of [.42, .58, .74]) { P([[.28, y], [.1, y - .06]]); c.stroke(); P([[.72, y], [.9, y - .06]]); c.stroke(); } break;
     default: c.lineWidth = .1; c.beginPath(); c.arc(.5, .36, .18, 3.4, 7.2); c.quadraticCurveTo(.5, .56, .5, .64); c.stroke(); circ(.5, .82, .05, true);
@@ -3298,10 +3374,10 @@ function medallion(b, z, size, night) {
     const lg = logoOf(s);
     if (cam.zoom < 0.55) {
       // too small to read a logo: a plain dot in its colour says enough
-      ctx.beginPath(); ctx.ellipse(0.5, 0.5, 0.18, 0.18, 0, 0, 6.3); ctx.fillStyle = lg && s.origin !== 'unknown' ? '#' + LOGOS[lg].c : '#8a8a94'; ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0.5, 0.5, 0.18, 0.18, 0, 0, 6.3); ctx.fillStyle = lg ? medallionLogoColor(lg, plate) : '#8a8a94'; ctx.fill();
     } else if (lg) {
       ctx.save(); ctx.translate(0.2, 0.2); ctx.scale(0.6 / 24, 0.6 / 24);
-      ctx.fillStyle = s.origin === 'unknown' ? '#8a8a94' : lum(LOGOS[lg].c) > 0.82 ? '#3a4450' : '#' + LOGOS[lg].c;
+      ctx.fillStyle = medallionLogoColor(lg, plate);
       ctx.fill(logoPath(lg)); ctx.restore();
     } else {
       ctx.save(); ctx.translate(0.18, 0.18); ctx.scale(0.64, 0.64);
@@ -4203,14 +4279,15 @@ function drawHover() {
   ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.font = '600 12.5px ' + SANS; const w1 = ctx.measureText(label).width;
   ctx.font = '400 10.5px ' + MONO; const w2 = ctx.measureText(sub).width;
-  const bw = Math.max(w1, w2) + 22, bh = 42;
+  const bw = Math.min(Math.max(120, VW - 24), Math.max(w1, w2) + 22), bh = 42;
   let bx = ptr.x + 16, by = ptr.y - bh - 10;
-  if (bx + bw > VW - 12) bx = ptr.x - bw - 16; if (by < 12) by = ptr.y + 18;
+  if (bx + bw > VW - 12) bx = ptr.x - bw - 16;
+  bx = clamp(bx, 12, Math.max(12, VW - bw - 12)); if (by < 12) by = ptr.y + 18;
   ctx.shadowColor = 'rgba(0,0,0,.4)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 4;
   ctx.fillStyle = 'rgba(10,19,29,.96)'; ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 8); ctx.fill();
   ctx.shadowColor = 'transparent'; ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1; ctx.stroke();
-  ctx.textAlign = 'left'; ctx.fillStyle = '#f2f8fc'; ctx.font = '600 12.5px ' + SANS; ctx.fillText(label, bx + 11, by + 18);
-  ctx.fillStyle = '#84a8bf'; ctx.font = '400 10.5px ' + MONO; ctx.fillText(sub, bx + 11, by + 32);
+  ctx.textAlign = 'left'; ctx.fillStyle = '#f2f8fc'; ctx.font = '600 12.5px ' + SANS; ctx.fillText(label, bx + 11, by + 18, bw - 22);
+  ctx.fillStyle = '#84a8bf'; ctx.font = '400 10.5px ' + MONO; ctx.fillText(sub, bx + 11, by + 32, bw - 22);
   ctx.restore();
 }
 // who started what, as a short family: each service, what it runs on, what it
@@ -4226,10 +4303,29 @@ function familyTree(ids) {
   }
   return out.length ? out : ['nothing listening'];
 }
+function compactReachability(exposure) {
+  return ({ reachable:'outside reach', local:'local only', bound:'bound off-box', unreachable:'refused', unknown:'reach unknown' })[exposure] || 'reach unknown';
+}
+function compactServiceActivity(activity) { return ({ busy:'busy', active:'active', idle:'idle', long_idle:'long idle', unmeasured:'measuring' })[activity] || 'activity unknown'; }
+function shortWorldLabel(value, limit) { const text = String(value == null ? '' : value); return text.length > limit ? text.slice(0, limit - 1).trimEnd() + '…' : text; }
+function serviceNameSource(service) {
+  if (service.name_source === 'container') return 'container-reported · not verified';
+  if (service.name_source === 'process' && processEvidenceLogo(service)) return 'process-reported';
+  if (service.name_source === 'recorded') return 'recorded name';
+  if ((service.name_source === 'process' && (!service.cmd || service.cmd === '?')) || service.name_source === 'unidentified' || service.name === 'Unidentified listener' || service.name === '?') return service.pid == null ? 'process name unavailable' : 'service not identified';
+  return '';
+}
+function serviceIdentityLabel(service) {
+  if (service.name_source === 'container') return 'container-reported · not verified';
+  if (service.name_source === 'recorded') return 'recorded name';
+  if ((service.name_source === 'process' && (!service.cmd || service.cmd === '?')) || service.name_source === 'unidentified' || service.name === 'Unidentified listener' || service.name === '?') return service.pid == null ? 'process name unavailable' : 'service not identified';
+  return ({ catalog:'catalog name', script:'script name', process:'process name' })[service.name_source] || '';
+}
+function serviceDisplayName(service) { return service.name && service.name !== '?' ? service.name : 'Unidentified listener'; }
 function hoverText(h) {
   const r = h.ref;
   switch (h.kind) {
-    case 'building': { const s = r.s; return [s.name, ':' + s.port + '  ·  ' + (ACT[s.activity] || {}).label + (s.exposure === 'reachable' ? '  ·  reachable from outside' : '')]; }
+    case 'building': { const s = r.s; return [shortWorldLabel(serviceDisplayName(s), 34), shortWorldLabel([':' + s.port, serviceNameSource(s), compactServiceActivity(s.activity), compactReachability(s.exposure)].filter(Boolean).join(' · '), 68)]; }
     case 'container': return [r.name, (r.c && r.c.image || 'container') + '  ·  ' + (r.c && r.c.running ? 'running' : r.c ? r.c.state : '')];
     case 'worker': return [r.w.name, (r.w.look === 'robot' ? 'agent' : r.w.class) + '  ·  ' + (r.stage === 'leave' ? 'leaving' : r.w.ports.map(p => ':' + p).join(' '))];
     case 'session': return [r.title || 'untitled session', r.tool + '  ·  ' + (r.project || '') + '  ·  live'];
@@ -4263,6 +4359,10 @@ function hoverText(h) {
   return ['', ''];
 }
 
+function familyLabelWithEvidence(service) {
+  return service.name_source === 'container' && String(service.family_label || '').toLowerCase() === 'unidentified' ? 'protocol not identified' : service.family_label;
+}
+
 // ------------------------------------------------------------------ inspector
 const $ = s => document.querySelector(s);
 const tag = (label, fg, bg, bd) => ({ label, fg, bg, bd: bd || bg });
@@ -4276,8 +4376,10 @@ function describe(h) {
   const r = h.ref;
   if (h.kind === 'building') {
     const s = r.s, a = ACT[s.activity] || ACT.idle;
-    const tags = [solid(a.label, a.c), soft(s.family_label), s.exposure === 'reachable' ? warn(EXPO.reachable) : soft(EXPO[s.exposure]),
+    const tags = [solid(a.label, a.c), soft(familyLabelWithEvidence(s)), s.exposure === 'reachable' ? warn(EXPO.reachable) : soft(EXPO[s.exposure]),
       s.origin === 'unknown' ? tag(ORIG.unknown, '#1a1c28', '#a9b2d6') : soft(ORIG[s.origin])];
+    const identityLabel = serviceIdentityLabel(s);
+    if (identityLabel) tags.splice(1, 0, s.name_source === 'container' ? tag(identityLabel, '#30250f', 'rgba(240,162,75,.16)', 'rgba(240,162,75,.38)') : soft(identityLabel));
     if (s.risk_band && s.risk_band !== 'Info' && s.risk_band !== 'Low') tags.push(s.risk_band === 'Medium' ? tag('medium risk', '#2a1c05', '#ffcf6a') : warn(s.risk_band.toLowerCase() + ' risk ' + s.risk));
     if (s.leftover) tags.push(solid('looks left over', '#8a7a68'));
     if (s.lights_left_on) tags.push(tag('owner gone', '#2a1c05', '#ffcf6a'));
@@ -4293,16 +4395,21 @@ function describe(h) {
     if (s.conflict.length) see.push('Crossed swords: ' + (s.conflict.length + 1) + ' processes hold :' + s.port + ' on different addresses.');
     if (s.failure !== 'ok') see.push('Flickering windows: ' + s.failure_why + '.');
     if (s.system) see.unshift('A small shed in the system quarter: portlist files this as a system service, so it is left out of the counts, the gate and the pets\' work, the same as in the terminal.' + (s.exposure === 'reachable' ? ' It is reachable from outside all the same, which is why it has a red dotted ring.' : ''));
+    const identityEvidence = [];
+    if (s.name_source === 'container') identityEvidence.push('This name was reported by the attached container; it is not independently verified.');
+    else if ((s.name_source === 'process' && (!s.cmd || s.cmd === '?')) || s.name_source === 'unidentified' || s.name === 'Unidentified listener' || s.name === '?') identityEvidence.push(s.pid == null ? 'The process name is unavailable.' : 'The service has not been identified.');
+    if (s.name_why) identityEvidence.push(shortWorldLabel(s.name_why, 240));
+    const processLabel = s.cmd && s.cmd !== '?' ? s.cmd : s.pid == null ? 'unavailable (no process ID)' : 'process name unavailable';
     return {
-      kind: 'SERVICE', accent: a.c, title: s.name, tags,
+      kind: 'SERVICE', accent: a.c, title: serviceDisplayName(s), tags,
       logos: [logoOf(s)].concat(badgesOf(s)).filter(Boolean).map(k => [k, k === s.runtime ? 'runtime' : k === s.framework ? 'framework' : 'service']),
-      meta: [['port', ':' + s.port]].concat(s.local_name ? [['name', s.local_name + '.localhost']] : []).concat([['process', (s.cmd || '?') + (s.pid != null ? '  pid ' + s.pid : '')]]).concat([ ['project', s.project || s.dir || 'none'],
+      meta: [['port', ':' + s.port]].concat(s.local_name ? [['name', s.local_name + '.localhost']] : []).concat([['process', processLabel + (s.pid != null ? '  pid ' + s.pid : '')]]).concat([ ['project', s.project || s.dir || 'none'],
         ['bind', s.bind || '?'], ['reachability', s.exposure_why], ['activity', s.activity_why], ['cpu', s.cpu == null ? 'not measured' : s.cpu + '% of a core, which sets the chimney'], ['record', s.record ? 'seen on ' + s.record.days + ' day' + (s.record.days === 1 ? '' : 's') + ', in use in ' + Math.round(s.record.busy_share * 100) + '% of ' + s.record.samples + ' journal samples' : 'not in the journal yet'], ['origin', s.origin_phrase || s.origin_why],
         ['owner', s.owner_name ? s.owner_name + (s.owner_alive === false ? ' (exited)' : s.owner_alive ? ' (running)' : '') : 'nobody on record'],
         ['runtime', s.runtime && LOGOS[s.runtime] ? LOGOS[s.runtime].t + ', from the process' : 'not recognised'],
         ['framework', s.framework && LOGOS[s.framework] ? LOGOS[s.framework].t + ', ' + s.framework_why : 'none found in the project'],
         ['uptime', dur(s.uptime)], ['health', s.health_label || s.health || '?']]),
-      sections: [['WHAT YOU SEE', see], ['WHY IT IS RUNNING', [s.why || s.origin_why]]]
+      sections: [['WHAT YOU SEE', see], ['SERVICE IDENTITY EVIDENCE', identityEvidence], ['WHY IT IS RUNNING', [s.why || s.origin_why]]]
         .concat(s.reasons.length ? [['RISK, AS SCORED', s.reasons]] : []).concat(s.leftover_why.length ? [['WHY IT LOOKS LEFT OVER', s.leftover_why]] : []),
       cmds: ['lsof -nP -iTCP:' + s.port + ' -sTCP:LISTEN'].concat(s.pid != null ? ['kill ' + s.pid] : []),
       // a shared port: one button per side. The sandbox acts it out; live, the page hands you the command

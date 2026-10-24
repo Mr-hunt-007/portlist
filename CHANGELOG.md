@@ -4,6 +4,12 @@ Dates are the day the work landed. Versions follow [semver](https://semver.org/)
 
 ## Unreleased
 
+- **The dashboard counts the containers that are running.** `docker ps -a`
+  lists the ones that exited as well as the ones that are up, and the
+  CONTAINERS card counted all of them as running and counted the host ports
+  the stopped ones no longer hold. It now counts what is up, which is what
+  the Containers view and the harbour already said.
+
 - **The README shows the program instead of describing it.** The text screens
   are replaced by pictures of the dashboard, the sessions view, the graph and
   vibe mode, drawn by portlist itself for the playground's simulated machines

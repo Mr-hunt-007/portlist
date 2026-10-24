@@ -155,6 +155,17 @@ def _lifetime(t, y, x, width, seconds, span, picked):
     t.put(y, x + bar_w + 1, label, C_SEL if picked else C_DIM)
 
 
+def _running(doc):
+    """The containers that are actually up.
+
+    `docker ps -a` lists the ones that exited as well as the ones that are
+    running, and a stopped container is neither running nor holding a port.
+    Counting it as either is a number the dashboard cannot take back.
+    """
+    return [c for c in ((doc or {}).get("containers") or [])
+            if c.get("state") == "running"]
+
+
 def _card_level(t, title):
     """-> (0..1 or None, colour) for a card's wave. Each one is a real ratio."""
     s = t.summary or {}
@@ -170,7 +181,7 @@ def _card_level(t, title):
         doc = t.containers or {}
         if not doc.get("reachable"):
             return (None, C_DIM)          # flat: the engine did not answer
-        boxes = doc.get("containers") or []
+        boxes = _running(doc)
         return (min(1.0, len(boxes) / float(shown)), C_BLUE if boxes else C_DIM)
     return (None, C_DIM)
 
@@ -255,7 +266,9 @@ def _cards(t, y, h, w):
         agents = [("nothing yet", "", "dim")]
 
     if cont.get("reachable"):
-        boxes = cont.get("containers") or []
+        # Only the containers that are up. The engine lists the ones that
+        # exited too, and a stopped container holds no port.
+        boxes = _running(cont)
         projects = {c.get("project") for c in boxes if c.get("project")}
         ports = sum(len(c.get("ports") or []) for c in boxes)
         containers = [("RUNNING", len(boxes), "text"),

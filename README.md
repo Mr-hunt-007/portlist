@@ -13,6 +13,10 @@
   <a href="LICENSE">MIT</a>
 </p>
 
+<p align="center">
+  <a href="https://trendshift.io/repositories/239367"><img src="docs/trendshift.svg" alt="portlist featured on Trendshift" width="250"></a>
+</p>
+
 <p align="center"><img src="docs/dashboard.png" alt="portlist's dashboard: machine load, exposure, agents and containers; every listening port with who started it and whether it is reachable; the selected :8787 Python file server, started by a Claude Code session, bound to all interfaces, risk 71 High with the reasons" width="900"></p>
 
 `:8787` is the one to look at. Ask about it:

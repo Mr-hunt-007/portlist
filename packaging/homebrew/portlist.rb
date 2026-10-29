@@ -12,7 +12,7 @@ class Portlist < Formula
   desc "Every port on this machine, and where it came from"
   homepage "https://mr-hunt-007.github.io/portlist/"
   url "https://github.com/Mr-hunt-007/portlist/archive/refs/tags/v1.4.tar.gz"
-  sha256 "41021620ab97d4ccab4eee87e0e0bacaac633c70241c2531c64f098372c4c80c"
+  sha256 "25ce3d2b1e712867000aadb9607e300e280ab1477b35b3386238852b789d5cab"
   license "MIT"
   head "https://github.com/Mr-hunt-007/portlist.git", branch: "main"
 
